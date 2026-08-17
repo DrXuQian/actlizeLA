@@ -31,11 +31,14 @@ actual hgcc build, PPU RAW-BIT verdict, and ACU opcode/spill check close it.
 
 This branch routes six generated-operand product kinds (11 logical product
 instances) through the production PPU `TiledMma`, for 1,152 additional
-`m16n16k16` operations per full chunk and 1,408 dense-forward MMA operations
-including QK/KK. Local algebra, type instantiation, and independently anchored
-A/B/C coordinate ownership pass. It is **not a release verdict**: the real
-hgcc body, PPU RAW-BIT output/state, the 1,408-opcode denominator, registers,
-and spills remain device postconditions.
+`m16n16k16` operations per full chunk and 1,408 BF16 dense-forward MMA
+operations including QK/KK. The inverse adds six blocked products implemented
+as 40 `m16n16k8` TF32-input/FP32-accumulate operations, leaving only the four
+16x16 triangular dependency chains scalar. Local algebra, exact device-type
+instantiation, physical fragment delivery, TF32-aware inverse authority, and
+negative controls pass. It is **not a release verdict**: the real hgcc body,
+PPU output/state, the separate 1,408-BF16/40-TF32 opcode denominators,
+registers, and spills remain device postconditions.
 
 ## Dependencies
 
@@ -70,8 +73,10 @@ OUT=/workspace/actlizeLA-local-gates bash tools/run_local_gates.sh
 
 The gates cover recurrence/WY algebra, every C16/C32/C64 tail, public ABI,
 the exact device type, and independently anchored PPU operand/destination
-ownership. They do not substitute for the PPU-only opcode, shared-memory,
-register, or runtime verdicts.
+ownership and compact physical fragment delivery. They also distinguish the
+blocked inverse's exact TF32 fixture from its bounded non-exact numerical
+seam. They do not substitute for the PPU-only opcode, shared-memory, register,
+or runtime verdicts.
 
 ## PPU build and correctness
 

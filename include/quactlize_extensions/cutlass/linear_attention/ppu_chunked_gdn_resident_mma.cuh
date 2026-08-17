@@ -18,9 +18,12 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
+#include <utility>
 
 #include "cutlass/bfloat16.h"
 #include "cutlass/cutlass.h"
+#include "cutlass/tfloat32.h"
 
 #if defined(__HGGCCC__)
 #include "cute/algorithm/gemm.hpp"
@@ -59,6 +62,49 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
   using OutputShape = cute::Shape<cute::Int<kM>, cute::Int<kN>>;
   using Accumulator = decltype(cute::partition_fragment_C(
       TiledMma{}, OutputShape{}));
+  using ThreadMma = decltype(TiledMma{}.get_thread_slice(0));
+  using FragmentShapeA = decltype(cute::make_tensor(
+      cute::make_gmem_ptr(static_cast<Element const*>(nullptr)),
+      cute::make_layout(OperandShape{},
+                        cute::Stride<cute::Int<kK>, cute::Int<1>>{})));
+  using FragmentShapeB = FragmentShapeA;
+  using FragmentA = decltype(std::declval<ThreadMma&>().partition_fragment_A(
+      std::declval<FragmentShapeA&>()));
+  using FragmentB = decltype(std::declval<ThreadMma&>().partition_fragment_B(
+      std::declval<FragmentShapeB&>()));
+  using IdentityOperand = decltype(cute::make_identity_tensor(OperandShape{}));
+  using CoordinateA = decltype(std::declval<ThreadMma&>().partition_A(
+      std::declval<IdentityOperand&>()));
+  using CoordinateB = decltype(std::declval<ThreadMma&>().partition_B(
+      std::declval<IdentityOperand&>()));
+  using IdentityOutput = decltype(cute::make_identity_tensor(OutputShape{}));
+  using CoordinateC = decltype(std::declval<ThreadMma&>().partition_C(
+      std::declval<IdentityOutput&>()));
+  using FragmentAShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<FragmentA const&>().shape())>>;
+  using FragmentBShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<FragmentB const&>().shape())>>;
+  using CoordinateAShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateA const&>().shape())>>;
+  using CoordinateBShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateB const&>().shape())>>;
+  using FragmentCShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<Accumulator const&>().shape())>>;
+  using CoordinateCShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateC const&>().shape())>>;
+  static constexpr bool kFragmentDonorShapesMatch =
+      std::is_same_v<FragmentAShape, CoordinateAShape> &&
+      std::is_same_v<FragmentBShape, CoordinateBShape> &&
+      std::is_same_v<FragmentCShape, CoordinateCShape>;
+  static_assert(kFragmentDonorShapesMatch,
+                "BF16 fragment and coordinate donor logical slot domains diverged");
+  static_assert(decltype(cute::cosize(typename FragmentA::layout_type{}))::value ==
+                        decltype(cute::size(FragmentA{}))::value &&
+                    decltype(cute::cosize(typename FragmentB::layout_type{}))::value ==
+                        decltype(cute::size(FragmentB{}))::value &&
+                    decltype(cute::cosize(typename Accumulator::layout_type{}))::value ==
+                        decltype(cute::size(Accumulator{}))::value,
+                "BF16 compact fragments must cover each physical register slot once");
 
   static_assert(cute::size(TiledMma{}) == kThreads,
                 "resident C64 GDN MMA requires the production four-warp TiledMma");
@@ -88,7 +134,8 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
                   "production A coordinate ownership changed");
 #pragma unroll
     for (int slot = 0; slot < int(size(coord)); ++slot) {
-      auto const logical = coord(slot);
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
       visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
     }
   }
@@ -103,7 +150,8 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
                   "production B coordinate ownership changed");
 #pragma unroll
     for (int slot = 0; slot < int(size(coord)); ++slot) {
-      auto const logical = coord(slot);
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
       visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
     }
   }
@@ -118,7 +166,8 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
                   "production C coordinate ownership changed");
 #pragma unroll
     for (int slot = 0; slot < int(size(coord)); ++slot) {
-      auto const logical = coord(slot);
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
       visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
     }
   }
@@ -189,23 +238,25 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
 
     for_each_a_coordinate(
         thread_idx, [&](int slot, int row, int reduction) {
+          auto const domain = idx2crd(slot, shape(fragment_a));
           if (row < valid_m && reduction < valid_k) {
-            fragment_a(slot) =
+            fragment_a(domain) =
                 operand_a[std::int64_t(row) * stride_a_m +
                           std::int64_t(reduction) * stride_a_k];
           } else {
-            fragment_a(slot) = Element{};
+            fragment_a(domain) = Element{};
           }
         });
 
     for_each_b_coordinate(
         thread_idx, [&](int slot, int column, int reduction) {
+          auto const domain = idx2crd(slot, shape(fragment_b));
           if (column < valid_n && reduction < valid_k) {
-            fragment_b(slot) =
+            fragment_b(domain) =
                 operand_b[std::int64_t(column) * stride_b_n +
                           std::int64_t(reduction) * stride_b_k];
           } else {
-            fragment_b(slot) = Element{};
+            fragment_b(domain) = Element{};
           }
         });
 
@@ -232,7 +283,8 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
     for_each_c_coordinate(
         thread_idx, [&](int slot, int row, int column) {
           if (row < valid_m && column < valid_n) {
-            visitor(row, column, accum(slot));
+            auto const domain = cute::idx2crd(slot, cute::shape(accum));
+            visitor(row, column, accum(domain));
           }
         });
 #endif
@@ -259,9 +311,206 @@ struct PpuChunkedGdnResidentMmaBf16C64K64 {
     for_each_c_coordinate(
         thread_idx, [&](int slot, int row, int column) {
           if (row < valid_m && column < valid_n) {
+            auto const domain = cute::idx2crd(slot, cute::shape(accum));
             output[std::int64_t(row) * stride_m +
-                   std::int64_t(column) * stride_n] = Output(accum(slot));
+                   std::int64_t(column) * stride_n] = Output(accum(domain));
           }
+        });
+#endif
+  }
+};
+
+// Register-resident TF32 block product used by the 16 -> 32 -> 64 unit-lower
+// inverse.  Unlike the BF16 C64 helper above, the inverse has two exact tile
+// sizes: a one-warp 16x16x16 product and a four-warp 32x32x32 product.  Keeping
+// the logical extents in the type prevents a convenient C64 helper from doing
+// 16x--64x excess work in the inverse's small blocks.
+template <class TiledMma_, int M_, int N_, int K_>
+struct PpuChunkedGdnResidentMmaTf32 {
+  using TiledMma = TiledMma_;
+  using Element = cutlass::tfloat32_t;
+
+  static constexpr int kM = M_;
+  static constexpr int kN = N_;
+  static constexpr int kK = K_;
+  static constexpr int kThreads = int(cute::size(TiledMma{}));
+
+  static_assert(kM % 16 == 0 && kN % 16 == 0 && kK % 8 == 0,
+                "PPU0010 TF32 block product must tile the m16n16k8 atom");
+  static_assert(kThreads == 32 || kThreads == 128,
+                "chunked-GDN inverse supports one- or four-warp TF32 tiles");
+
+  using OperandAShape = cute::Shape<cute::Int<kM>, cute::Int<kK>>;
+  using OperandBShape = cute::Shape<cute::Int<kN>, cute::Int<kK>>;
+  using OutputShape = cute::Shape<cute::Int<kM>, cute::Int<kN>>;
+  using Accumulator = decltype(cute::partition_fragment_C(
+      TiledMma{}, OutputShape{}));
+  using ThreadMma = decltype(TiledMma{}.get_thread_slice(0));
+  using FragmentShapeA = decltype(cute::make_tensor(
+      cute::make_gmem_ptr(static_cast<Element const*>(nullptr)),
+      cute::make_layout(OperandAShape{},
+                        cute::Stride<cute::Int<kK>, cute::Int<1>>{})));
+  using FragmentShapeB = decltype(cute::make_tensor(
+      cute::make_gmem_ptr(static_cast<Element const*>(nullptr)),
+      cute::make_layout(OperandBShape{},
+                        cute::Stride<cute::Int<kK>, cute::Int<1>>{})));
+  using FragmentA = decltype(std::declval<ThreadMma&>().partition_fragment_A(
+      std::declval<FragmentShapeA&>()));
+  using FragmentB = decltype(std::declval<ThreadMma&>().partition_fragment_B(
+      std::declval<FragmentShapeB&>()));
+  using IdentityA = decltype(cute::make_identity_tensor(OperandAShape{}));
+  using IdentityB = decltype(cute::make_identity_tensor(OperandBShape{}));
+  using CoordinateA = decltype(std::declval<ThreadMma&>().partition_A(
+      std::declval<IdentityA&>()));
+  using CoordinateB = decltype(std::declval<ThreadMma&>().partition_B(
+      std::declval<IdentityB&>()));
+  using IdentityC = decltype(cute::make_identity_tensor(OutputShape{}));
+  using CoordinateC = decltype(std::declval<ThreadMma&>().partition_C(
+      std::declval<IdentityC&>()));
+  using FragmentAShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<FragmentA const&>().shape())>>;
+  using FragmentBShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<FragmentB const&>().shape())>>;
+  using CoordinateAShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateA const&>().shape())>>;
+  using CoordinateBShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateB const&>().shape())>>;
+  using FragmentCShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<Accumulator const&>().shape())>>;
+  using CoordinateCShape = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<CoordinateC const&>().shape())>>;
+  static constexpr bool kFragmentDonorShapesMatch =
+      std::is_same_v<FragmentAShape, CoordinateAShape> &&
+      std::is_same_v<FragmentBShape, CoordinateBShape> &&
+      std::is_same_v<FragmentCShape, CoordinateCShape>;
+  static_assert(kFragmentDonorShapesMatch,
+                "TF32 fragment and coordinate donor logical slot domains diverged");
+  static_assert(decltype(cute::cosize(typename FragmentA::layout_type{}))::value ==
+                        decltype(cute::size(FragmentA{}))::value &&
+                    decltype(cute::cosize(typename FragmentB::layout_type{}))::value ==
+                        decltype(cute::size(FragmentB{}))::value &&
+                    decltype(cute::cosize(typename Accumulator::layout_type{}))::value ==
+                        decltype(cute::size(Accumulator{}))::value,
+                "TF32 compact fragments must cover each physical register slot once");
+
+  CUTLASS_HOST_DEVICE static Accumulator make_accumulator() {
+    return cute::partition_fragment_C(TiledMma{}, OutputShape{});
+  }
+
+  CUTLASS_HOST_DEVICE static void clear(Accumulator& accum) {
+    cute::clear(accum);
+  }
+
+  template <class Visitor>
+  QZ_PPU_GDN_COORD_HOST_DEVICE static void for_each_a_coordinate(
+      int thread_idx, Visitor&& visitor) {
+    using namespace cute;
+    auto identity = make_identity_tensor(OperandAShape{});
+    auto coord = TiledMma{}.get_thread_slice(thread_idx).partition_A(identity);
+#pragma unroll
+    for (int slot = 0; slot < int(size(coord)); ++slot) {
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
+      visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
+    }
+  }
+
+  template <class Visitor>
+  QZ_PPU_GDN_COORD_HOST_DEVICE static void for_each_b_coordinate(
+      int thread_idx, Visitor&& visitor) {
+    using namespace cute;
+    auto identity = make_identity_tensor(OperandBShape{});
+    auto coord = TiledMma{}.get_thread_slice(thread_idx).partition_B(identity);
+#pragma unroll
+    for (int slot = 0; slot < int(size(coord)); ++slot) {
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
+      visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
+    }
+  }
+
+  template <class Visitor>
+  QZ_PPU_GDN_COORD_HOST_DEVICE static void for_each_c_coordinate(
+      int thread_idx, Visitor&& visitor) {
+    using namespace cute;
+    auto identity = make_identity_tensor(OutputShape{});
+    auto coord = TiledMma{}.get_thread_slice(thread_idx).partition_C(identity);
+#pragma unroll
+    for (int slot = 0; slot < int(size(coord)); ++slot) {
+      auto const domain = idx2crd(slot, shape(coord));
+      auto const logical = coord(domain);
+      visitor(slot, int(get<0>(logical)), int(get<1>(logical)));
+    }
+  }
+
+  // Compute accum += A[M,K] * B[N,K].  Inputs stay FP32 in shared memory;
+  // each owned value is converted exactly once at the register boundary to
+  // the PPU0010 TF32 operand type.  B is a logical [N,K] view, so callers can
+  // express a transposed mathematical operand with explicit strides.
+  CUTLASS_DEVICE static void mma(
+      Accumulator& accum,
+      float const* operand_a,
+      std::int64_t stride_a_m,
+      std::int64_t stride_a_k,
+      float const* operand_b,
+      std::int64_t stride_b_n,
+      std::int64_t stride_b_k,
+      int thread_idx) {
+#if defined(__NVCC__)
+    (void)accum;
+    (void)operand_a;
+    (void)stride_a_m;
+    (void)stride_a_k;
+    (void)operand_b;
+    (void)stride_b_n;
+    (void)stride_b_k;
+    (void)thread_idx;
+#else
+    using namespace cute;
+
+    TiledMma tiled_mma;
+    auto thread_mma = tiled_mma.get_thread_slice(thread_idx);
+    auto fragment_shape_a = make_tensor(
+        make_gmem_ptr(reinterpret_cast<Element const*>(operand_a)),
+        make_layout(OperandAShape{},
+                    Stride<Int<kK>, Int<1>>{}));
+    auto fragment_shape_b = make_tensor(
+        make_gmem_ptr(reinterpret_cast<Element const*>(operand_b)),
+        make_layout(OperandBShape{},
+                    Stride<Int<kK>, Int<1>>{}));
+    auto fragment_a = thread_mma.partition_fragment_A(fragment_shape_a);
+    auto fragment_b = thread_mma.partition_fragment_B(fragment_shape_b);
+
+    for_each_a_coordinate(
+        thread_idx, [&](int slot, int row, int reduction) {
+          auto const domain = idx2crd(slot, shape(fragment_a));
+          fragment_a(domain) = Element(
+              operand_a[std::int64_t(row) * stride_a_m +
+                        std::int64_t(reduction) * stride_a_k]);
+        });
+    for_each_b_coordinate(
+        thread_idx, [&](int slot, int column, int reduction) {
+          auto const domain = idx2crd(slot, shape(fragment_b));
+          fragment_b(domain) = Element(
+              operand_b[std::int64_t(column) * stride_b_n +
+                        std::int64_t(reduction) * stride_b_k]);
+        });
+    cute::gemm(tiled_mma, fragment_a, fragment_b, accum);
+#endif
+  }
+
+  template <class Visitor>
+  CUTLASS_DEVICE static void visit_output(
+      Accumulator const& accum, int thread_idx, Visitor&& visitor) {
+#if defined(__NVCC__)
+    (void)accum;
+    (void)thread_idx;
+    (void)visitor;
+#else
+    for_each_c_coordinate(
+        thread_idx, [&](int slot, int row, int column) {
+          auto const domain = cute::idx2crd(slot, cute::shape(accum));
+          visitor(row, column, accum(domain));
         });
 #endif
   }

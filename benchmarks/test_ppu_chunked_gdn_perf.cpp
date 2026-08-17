@@ -340,11 +340,13 @@ int run(Options const& o) {
                      (o.sequence_length % kChunk != 0);
   std::int64_t const work_units = grid * chunks;
   std::printf(
-      "[GDN perf config] implementation=qk+kk-aiu/generated-simt "
+      "[GDN perf config] implementation=all-dense-products-aiu+blocked-tf32-inverse "
       "shape=B%d,T%d,H%d,HV%d,K128,V128,C64 GVA=%d:%d "
       "tokens=%d token_heads=%lld chunks_per_sequence=%d work_units=%lld "
       "grid=(%lld,1,1) threads=%d shared_bytes=%zu device=%d cu=%d "
       "logical_flops_per_full_chunk=%llu "
+      "bf16_mma_per_full_chunk=1408 tf32_mma_per_full_chunk=40 "
+      "inverse_block_products=6 inverse_cta_barriers=8 "
       "occupancy_api=UNAVAILABLE(reason=shipping-kernel-symbol-not-public) "
       "initial_state=%d final_state=%d\n",
       o.sequences, o.sequence_length, o.qk_heads, o.v_heads,

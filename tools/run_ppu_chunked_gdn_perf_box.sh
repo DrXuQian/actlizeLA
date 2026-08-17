@@ -184,6 +184,11 @@ if [[ "${ACU:-0}" == 1 ]]; then
   # One launch, no warmup and no timing loop. The report is an instruction/
   # resource profile; it is deliberately labelled NOT_TIMING by the binary.
   REPORT="$OUT/${label}.report.acurep"
+  chunks=$((length / 64 + (length % 64 != 0)))
+  work_units=$((sequences * v_heads * chunks))
+  expected_bf16_mma=$((work_units * 1408))
+  expected_tf32_mma=$((work_units * 40))
+  echo "[GDN perf ACU preregistration] work_units=$work_units expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
   "$ACU_BIN" -f -o "$REPORT" --set full "$BIN" \
     --sequences="$sequences" --length="$length" \
     --qk-heads="$qk_heads" --v-heads="$v_heads" \
@@ -193,7 +198,7 @@ if [[ "${ACU:-0}" == 1 ]]; then
     echo "[GDN perf ACU] FAIL: acu produced no nonempty report at $REPORT" >&2
     exit 1
   fi
-  echo "[GDN perf ACU] report=$REPORT timing=NOT_TIMING"
+  echo "[GDN perf ACU] report=$REPORT timing=NOT_TIMING opcode_and_spill_verdict=UNADJUDICATED_OPEN_REPORT"
   echo "[GDN perf] PASS; artifacts=$OUT"
   exit 0
 fi

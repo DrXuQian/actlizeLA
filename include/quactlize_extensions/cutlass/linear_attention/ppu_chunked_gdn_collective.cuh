@@ -86,6 +86,26 @@ static_assert(cute::size(typename PpuChunkedGdnGlobalDotMainloop::TiledMma{}) ==
               "C64 PPU global-dot collective must launch four warps");
 static_assert(sizeof(typename PpuChunkedGdnGlobalDotMainloop::SharedStorage) == 32768,
               "C64xC64xK64 stage-2 BF16 AIU mainloop must use exactly 32 KiB");
+
+// The inverse uses the same PPU0010 tensor pipe at its natural block sizes.
+// One warp owns each 16x16 block update; all four warps cooperate on the
+// final 32x32 update.  The K-mode is carried by the fragment shape (16 or 32),
+// while each physical atom remains m16n16k8 TF32.
+using PpuChunkedGdnInverseTiledMma16 = cute::TiledMMA<
+    cute::MMA_Atom<cute::PPU0010_16x16x8_F32TF32TF32F32_TN>,
+    cute::Layout<cute::Shape<cute::_1, cute::_1, cute::_1>,
+                 cute::Stride<cute::_1, cute::_1, cute::_1>>,
+    cute::Tile<cute::_16, cute::_16, cute::_8>>;
+using PpuChunkedGdnInverseTiledMma32 = cute::TiledMMA<
+    cute::MMA_Atom<cute::PPU0010_16x16x8_F32TF32TF32F32_TN>,
+    cute::Layout<cute::Shape<cute::_2, cute::_2, cute::_1>,
+                 cute::Stride<cute::_2, cute::_1, cute::_1>>,
+    cute::Tile<cute::_32, cute::_32, cute::_8>>;
+
+static_assert(cute::size(PpuChunkedGdnInverseTiledMma16{}) == 32,
+              "16x16 inverse update must be one warp");
+static_assert(cute::size(PpuChunkedGdnInverseTiledMma32{}) == 128,
+              "32x32 inverse update must be the complete CTA");
 #else
 // Keeps the public type surface identical for the nvcc scalar-reference build.
 struct PpuChunkedGdnGlobalDotMainloop {
@@ -109,6 +129,10 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 #if defined(__HGGCCC__)
   using ResidentMma = detail::PpuChunkedGdnResidentMmaBf16C64K64<
       typename GlobalDotMainloop::TiledMma>;
+  using InverseMma16 = detail::PpuChunkedGdnResidentMmaTf32<
+      detail::PpuChunkedGdnInverseTiledMma16, 16, 16, 16>;
+  using InverseMma32 = detail::PpuChunkedGdnResidentMmaTf32<
+      detail::PpuChunkedGdnInverseTiledMma32, 32, 32, 32>;
 #endif
 
   static constexpr int kChunk = 64;
@@ -160,13 +184,18 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   static constexpr bool kGlobalQkAndKkUseAiuOnPpu0010 = true;
   static constexpr bool kGeneratedOperandMmaConnected = true;
   static constexpr bool kAllDenseForwardProductsUseAiu = true;
-  static constexpr bool kAllMatrixProductsUseAiu = false;
+  static constexpr bool kInverseBlockUpdatesUseAiu = true;
+  static constexpr bool kAllMatrixProductsUseAiu = true;
   static constexpr int kGeneratedProductKinds = 6;
   static constexpr int kGeneratedProductInstancesPerChunk = 11;
   static constexpr int kGeneratedMmaPerFullChunk = 1152;
   static constexpr int kGlobalDotMmaPerFullChunk = 256;
+  static constexpr int kInverseBlockProductsPerChunk = 6;
+  static constexpr int kInverseTf32MmaPerFullChunk = 40;
+  static constexpr int kInverseCtaBarriersPerChunk = 8;
   static constexpr int kDenseForwardMmaPerFullChunk =
-      kGeneratedMmaPerFullChunk + kGlobalDotMmaPerFullChunk;
+      kGeneratedMmaPerFullChunk + kGlobalDotMmaPerFullChunk +
+      kInverseTf32MmaPerFullChunk;
 
   static_assert(Traits::ChunkSize == kChunk && Traits::HeadSizeK == kHeadK &&
                     Traits::HeadSizeV == kHeadV,
@@ -473,7 +502,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 #endif
   }
 
-  QZ_PPU_GDN_DEVICE static void solve_inverse(
+  QZ_PPU_GDN_DEVICE static void scalar_solve_inverse(
       SharedStorage& shared, int thread_idx) {
     float* const l = strict_lower(shared);
     float* const a = inverse(shared);
@@ -494,6 +523,155 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       ab[i] = to_bf16(a[i]);
     }
     __syncthreads();
+  }
+
+#if defined(__HGGCCC__)
+  // Invert the four diagonal 16x16 blocks directly.  These are the only true
+  // triangular dependency chains.  Sixty-four threads own (block,column): a
+  // complete RHS column remains on one thread, so rows of that column are a
+  // register-ordered dependency rather than a CTA dependency.  One barrier
+  // after all four blocks is sufficient before the block GEMMs consume them.
+  QZ_PPU_GDN_DEVICE static void ppu0010_inverse_base16(
+      SharedStorage& shared, int thread_idx) {
+    float* const l = strict_lower(shared);
+    float* const a = inverse(shared);
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      a[index] = 0.0f;
+    }
+    __syncthreads();
+
+    int const block = thread_idx / 16;
+    int const column = thread_idx % 16;
+    int const begin = block * 16;
+    for (int row = 0; row < 16; ++row) {
+      if (thread_idx < 64) {
+        float value = row == column ? 1.0f : 0.0f;
+        for (int k = 0; k < row; ++k) {
+          value -= l[(begin + row) * kChunk + begin + k] *
+                   a[(begin + k) * kChunk + begin + column];
+        }
+        a[(begin + row) * kChunk + begin + column] = value;
+      }
+    }
+    __syncthreads();
+  }
+
+  // Build both 32x32 diagonal inverses concurrently.  Warp 0 owns rows/cols
+  // [0,32), warp 1 owns [32,64); warps 2/3 are intentionally idle because a
+  // 16x16 TF32 update is exactly one physical warp.  The dead strict-lower C
+  // block is reused for D^-1*C after every source value is resident.
+  QZ_PPU_GDN_DEVICE static void ppu0010_inverse_16_to_32(
+      SharedStorage& shared, int thread_idx) {
+    float* const l = strict_lower(shared);
+    float* const a = inverse(shared);
+    int const warp = thread_idx / 32;
+    int const lane = thread_idx % 32;
+    if (warp < 2) {
+      int const begin = warp * 32;
+      int const lower = begin + 16;
+      auto accum = InverseMma16::make_accumulator();
+      InverseMma16::clear(accum);
+      InverseMma16::mma(
+          accum,
+          a + lower * kChunk + lower, kChunk, 1,
+          l + lower * kChunk + begin, 1, kChunk,
+          lane);
+      InverseMma16::visit_output(
+          accum, lane,
+          [&](int row, int column, float value) {
+            l[(lower + row) * kChunk + begin + column] = value;
+          });
+    }
+    __syncthreads();
+
+    if (warp < 2) {
+      int const begin = warp * 32;
+      int const lower = begin + 16;
+      auto accum = InverseMma16::make_accumulator();
+      InverseMma16::clear(accum);
+      InverseMma16::mma(
+          accum,
+          l + lower * kChunk + begin, kChunk, 1,
+          a + begin * kChunk + begin, 1, kChunk,
+          lane);
+      InverseMma16::visit_output(
+          accum, lane,
+          [&](int row, int column, float value) {
+            a[(lower + row) * kChunk + begin + column] = -value;
+          });
+    }
+    __syncthreads();
+  }
+
+  // Merge the two 32x32 diagonal inverses into the final C64 inverse.  All
+  // four warps participate.  A CTA barrier separates fragment gathering from
+  // overwriting the strict-lower C block because A/B values are duplicated
+  // across the 2M x 2N warp topology.
+  QZ_PPU_GDN_DEVICE static void ppu0010_inverse_32_to_64(
+      SharedStorage& shared, int thread_idx) {
+    float* const l = strict_lower(shared);
+    float* const a = inverse(shared);
+    constexpr int lower = 32;
+    {
+      auto accum = InverseMma32::make_accumulator();
+      InverseMma32::clear(accum);
+      InverseMma32::mma(
+          accum,
+          a + lower * kChunk + lower, kChunk, 1,
+          l + lower * kChunk, 1, kChunk,
+          thread_idx);
+      __syncthreads();
+      InverseMma32::visit_output(
+          accum, thread_idx,
+          [&](int row, int column, float value) {
+            l[(lower + row) * kChunk + column] = value;
+          });
+    }
+    __syncthreads();
+
+    {
+      auto accum = InverseMma32::make_accumulator();
+      InverseMma32::clear(accum);
+      InverseMma32::mma(
+          accum,
+          l + lower * kChunk, kChunk, 1,
+          a, 1, kChunk,
+          thread_idx);
+      InverseMma32::visit_output(
+          accum, thread_idx,
+          [&](int row, int column, float value) {
+            a[(lower + row) * kChunk + column] = -value;
+          });
+    }
+    __syncthreads();
+  }
+
+  QZ_PPU_GDN_DEVICE static void ppu0010_solve_inverse(
+      SharedStorage& shared, int thread_idx) {
+    ppu0010_inverse_base16(shared, thread_idx);
+    ppu0010_inverse_16_to_32(shared, thread_idx);
+    ppu0010_inverse_32_to_64(shared, thread_idx);
+    Element* const ab = inverse_bf16(shared);
+    float const* const a = inverse(shared);
+    for (int i = thread_idx; i < kScoreElements; i += kThreadCount) {
+      ab[i] = to_bf16(a[i]);
+    }
+    __syncthreads();
+  }
+#endif
+
+  QZ_PPU_GDN_DEVICE static void solve_inverse(
+      SharedStorage& shared, int thread_idx) {
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    ppu0010_solve_inverse(shared, thread_idx);
+#elif defined(__HGGC_ARCH__)
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("blocked GDN inverse requires ppu0010");
+#else
+    scalar_solve_inverse(shared, thread_idx);
+#endif
   }
 
   QZ_PPU_GDN_DEVICE static void compute_w(

@@ -29,13 +29,18 @@ static_assert(Kernel::Collective::kGlobalQkAndKkUseAiuOnPpu0010,
 static_assert(Kernel::Collective::kGeneratedOperandMmaConnected &&
                   Kernel::Collective::kAllDenseForwardProductsUseAiu,
               "L204 requires every dense forward GEMM product on PPU AIU");
-static_assert(!Kernel::Collective::kAllMatrixProductsUseAiu,
-              "base triangular solve is not a matrix product coverage claim");
+static_assert(Kernel::Collective::kInverseBlockUpdatesUseAiu &&
+                  Kernel::Collective::kAllMatrixProductsUseAiu,
+              "L204 requires inverse block updates on PPU TF32 AIU");
 static_assert(Kernel::Collective::kGeneratedProductKinds == 6 &&
                   Kernel::Collective::kGeneratedProductInstancesPerChunk == 11 &&
                   Kernel::Collective::kGeneratedMmaPerFullChunk == 1152 &&
-                  Kernel::Collective::kDenseForwardMmaPerFullChunk == 1408,
-              "L204 dense-forward AIU denominator changed");
+                  Kernel::Collective::kGlobalDotMmaPerFullChunk == 256 &&
+                  Kernel::Collective::kInverseBlockProductsPerChunk == 6 &&
+                  Kernel::Collective::kInverseTf32MmaPerFullChunk == 40 &&
+                  Kernel::Collective::kInverseCtaBarriersPerChunk == 8 &&
+                  Kernel::Collective::kDenseForwardMmaPerFullChunk == 1448,
+              "L204 BF16/TF32 AIU denominators changed");
 static_assert(Kernel::MaxThreadsPerBlock == 128,
               "L204 launch geometry changed without a new proof");
 static_assert(sizeof(typename Kernel::SharedStorage) <= 262144,
@@ -80,7 +85,9 @@ int main() {
   std::printf(
       "[l204] %s: device-body=INSTANTIATED C=64 K=128 V=128 threads=%u "
       "shared=%zu all-stages=1 global-dot=PPU-AIU generated-products=6/11/1152 "
-      "dense-forward-mma=1408 inverse-base=SEQUENTIAL\n",
+      "dense-forward-bf16-mma=1408 inverse-block-products=6 "
+      "inverse-tf32-mma=40 inverse-cta-barriers=8 "
+      "all-matrix-products=AIU inverse-base=16x16-sequential\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage));
   return ok ? 0 : 1;
