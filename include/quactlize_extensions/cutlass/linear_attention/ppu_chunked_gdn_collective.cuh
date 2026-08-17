@@ -7,10 +7,10 @@
  * The CUDA branch is a deliberately scalar, independently runnable device
  * reference.  On ppu0010 the two products whose operands both come from
  * global memory (QK^T and KK^T) use actlize's proved BF16 AIU collective and
- * the m16n16k16 BF16/BF16->FP32 atom.  Matrices produced inside the CTA do not
- * have a proved register-to-swizzled-shared writer on ppu0010; those products
- * currently use the same scalar shared-memory implementation as the CUDA
- * reference.  This is a correctness v1, not an all-AIU performance claim.
+ * the m16n16k16 BF16/BF16->FP32 atom.  Matrices produced inside the CTA use
+ * the same production TiledMma through a register-resident coordinate gather;
+ * this avoids inventing a register-to-swizzled-shared writer that ppu0010 does
+ * not provide.  NVIDIA keeps an independent scalar device reference.
  **************************************************************************************************/
 #pragma once
 
@@ -27,6 +27,7 @@
 #include "cute/ppu_tensor_mix.hpp"
 #include "cute/atom/copy_traits_ppu0010_aiu.hpp"
 #include "cute/atom/mma_traits_ppu0010.hpp"
+#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh"
 #include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp"
 
 // actlize's CUTLASS_DEVICE intentionally follows hgcc's compilation macros.
@@ -105,6 +106,10 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   using ElementOutput = typename Arguments::ElementOutput;
   using ElementState = typename Arguments::ElementState;
   using GlobalDotMainloop = detail::PpuChunkedGdnGlobalDotMainloop;
+#if defined(__HGGCCC__)
+  using ResidentMma = detail::PpuChunkedGdnResidentMmaBf16C64K64<
+      typename GlobalDotMainloop::TiledMma>;
+#endif
 
   static constexpr int kChunk = 64;
   static constexpr int kHeadK = 128;
@@ -122,10 +127,10 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   //   [0,32K)  AIU mainloop OR {strict_lower,inverse}
   //   [0, 8K)  A_bf16 after the inverse no longer needs strict_lower
   //   [8,24K)  W, after inverse is no longer live
-  //   [24,32K) U for the current V tile
-  //   [32,48K) exp(G) Q H_start
+  //   [24,32K) U for the current V tile; generated BF16 operand after U dies
+  //   [32,48K) exp(G) Q H_start; BF16 V/H operand before QH is stored
   //   [48,56K) causal gated QK^T (computed before KK^T)
-  //   [56,72K) FP32 v_new for the current V tile
+  //   [56,72K) FP32 v_new; BF16 H operand before v_new is stored
   static constexpr int kPhaseBytes = 72 * 1024;
   static constexpr int kOffsetStrictLower = 0;
   static constexpr int kOffsetInverse = 16 * 1024;
@@ -135,14 +140,33 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   static constexpr int kOffsetOState = 32 * 1024;
   static constexpr int kOffsetP = 48 * 1024;
   static constexpr int kOffsetVNew = 56 * 1024;
+  static constexpr int kBf16CubeBytes = kScoreElements * int(sizeof(Element));
 
-  // The GDN is mathematically complete in this file.  The narrower performance
-  // property is stated separately so callers/tests cannot misreport scalar
-  // shared products as AIU products.
+  static_assert(kBf16CubeBytes == 8 * 1024,
+                "generated C64xK64 BF16 operand must occupy exactly 8 KiB");
+  static_assert(kOffsetA + kBf16CubeBytes <= kOffsetW &&
+                    kOffsetW + 2 * kBf16CubeBytes <= kOffsetU &&
+                    kOffsetU + kBf16CubeBytes <= kOffsetOState &&
+                    kOffsetOState + 2 * kBf16CubeBytes <= kOffsetP &&
+                    kOffsetP + kBf16CubeBytes <= kOffsetVNew &&
+                    kOffsetVNew + 2 * kBf16CubeBytes <= kPhaseBytes,
+                "generated-operand liveness aliases overlap a live matrix");
+
+  // The GDN is mathematically complete in this file.  Keep the performance
+  // denominator explicit: QK/KK contribute 256 m16n16k16 operations and the
+  // eleven generated-operand product instances contribute another 1152.  The
+  // base triangular solve remains a true dependency chain rather than a GEMM.
   static constexpr bool kAllStagesConnected = true;
   static constexpr bool kGlobalQkAndKkUseAiuOnPpu0010 = true;
-  static constexpr bool kGeneratedOperandMmaConnected = false;
+  static constexpr bool kGeneratedOperandMmaConnected = true;
+  static constexpr bool kAllDenseForwardProductsUseAiu = true;
   static constexpr bool kAllMatrixProductsUseAiu = false;
+  static constexpr int kGeneratedProductKinds = 6;
+  static constexpr int kGeneratedProductInstancesPerChunk = 11;
+  static constexpr int kGeneratedMmaPerFullChunk = 1152;
+  static constexpr int kGlobalDotMmaPerFullChunk = 256;
+  static constexpr int kDenseForwardMmaPerFullChunk =
+      kGeneratedMmaPerFullChunk + kGlobalDotMmaPerFullChunk;
 
   static_assert(Traits::ChunkSize == kChunk && Traits::HeadSizeK == kHeadK &&
                     Traits::HeadSizeV == kHeadV,
@@ -477,6 +501,55 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       int chunk_begin, int valid, SharedStorage& shared, int thread_idx) {
     Element const* const a = inverse_bf16(shared);
     Element* const w = w_matrix(shared);
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    // The U tile is not live until compute_value_tile.  Use it as one C64xK64
+    // BF16 materialization buffer for beta*exp2(gamma)*K, preserving the exact
+    // pre-MMA rounding boundary of the scalar reference.
+    Element* const scaled_k = u_tile(shared);
+#pragma unroll
+    for (int feature_base = 0; feature_base < kHeadK;
+         feature_base += kChunk) {
+      for (int index = thread_idx; index < kScoreElements;
+           index += kThreadCount) {
+        int const feature = index / kChunk;
+        int const row = index % kChunk;
+        scaled_k[index] = to_bf16(
+            row < valid
+                ? shared.beta[row] * exp2_gate(shared.gamma[row]) *
+                      to_float(params.k[qk_offset(
+                          params, work, chunk_begin + row,
+                          feature_base + feature)])
+                : 0.0f);
+      }
+      __syncthreads();
+
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+      ResidentMma::mma(
+          accum,
+          a, kChunk, 1,
+          scaled_k, kChunk, 1,
+          thread_idx);
+      // All operand fragments must be resident before the next block can
+      // overwrite scaled_k.  This is a source-lifetime barrier, not an MMA
+      // synchronization requirement.
+      __syncthreads();
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int feature, float value) {
+            w[row * kHeadK + feature_base + feature] = to_bf16(value);
+          });
+      __syncthreads();
+    }
+#elif defined(__HGGC_ARCH__)
+    (void)params;
+    (void)work;
+    (void)chunk_begin;
+    (void)valid;
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("generated GDN MMA requires ppu0010");
+#else
     for (int index = thread_idx; index < kWElements; index += kThreadCount) {
       int const row = index / kHeadK;
       int const d = index % kHeadK;
@@ -495,12 +568,222 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       w[index] = to_bf16(sum);
     }
     __syncthreads();
+#endif
   }
+
+#if defined(__HGGCCC__)
+  QZ_PPU_GDN_DEVICE static void ppu0010_compute_value_tile(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      SharedStorage& shared, int thread_idx) {
+    Element const* const a = inverse_bf16(shared);
+    Element const* const w = w_matrix(shared);
+    Element* const u = u_tile(shared);
+    float* const os = o_state(shared);
+    Element const* const p = causal_score(shared);
+    float* const vn = v_new(shared);
+    std::int64_t const qk_row_pitch =
+        std::int64_t(params.problem.num_qk_heads) * kHeadK;
+
+    // U = A @ round_bf16(beta * V).  Before QH is produced, the first 8 KiB
+    // of its FP32 destination is a dead C64xK64 BF16 operand arena.
+    Element* const generated_operand =
+        reinterpret_cast<Element*>(shared.phase + kOffsetOState);
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      int const value = index / kChunk;
+      int const row = index % kChunk;
+      generated_operand[index] = to_bf16(
+          row < valid
+              ? shared.beta[row] *
+                    to_float(params.v[vo_offset(
+                        params, work, chunk_begin + row,
+                        value_base + value)])
+              : 0.0f);
+    }
+    __syncthreads();
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+      ResidentMma::mma(
+          accum,
+          a, kChunk, 1,
+          generated_operand, kChunk, 1,
+          thread_idx, valid, kValueBlock, kChunk);
+      __syncthreads();
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float product) {
+            u[row * kValueBlock + value] = to_bf16(product);
+          });
+    }
+    __syncthreads();
+
+    // QH: retain one FP32 accumulator while two K64 state cubes are consumed.
+    // The H materialization shares storage with os only after a barrier proves
+    // every thread has gathered the final cube into registers.
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+#pragma unroll
+      for (int feature_base = 0; feature_base < kHeadK;
+           feature_base += kChunk) {
+        for (int index = thread_idx; index < kScoreElements;
+             index += kThreadCount) {
+          int const value = index / kChunk;
+          int const feature = index % kChunk;
+          generated_operand[index] = to_bf16(
+              shared.state[(feature_base + feature) * kHeadV +
+                           value_base + value]);
+        }
+        __syncthreads();
+        Element const* const q =
+            params.q + qk_offset(
+                           params, work, chunk_begin, feature_base);
+        ResidentMma::mma(
+            accum,
+            q, qk_row_pitch, 1,
+            generated_operand, kChunk, 1,
+            thread_idx, valid, kValueBlock, kChunk);
+        __syncthreads();
+      }
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float product) {
+            os[row * kValueBlock + value] =
+                row < valid ? exp2_gate(shared.gamma[row]) * product : 0.0f;
+          });
+    }
+    __syncthreads();
+
+    // WH uses the same rounded H boundary but a separate accumulator so QH
+    // and WH do not double the live FP32 register footprint.  The destination
+    // v_new region is the temporary H arena until the final gather completes.
+    Element* const h_for_wh =
+        reinterpret_cast<Element*>(shared.phase + kOffsetVNew);
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+#pragma unroll
+      for (int feature_base = 0; feature_base < kHeadK;
+           feature_base += kChunk) {
+        for (int index = thread_idx; index < kScoreElements;
+             index += kThreadCount) {
+          int const value = index / kChunk;
+          int const feature = index % kChunk;
+          h_for_wh[index] = to_bf16(
+              shared.state[(feature_base + feature) * kHeadV +
+                           value_base + value]);
+        }
+        __syncthreads();
+        ResidentMma::mma(
+            accum,
+            w + feature_base, kHeadK, 1,
+            h_for_wh, kChunk, 1,
+            thread_idx, valid, kValueBlock, kChunk);
+        __syncthreads();
+      }
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float product) {
+            vn[row * kValueBlock + value] =
+                row < valid
+                    ? to_float(u[row * kValueBlock + value]) - product
+                    : 0.0f;
+          });
+    }
+    __syncthreads();
+
+    // P @ round_bf16(Vnew).  U is dead after Vnew has been formed, so its
+    // 8-KiB allocation becomes the transposed logical B view [value,row].
+    Element* const rounded_vnew = u;
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      int const value = index % kValueBlock;
+      rounded_vnew[index] = to_bf16(vn[index]);
+    }
+    __syncthreads();
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+      ResidentMma::mma(
+          accum,
+          p, kChunk, 1,
+          rounded_vnew, 1, kValueBlock,
+          thread_idx, valid, kValueBlock, valid);
+      __syncthreads();
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float causal) {
+            params.output[vo_offset(
+                params, work, chunk_begin + row, value_base + value)] =
+                to_bf16(
+                    params.scale * os[row * kValueBlock + value] +
+                    params.scale * causal);
+          },
+          valid, kValueBlock);
+    }
+    __syncthreads();
+
+    // K^T @ round_bf16(exp2(gamma_last-gamma) * Vnew).  The same U arena is
+    // reused, now with logical B strides [value,row].
+    float const gamma_last = shared.gamma[valid - 1];
+    float const state_decay = exp2_gate(gamma_last);
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      int const value = index % kValueBlock;
+      rounded_vnew[index] = to_bf16(
+          row < valid
+              ? exp2_gate(gamma_last - shared.gamma[row]) * vn[index]
+              : 0.0f);
+    }
+    __syncthreads();
+#pragma unroll
+    for (int feature_base = 0; feature_base < kHeadK;
+         feature_base += kChunk) {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+      Element const* const k =
+          params.k + qk_offset(
+                         params, work, chunk_begin, feature_base);
+      ResidentMma::mma(
+          accum,
+          k, 1, qk_row_pitch,
+          rounded_vnew, 1, kValueBlock,
+          thread_idx, kChunk, kValueBlock, valid);
+      __syncthreads();
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int feature, int value, float update) {
+            int const h_index =
+                (feature_base + feature) * kHeadV + value_base + value;
+            shared.state[h_index] =
+                state_decay * shared.state[h_index] + update;
+          });
+      __syncthreads();
+    }
+  }
+#endif
 
   QZ_PPU_GDN_DEVICE static void compute_value_tile(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
       SharedStorage& shared, int thread_idx) {
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    ppu0010_compute_value_tile(
+        params, work, chunk_begin, valid, value_base, shared, thread_idx);
+#elif defined(__HGGC_ARCH__)
+    (void)params;
+    (void)work;
+    (void)chunk_begin;
+    (void)valid;
+    (void)value_base;
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("generated GDN MMA requires ppu0010");
+#else
     Element const* const a = inverse_bf16(shared);
     Element const* const w = w_matrix(shared);
     Element* const u = u_tile(shared);
@@ -579,6 +862,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       shared.state[h_index] = state_decay * shared.state[h_index] + update;
     }
     __syncthreads();
+#endif
   }
 
  public:

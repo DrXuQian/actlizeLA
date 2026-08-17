@@ -27,6 +27,16 @@ An experimental all-AIU forward conversion is preserved on
 `agent/all-aiu-forward`. It is deliberately not on stable `main` until an
 actual hgcc build, PPU RAW-BIT verdict, and ACU opcode/spill check close it.
 
+### Status of this experimental branch
+
+This branch routes six generated-operand product kinds (11 logical product
+instances) through the production PPU `TiledMma`, for 1,152 additional
+`m16n16k16` operations per full chunk and 1,408 dense-forward MMA operations
+including QK/KK. Local algebra, type instantiation, and independently anchored
+A/B/C coordinate ownership pass. It is **not a release verdict**: the real
+hgcc body, PPU RAW-BIT output/state, the 1,408-opcode denominator, registers,
+and spills remain device postconditions.
+
 ## Dependencies
 
 - the pinned `third_party/actlize` submodule;

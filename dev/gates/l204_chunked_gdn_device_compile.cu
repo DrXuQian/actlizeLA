@@ -26,8 +26,16 @@ static_assert(Kernel::Collective::kAllStagesConnected,
               "L204 requires the complete GDN dataflow");
 static_assert(Kernel::Collective::kGlobalQkAndKkUseAiuOnPpu0010,
               "L204 requires the proved PPU global-dot AIU route");
+static_assert(Kernel::Collective::kGeneratedOperandMmaConnected &&
+                  Kernel::Collective::kAllDenseForwardProductsUseAiu,
+              "L204 requires every dense forward GEMM product on PPU AIU");
 static_assert(!Kernel::Collective::kAllMatrixProductsUseAiu,
-              "L204 must not overclaim generated-operand AIU coverage");
+              "base triangular solve is not a matrix product coverage claim");
+static_assert(Kernel::Collective::kGeneratedProductKinds == 6 &&
+                  Kernel::Collective::kGeneratedProductInstancesPerChunk == 11 &&
+                  Kernel::Collective::kGeneratedMmaPerFullChunk == 1152 &&
+                  Kernel::Collective::kDenseForwardMmaPerFullChunk == 1408,
+              "L204 dense-forward AIU denominator changed");
 static_assert(Kernel::MaxThreadsPerBlock == 128,
               "L204 launch geometry changed without a new proof");
 static_assert(sizeof(typename Kernel::SharedStorage) <= 262144,
@@ -71,7 +79,8 @@ int main() {
                   block.x == 128 && Kernel::get_workspace_size(args) == 0;
   std::printf(
       "[l204] %s: device-body=INSTANTIATED C=64 K=128 V=128 threads=%u "
-      "shared=%zu all-stages=1 global-dot=PPU-AIU generated-products=SIMT-V1\n",
+      "shared=%zu all-stages=1 global-dot=PPU-AIU generated-products=6/11/1152 "
+      "dense-forward-mma=1408 inverse-base=SEQUENTIAL\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage));
   return ok ? 0 : 1;

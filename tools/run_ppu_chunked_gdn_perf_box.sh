@@ -155,6 +155,7 @@ fi
     "$ROOT/src/ppu_chunked_gdn_backend.cu" \
     "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp" \
     "$ROOT/dev/gates/reference/ppu_chunked_gdn_inverse.hpp" \
+    "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh" \
     "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh" \
     "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh" \
     "$LIB" "$BIN"
