@@ -42,8 +42,9 @@ if(ACTLIZELA_ENABLE_PPU)
   add_subdirectory(third_party/actlize actlize)
 
   # actlize compiles .cu sources with an hgcc custom command. Target include
-  # properties do not reach that command, so bridge the subdirectory's exact
-  # device flags and add this repository's public include directory explicitly.
+  # properties and normal variables do not cross back out of add_subdirectory,
+  # so bridge the subdirectory's exact compiler/flags and add this repository's
+  # public include directory explicitly.
   get_directory_property(
     _actlize_hgcc_flags
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/actlize
@@ -52,6 +53,16 @@ if(ACTLIZELA_ENABLE_PPU)
     _actlize_device_includes
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/actlize
     DEFINITION CUTLASS_PPU_DEV_INCLUDE_FLAGS)
+  get_directory_property(
+    _actlize_device_hgcc
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/actlize
+    DEFINITION PPU_DEVICE_HGCC_REAL)
+  if(NOT _actlize_device_hgcc OR NOT EXISTS "${_actlize_device_hgcc}")
+    message(FATAL_ERROR
+      "actlize's PPU device compiler did not cross the subdirectory boundary: "
+      "PPU_DEVICE_HGCC_REAL='${_actlize_device_hgcc}'")
+  endif()
+  set(PPU_DEVICE_HGCC_REAL ${_actlize_device_hgcc})
   set(CUTLASS_PPU_EXTRA_HGCC_FLAGS ${_actlize_hgcc_flags})
   set(CUTLASS_PPU_DEV_INCLUDE_FLAGS ${_actlize_device_includes})
   list(APPEND CUTLASS_PPU_DEV_INCLUDE_FLAGS
