@@ -1,0 +1,8 @@
+/build/
+/.cache/
+*.o
+*.so
+*.a
+*.log
+*.acurep
+__pycache__/
