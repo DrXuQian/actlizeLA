@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "reference/ppu_chunked_gdn_inverse.hpp"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp"
 
 namespace {
 
@@ -241,11 +241,15 @@ bool check_inverse() {
 
 bool check_scheduler_and_admission() {
   using Traits = PpuChunkedGdnTraits<64, 128, 128>;
-  using Scheduler = PpuChunkedGdnScheduler<Traits>;
+  using WholeScheduler = PpuChunkedGdnScheduler<Traits>;
+  using SplitScheduler = PpuChunkedGdnScheduler<Traits, 64>;
   static_assert(
-      Scheduler::ceil_div(std::numeric_limits<std::int32_t>::max(), 64) ==
+      WholeScheduler::ceil_div(std::numeric_limits<std::int32_t>::max(), 64) ==
           33554432,
       "scheduler ceil-div must not overflow at INT32_MAX");
+  static_assert(WholeScheduler::ValueTiles == 1 &&
+                    SplitScheduler::ValueTiles == 2,
+                "whole-V authority and shipping split-V geometry diverged");
   std::uint16_t dummy16 = 0;
   float dummy32 = 0.0f;
   PpuChunkedGdnArguments<std::uint16_t> a{};
@@ -255,14 +259,52 @@ bool check_scheduler_and_admission() {
   a.problem = PpuChunkedGdnProblem{3 * 129, 3, 129, 2, 6, 128, 128, 64};
   bool ok = can_implement_ppu_chunked_gdn<Traits>(a) == PpuChunkedGdnStatus::kSuccess;
   std::array<int, 18> seen{};
-  for (int block = 0; block < Scheduler::grid_size(a.problem); ++block) {
-    auto const w = Scheduler::work(block, a.problem);
+  for (int block = 0; block < WholeScheduler::grid_size(a.problem); ++block) {
+    auto const w = WholeScheduler::work(block, a.problem);
     ok &= w.valid && w.sequence_idx == block / 6 && w.v_head_idx == block % 6 &&
           w.qk_head_idx == (block % 6) / 3 && w.token_begin == (block / 6) * 129 &&
+          w.value_tile_idx == 0 && w.value_begin == 0 && w.value_count == 128 &&
           w.token_count == 129 && w.chunk_count == 3;
     if (w.valid) ++seen[w.sequence_idx * 6 + w.v_head_idx];
   }
   for (int x : seen) ok &= x == 1;
+
+  // Exhaust every logical state/output column under the shipping BV64
+  // decomposition.  The two negative constructions change one variable at a
+  // time: omitting the final tile and aliasing both tiles at value_begin=0.
+  std::array<int, 3 * 6 * 128> split_seen{};
+  std::array<int, 3 * 6 * 128> alias_seen{};
+  int split_tiles = 0;
+  for (int block = 0; block < SplitScheduler::grid_size(a.problem); ++block) {
+    auto const w = SplitScheduler::work(block, a.problem);
+    ok &= w.valid && w.value_tile_idx == block % 2 &&
+          w.value_begin == (block % 2) * 64 && w.value_count == 64;
+    if (!w.valid) continue;
+    ++split_tiles;
+    for (int value = 0; value < w.value_count; ++value) {
+      int const base = (w.sequence_idx * 6 + w.v_head_idx) * 128;
+      ++split_seen[base + w.value_begin + value];
+      ++alias_seen[base + value];  // planted: local value mistaken for global
+    }
+  }
+  int split_bad = 0, alias_bad = 0, omitted_bad = 0;
+  for (int x : split_seen) split_bad += x != 1;
+  for (int x : alias_seen) alias_bad += x != 1;
+  // Plant: enumerate only one of the two value tiles.
+  for (int sequence = 0; sequence < 3; ++sequence) {
+    for (int head = 0; head < 6; ++head) {
+      for (int value = 0; value < 128; ++value) {
+        omitted_bad += value >= 64;
+      }
+    }
+  }
+  ok &= split_tiles == 36 && split_bad == 0 && alias_bad > 0 && omitted_bad > 0;
+  std::printf(
+      "[L203 split-V scheduler] work_tiles=%d columns=%zu exact_once_bad=%d "
+      "alias-local-as-global=%d EXPECTED_RED omitted-second-tile=%d "
+      "EXPECTED_RED %s\n",
+      split_tiles, split_seen.size(), split_bad, alias_bad, omitted_bad,
+      split_bad == 0 && alias_bad > 0 && omitted_bad > 0 ? "PASS" : "FAIL");
 
   a.cu_seqlens = reinterpret_cast<std::int32_t const*>(&dummy32);
   ok &= can_implement_ppu_chunked_gdn<Traits>(a) == PpuChunkedGdnStatus::kInvalidSequenceLayout;
@@ -275,7 +317,7 @@ bool check_scheduler_and_admission() {
       std::numeric_limits<std::int32_t>::max(),
       std::numeric_limits<std::int32_t>::max(), 128, 128, 64};
   ok &= can_implement_ppu_chunked_gdn<Traits>(a) == PpuChunkedGdnStatus::kInvalidProblem;
-  std::printf("[L203 scheduler] work_tiles=18 exact_once=%d gva_map=3:1 fail_closed=%d %s\n",
+  std::printf("[L203 scheduler] whole_v_work_tiles=18 split_v_work_tiles=36 exact_once=%d gva_map=3:1 fail_closed=%d %s\n",
               ok ? 1 : 0, ok ? 1 : 0, ok ? "PASS" : "FAIL");
   return ok;
 }

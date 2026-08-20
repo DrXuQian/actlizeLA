@@ -13,7 +13,7 @@
 
 #include "cutlass/bfloat16.h"
 #include "cutlass/cutlass.h"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh"
 
 #if defined(__CUDACC__) && !defined(__HGGCCC__)
 #define QZ_PPU_GDN_KERNEL_DEVICE __device__ __forceinline__
@@ -31,9 +31,9 @@ struct PpuChunkedGdnKernel {
   using Arguments = Arguments_;
   using Params = Arguments;
   using Traits = Traits_;
-  using Scheduler = PpuChunkedGdnScheduler<Traits>;
   using Collective =
       PpuChunkedGdnCollectiveBf16C64D128BV64<Traits, Arguments>;
+  using Scheduler = PpuChunkedGdnScheduler<Traits, Collective::kValueBlock>;
   using SharedStorage = typename Collective::SharedStorage;
 
   static constexpr std::uint32_t MaxThreadsPerBlock = Collective::kThreadCount;
@@ -44,7 +44,9 @@ struct PpuChunkedGdnKernel {
                 "device_kernel Params must be copied by value");
   static_assert(MaxThreadsPerBlock == 128,
                 "the C64 global-dot collective owns exactly four warps");
-  static_assert(SharedStorageSize == 139776,
+  static_assert(Scheduler::ValueTiles == 2,
+                "shipping V128 kernel must expose two independent BV64 work tiles");
+  static_assert(SharedStorageSize == 107008,
                 "kernel and collective shared-memory ledgers disagree");
 
   static Params to_underlying_arguments(Arguments const& args, void* workspace) {

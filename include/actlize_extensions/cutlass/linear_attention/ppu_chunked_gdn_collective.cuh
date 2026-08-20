@@ -27,8 +27,8 @@
 #include "cute/ppu_tensor_mix.hpp"
 #include "cute/atom/copy_traits_ppu0010_aiu.hpp"
 #include "cute/atom/mma_traits_ppu0010.hpp"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp"
 
 // actlize's CUTLASS_DEVICE intentionally follows hgcc's compilation macros.
 // Keep the independently runnable CUDA reference a real device function when
@@ -142,7 +142,11 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   static constexpr int kValueBlocks = kHeadV / kValueBlock;
   static constexpr int kThreadCount = 128;
   static constexpr int kGlobalDotAlignmentBytes = 16;
-  static constexpr int kStateElements = kHeadK * kHeadV;
+  // One CTA owns one independent BV64 slice of the KxV recurrent state.  The
+  // scheduler emits two work tiles for each logical V128 head; global state
+  // and output addresses remain in the original V128 layout.
+  static constexpr int kStateStride = kValueBlock;
+  static constexpr int kStateElements = kHeadK * kStateStride;
   static constexpr int kScoreElements = kChunk * kChunk;
   static constexpr int kWElements = kChunk * kHeadK;
   static constexpr int kValueTileElements = kChunk * kValueBlock;
@@ -176,10 +180,10 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
                     kOffsetVNew + 2 * kBf16CubeBytes <= kPhaseBytes,
                 "generated-operand liveness aliases overlap a live matrix");
 
-  // The GDN is mathematically complete in this file.  Keep the performance
-  // denominator explicit: QK/KK contribute 256 m16n16k16 operations and the
-  // eleven generated-operand product instances contribute another 1152.  The
-  // base triangular solve remains a true dependency chain rather than a GEMM.
+  // The GDN is mathematically complete in this file.  Execution denominators
+  // are per BV64 work tile: QK/KK and W are intentionally recomputed by the
+  // two independent V-column owners.  This is the explicit cost of buying two
+  // resident 4-warp CTAs without changing the proved 128-thread MMA map.
   static constexpr bool kAllStagesConnected = true;
   static constexpr bool kGlobalQkAndKkUseAiuOnPpu0010 = true;
   static constexpr bool kGeneratedOperandMmaConnected = true;
@@ -187,15 +191,20 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   static constexpr bool kInverseBlockUpdatesUseAiu = true;
   static constexpr bool kAllMatrixProductsUseAiu = true;
   static constexpr int kGeneratedProductKinds = 6;
-  static constexpr int kGeneratedProductInstancesPerChunk = 11;
-  static constexpr int kGeneratedMmaPerFullChunk = 1152;
-  static constexpr int kGlobalDotMmaPerFullChunk = 256;
+  static constexpr int kGeneratedProductInstancesPerWorkTileChunk = 6;
+  static constexpr int kGeneratedMmaPerWorkTileChunk = 640;
+  static constexpr int kGlobalDotMmaPerWorkTileChunk = 256;
   static constexpr int kInverseBlockProductsPerChunk = 6;
-  static constexpr int kInverseTf32MmaPerFullChunk = 40;
+  static constexpr int kInverseTf32MmaPerWorkTileChunk = 40;
   static constexpr int kInverseCtaBarriersPerChunk = 8;
-  static constexpr int kDenseForwardMmaPerFullChunk =
-      kGeneratedMmaPerFullChunk + kGlobalDotMmaPerFullChunk +
-      kInverseTf32MmaPerFullChunk;
+  static constexpr int kBf16MmaPerWorkTileChunk =
+      kGeneratedMmaPerWorkTileChunk + kGlobalDotMmaPerWorkTileChunk;
+  static constexpr int kDenseForwardMmaPerWorkTileChunk =
+      kBf16MmaPerWorkTileChunk + kInverseTf32MmaPerWorkTileChunk;
+  static constexpr int kBf16MmaPerLogicalHeadChunk =
+      kBf16MmaPerWorkTileChunk * kValueBlocks;
+  static constexpr int kTf32MmaPerLogicalHeadChunk =
+      kInverseTf32MmaPerWorkTileChunk * kValueBlocks;
 
   static_assert(Traits::ChunkSize == kChunk && Traits::HeadSizeK == kHeadK &&
                     Traits::HeadSizeV == kHeadV,
@@ -206,9 +215,8 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
                 "v1 requires BF16 Q/K/V/O and FP32 recurrent state");
 
   struct alignas(32) SharedStorage {
-    // Full state remains resident while chunks are the outer loop.  BV64 is a
-    // compute tile, not a split ownership contract, so KK/QK/A/W are computed
-    // only once per chunk.
+    // Only this CTA's BV64 state columns remain resident while chunks are the
+    // outer loop.  The other half of the V128 head has a disjoint CTA owner.
     float state[kStateElements];
     float gamma[kChunk];
     float beta[kChunk];
@@ -216,8 +224,8 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   };
 
   static constexpr int kSharedStorageBytes = int(sizeof(SharedStorage));
-  static_assert(kSharedStorageBytes == 139776,
-                "C64/D128/BV64 shared-memory liveness ledger changed");
+  static_assert(kSharedStorageBytes == 107008,
+                "C64/D128/BV64 split-V shared-memory liveness ledger changed");
   static_assert(kSharedStorageBytes <= 262144,
                 "PPU0010 exposes at most 256 KiB shared storage per CTA");
   static_assert(sizeof(typename GlobalDotMainloop::SharedStorage) <= kPhaseBytes,
@@ -322,8 +330,9 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       SharedStorage& shared, int thread_idx) {
     for (int i = thread_idx; i < kStateElements; i += kThreadCount) {
-      int const feature = i / kHeadV;
-      int const value = i % kHeadV;
+      int const feature = i / kStateStride;
+      int const local_value = i % kStateStride;
+      int const value = work.value_begin + local_value;
       shared.state[i] = params.initial_state == nullptr
                             ? 0.0f
                             : params.initial_state[state_offset(
@@ -337,8 +346,9 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       SharedStorage const& shared, int thread_idx) {
     if (params.final_state != nullptr) {
       for (int i = thread_idx; i < kStateElements; i += kThreadCount) {
-        int const feature = i / kHeadV;
-        int const value = i % kHeadV;
+        int const feature = i / kStateStride;
+        int const local_value = i % kStateStride;
+        int const value = work.value_begin + local_value;
         params.final_state[state_offset(params, work, feature, value)] = shared.state[i];
       }
     }
@@ -811,8 +821,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
           int const value = index / kChunk;
           int const feature = index % kChunk;
           generated_operand[index] = to_bf16(
-              shared.state[(feature_base + feature) * kHeadV +
-                           value_base + value]);
+              shared.state[(feature_base + feature) * kStateStride + value]);
         }
         __syncthreads();
         Element const* const q =
@@ -850,8 +859,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
           int const value = index / kChunk;
           int const feature = index % kChunk;
           h_for_wh[index] = to_bf16(
-              shared.state[(feature_base + feature) * kHeadV +
-                           value_base + value]);
+              shared.state[(feature_base + feature) * kStateStride + value]);
         }
         __syncthreads();
         ResidentMma::mma(
@@ -936,7 +944,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
           accum, thread_idx,
           [&](int feature, int value, float update) {
             int const h_index =
-                (feature_base + feature) * kHeadV + value_base + value;
+                (feature_base + feature) * kStateStride + value;
             shared.state[h_index] =
                 state_decay * shared.state[h_index] + update;
           });
@@ -996,7 +1004,8 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
           // The reference pipeline materializes the recurrent-state boundary
           // in BF16 before QH/WH. Preserve that rounding point even though the
           // canonical in-CTA state remains FP32 across chunks.
-          float const h = to_float(to_bf16(shared.state[d * kHeadV + value_base + v]));
+          float const h =
+              to_float(to_bf16(shared.state[d * kStateStride + v]));
           qh += to_float(params.q[qk_offset(params, work, chunk_begin + row, d)]) * h;
           wh += to_float(w[row * kHeadK + d]) * h;
         }
@@ -1036,7 +1045,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
         update += to_float(params.k[qk_offset(params, work, chunk_begin + row, d)]) *
                   to_float(scaled_v);
       }
-      int const h_index = d * kHeadV + value_base + v;
+      int const h_index = d * kStateStride + v;
       shared.state[h_index] = state_decay * shared.state[h_index] + update;
     }
     __syncthreads();
@@ -1048,6 +1057,14 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       SharedStorage& shared) {
     int const thread_idx = int(threadIdx.x);
+    // Scheduler/collective mismatch must fail at compile time in the shipping
+    // type.  These uniform runtime values document the address contract used
+    // below; the scheduler exhaustiveness gate proves every V column has one
+    // and only one owner.
+    if (work.value_count != kValueBlock ||
+        work.value_begin < 0 || work.value_begin + kValueBlock > kHeadV) {
+      return;
+    }
     load_state(params, work, shared, thread_idx);
     for (int chunk = 0; chunk < work.chunk_count; ++chunk) {
       int const chunk_begin = chunk * kChunk;
@@ -1065,11 +1082,9 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
           shared, thread_idx);
       solve_inverse(shared, thread_idx);
       compute_w(params, work, chunk_begin, valid, shared, thread_idx);
-      for (int value_tile = 0; value_tile < kValueBlocks; ++value_tile) {
-        compute_value_tile(
-            params, work, chunk_begin, valid, value_tile * kValueBlock,
-            shared, thread_idx);
-      }
+      compute_value_tile(
+          params, work, chunk_begin, valid, work.value_begin,
+          shared, thread_idx);
     }
     store_final_state(params, work, shared, thread_idx);
   }

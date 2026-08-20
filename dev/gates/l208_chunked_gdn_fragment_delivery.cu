@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <type_traits>
 
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh"
 
 #if !defined(__HGGCCC__)
 #error "L208 must instantiate the production __HGGCCC__ MMA helpers"

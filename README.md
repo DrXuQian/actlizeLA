@@ -9,6 +9,10 @@ The public ABI intentionally retains the proven
 silently break existing consumers. The standalone shared library is named
 `libactlize_la_ppu.so`.
 
+The canonical C++ header root is `actlize_extensions/`.  The retained
+`quactlize_ppu_*` spelling is limited to the stable public C ABI; it is not an
+alternate C++ include tree.
+
 ## Stable v1 scope
 
 - forward inference only;
@@ -106,6 +110,20 @@ OUT=/workspace/actlizeLA-gdn-perf \
 ```
 
 Artifacts stay under `/workspace`; no runner uses `/tmp` or `mktemp`.
+
+The current PPU tactic partitions each V128 recurrence head into two
+independent BV64 CTA owners.  This reduces per-CTA shared storage from 139,776
+to 107,008 bytes and changes the same-shape grid from 72 to 144.  The fixed
+before/after interpretation is recorded in
+`dev/gates/SPLIT_V64_PERFORMANCE_PREREGISTRATION.md`.
+
+To capture the same mathematical shape under ACU with exactly one launch:
+
+```bash
+OUT=/workspace/actlizeLA-gdn-splitv-acu \
+ACU=1 GDN_ACU_SHAPE=3,256,12,24,same-shape-splitv-grid144 \
+  bash tools/run_ppu_chunked_gdn_perf_box.sh --box
+```
 
 ## Source authorities
 

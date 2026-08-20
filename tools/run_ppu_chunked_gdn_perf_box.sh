@@ -52,7 +52,7 @@ declare -a shape_rows=()
 # expensive PPU build. Thus malformed, empty and duplicate selections are
 # locally falsifiable properties, not box-only surprises.
 if [[ "${ACU:-0}" == 1 ]]; then
-  ACU_SHAPE="${GDN_ACU_SHAPE:-2,2048,32,32,cula-like-long-grid64}"
+  ACU_SHAPE="${GDN_ACU_SHAPE:-3,256,12,24,same-shape-splitv-grid144}"
   IFS=',' read -r sequences length qk_heads v_heads label extra <<< "$ACU_SHAPE"
   if [[ -z "${label:-}" || -n "${extra:-}" ]] || ! valid_label "$label" ||
       ! valid_shape_fields "$sequences" "$length" "$qk_heads" "$v_heads"; then
@@ -60,7 +60,7 @@ if [[ "${ACU:-0}" == 1 ]]; then
     exit 2
   fi
 else
-  DEFAULT_SHAPES="1,256,32,32,short-grid32;2,256,16,32,gva-grid64;3,256,12,24,exact-fill-grid72;4,256,16,32,gva-grid128;2,2048,32,32,cula-like-long-grid64"
+  DEFAULT_SHAPES="1,256,32,32,splitv-grid64;2,256,16,32,splitv-grid128;3,256,12,24,same-shape-splitv-grid144;4,256,16,32,splitv-grid256;2,2048,32,32,cula-like-long-splitv-grid128"
   if [[ -v GDN_SHAPES ]]; then
     SHAPES="$GDN_SHAPES"
   else
@@ -153,11 +153,11 @@ fi
     "$ROOT/tools/run_ppu_chunked_gdn_perf_box.sh" \
     "$ROOT/include/quactlize_ppu_linear_attention.h" \
     "$ROOT/src/ppu_chunked_gdn_backend.cu" \
-    "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_types.hpp" \
     "$ROOT/dev/gates/reference/ppu_chunked_gdn_inverse.hpp" \
-    "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh" \
-    "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh" \
-    "$ROOT/include/quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh" \
     "$LIB" "$BIN"
 } | tee "$OUT/binary-identity.txt"
 
@@ -185,10 +185,11 @@ if [[ "${ACU:-0}" == 1 ]]; then
   # resource profile; it is deliberately labelled NOT_TIMING by the binary.
   REPORT="$OUT/${label}.report.acurep"
   chunks=$((length / 64 + (length % 64 != 0)))
-  work_units=$((sequences * v_heads * chunks))
-  expected_bf16_mma=$((work_units * 1408))
-  expected_tf32_mma=$((work_units * 40))
-  echo "[GDN perf ACU preregistration] work_units=$work_units expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
+  logical_work_units=$((sequences * v_heads * chunks))
+  physical_work_units=$((logical_work_units * 2))
+  expected_bf16_mma=$((physical_work_units * 896))
+  expected_tf32_mma=$((physical_work_units * 40))
+  echo "[GDN perf ACU preregistration] scheduler=split-v64 value_tiles_per_head=2 logical_work_units=$logical_work_units physical_work_units=$physical_work_units expected_grid=$((sequences * v_heads * 2)) expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 expected_shared_block_limit_at_least=2 adjudication=REPORT_REQUIRED"
   "$ACU_BIN" -f -o "$REPORT" --set full "$BIN" \
     --sequences="$sequences" --length="$length" \
     --qk-heads="$qk_heads" --v-heads="$v_heads" \
@@ -203,8 +204,10 @@ if [[ "${ACU:-0}" == 1 ]]; then
   exit 0
 fi
 
-# B,T,H,HV,label. These five rows separate short-sequence wave count (32, 64,
-# exactly 72, 128 CTAs), GVA 1:2 from 1:1, and a cuLA-like long sequence.
+# B,T,H,HV,label.  Split-V emits two BV64 CTAs per logical V128 head, so these
+# same workloads now cover physical grids 64, 128, 144 and 256 plus a cuLA-like
+# long sequence.  The grid144 row is the exact same mathematical shape whose
+# whole-V baseline occupied one 4-warp CTA on each of 72 CUs.
 for row in "${shape_rows[@]}"; do
   IFS=',' read -r sequences length qk_heads v_heads label extra <<< "$row"
   run_shape "$sequences" "$length" "$qk_heads" "$v_heads" "$label"

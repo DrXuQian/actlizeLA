@@ -33,7 +33,8 @@ constexpr int kChunk = 64;
 constexpr int kHeadK = 128;
 constexpr int kHeadV = 128;
 constexpr int kThreads = 128;
-constexpr std::size_t kSharedBytes = 139776;
+constexpr int kValueTilesPerHead = 2;
+constexpr std::size_t kSharedBytes = 107008;
 constexpr float kScale = 0.5f;
 constexpr std::uint16_t kBf16Poison = 0x7fc1u;
 // Mathematical work performed by one full C64 / Dk128 / Dv128 value-head
@@ -335,24 +336,31 @@ int run(Options const& o) {
     std::fprintf(stderr, "[GDN perf] device API returned invalid CU count %d\n", cu);
     return 1;
   }
-  std::int64_t const grid = std::int64_t(o.sequences) * o.v_heads;
+  std::int64_t const logical_heads = std::int64_t(o.sequences) * o.v_heads;
+  std::int64_t const grid = logical_heads * kValueTilesPerHead;
   int const chunks = o.sequence_length / kChunk +
                      (o.sequence_length % kChunk != 0);
-  std::int64_t const work_units = grid * chunks;
+  std::int64_t const logical_work_units = logical_heads * chunks;
+  std::int64_t const physical_work_units = grid * chunks;
   std::printf(
-      "[GDN perf config] implementation=all-dense-products-aiu+blocked-tf32-inverse "
+      "[GDN perf config] implementation=split-v64-cta/all-dense-products-aiu+blocked-tf32-inverse "
       "shape=B%d,T%d,H%d,HV%d,K128,V128,C64 GVA=%d:%d "
-      "tokens=%d token_heads=%lld chunks_per_sequence=%d work_units=%lld "
+      "tokens=%d token_heads=%lld value_tiles_per_head=%d chunks_per_sequence=%d "
+      "logical_work_units=%lld physical_work_units=%lld "
       "grid=(%lld,1,1) threads=%d shared_bytes=%zu device=%d cu=%d "
       "logical_flops_per_full_chunk=%llu "
-      "bf16_mma_per_full_chunk=1408 tf32_mma_per_full_chunk=40 "
+      "bf16_mma_per_work_tile_chunk=896 tf32_mma_per_work_tile_chunk=40 "
+      "bf16_mma_per_logical_head_chunk=1792 tf32_mma_per_logical_head_chunk=80 "
+      "common_recompute=QK+KK+inverse+W "
       "inverse_block_products=6 inverse_cta_barriers=8 "
       "occupancy_api=UNAVAILABLE(reason=shipping-kernel-symbol-not-public) "
       "initial_state=%d final_state=%d\n",
       o.sequences, o.sequence_length, o.qk_heads, o.v_heads,
       o.qk_heads, o.v_heads, tokens,
-      static_cast<long long>(std::int64_t(tokens) * o.v_heads), chunks,
-      static_cast<long long>(work_units), static_cast<long long>(grid),
+      static_cast<long long>(std::int64_t(tokens) * o.v_heads),
+      kValueTilesPerHead, chunks,
+      static_cast<long long>(logical_work_units),
+      static_cast<long long>(physical_work_units), static_cast<long long>(grid),
       kThreads, kSharedBytes, current_device, cu,
       static_cast<unsigned long long>(kLogicalFlopsPerFullChunk),
       int(o.initial_state), int(o.final_state));
@@ -499,7 +507,7 @@ int run(Options const& o) {
   double const tokens_per_second = double(tokens) * 1.0e6 / med;
   if (o.sequence_length % kChunk == 0) {
     long double const logical_flops =
-        static_cast<long double>(work_units) * kLogicalFlopsPerFullChunk;
+        static_cast<long double>(logical_work_units) * kLogicalFlopsPerFullChunk;
     long double const effective_tflops = logical_flops / med / 1.0e6L;
     std::printf(
         "[GDN perf] protocol=device-event-launch-span-upper "

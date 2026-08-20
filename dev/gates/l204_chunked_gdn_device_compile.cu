@@ -7,7 +7,7 @@
 #include <cstdint>
 
 #include "cutlass/bfloat16.h"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
 
 namespace {
 
@@ -32,15 +32,19 @@ static_assert(Kernel::Collective::kGeneratedOperandMmaConnected &&
 static_assert(Kernel::Collective::kInverseBlockUpdatesUseAiu &&
                   Kernel::Collective::kAllMatrixProductsUseAiu,
               "L204 requires inverse block updates on PPU TF32 AIU");
-static_assert(Kernel::Collective::kGeneratedProductKinds == 6 &&
-                  Kernel::Collective::kGeneratedProductInstancesPerChunk == 11 &&
-                  Kernel::Collective::kGeneratedMmaPerFullChunk == 1152 &&
-                  Kernel::Collective::kGlobalDotMmaPerFullChunk == 256 &&
+static_assert(Kernel::Scheduler::ValueTiles == 2 &&
+                  Kernel::Collective::kGeneratedProductKinds == 6 &&
+                  Kernel::Collective::kGeneratedProductInstancesPerWorkTileChunk == 6 &&
+                  Kernel::Collective::kGeneratedMmaPerWorkTileChunk == 640 &&
+                  Kernel::Collective::kGlobalDotMmaPerWorkTileChunk == 256 &&
                   Kernel::Collective::kInverseBlockProductsPerChunk == 6 &&
-                  Kernel::Collective::kInverseTf32MmaPerFullChunk == 40 &&
+                  Kernel::Collective::kInverseTf32MmaPerWorkTileChunk == 40 &&
                   Kernel::Collective::kInverseCtaBarriersPerChunk == 8 &&
-                  Kernel::Collective::kDenseForwardMmaPerFullChunk == 1448,
-              "L204 BF16/TF32 AIU denominators changed");
+                  Kernel::Collective::kBf16MmaPerWorkTileChunk == 896 &&
+                  Kernel::Collective::kDenseForwardMmaPerWorkTileChunk == 936 &&
+                  Kernel::Collective::kBf16MmaPerLogicalHeadChunk == 1792 &&
+                  Kernel::Collective::kTf32MmaPerLogicalHeadChunk == 80,
+              "L204 split-V BF16/TF32 execution denominators changed");
 static_assert(Kernel::MaxThreadsPerBlock == 128,
               "L204 launch geometry changed without a new proof");
 static_assert(sizeof(typename Kernel::SharedStorage) <= 262144,
@@ -80,13 +84,15 @@ int main() {
   auto const params = Kernel::to_underlying_arguments(args, nullptr);
   dim3 const grid = Kernel::get_grid_shape(params);
   dim3 const block = Kernel::get_block_shape();
-  bool const ok = admitted && grid.x == 1 && grid.y == 1 && grid.z == 1 &&
+  bool const ok = admitted && grid.x == 2 && grid.y == 1 && grid.z == 1 &&
                   block.x == 128 && Kernel::get_workspace_size(args) == 0;
   std::printf(
       "[l204] %s: device-body=INSTANTIATED C=64 K=128 V=128 threads=%u "
-      "shared=%zu all-stages=1 global-dot=PPU-AIU generated-products=6/11/1152 "
-      "dense-forward-bf16-mma=1408 inverse-block-products=6 "
-      "inverse-tf32-mma=40 inverse-cta-barriers=8 "
+      "shared=%zu value-tiles=2 all-stages=1 global-dot=PPU-AIU "
+      "generated-products/work-tile=6/640 bf16-mma/work-tile=896 "
+      "bf16-mma/logical-head=1792 inverse-block-products/work-tile=6 "
+      "inverse-tf32-mma/work-tile=40 inverse-tf32-mma/logical-head=80 "
+      "inverse-cta-barriers/work-tile=8 "
       "all-matrix-products=AIU inverse-base=16x16-sequential\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage));

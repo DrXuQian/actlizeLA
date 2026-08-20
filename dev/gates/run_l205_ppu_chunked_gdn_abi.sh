@@ -30,7 +30,7 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror \
   -o "$OUT/test_ppu_chunked_gdn_abi.host-contract.o"
 echo "[L205 local] PASS: public-header/runtime compile contract; object=$OUT/test_ppu_chunked_gdn_abi.host-contract.o"
 
-# RTX cannot donate the PPU kernel's 139776-byte shared ledger (sm_120 reports
+# RTX cannot donate the PPU kernel's 107008-byte shared ledger (sm_120 reports
 # 101376 bytes/block).  The adapter executes the unchanged scalar collective
 # body with that ledger in global scratch.  This is a correctness launch, not
 # a performance proxy for the PPU shared-memory path.

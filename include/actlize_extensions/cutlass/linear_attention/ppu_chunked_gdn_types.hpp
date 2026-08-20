@@ -80,6 +80,9 @@ struct PpuChunkedGdnWorkTileInfo {
   std::int32_t sequence_idx = 0;
   std::int32_t v_head_idx = 0;
   std::int32_t qk_head_idx = 0;
+  std::int32_t value_tile_idx = 0;
+  std::int32_t value_begin = 0;
+  std::int32_t value_count = 0;
   std::int32_t token_begin = 0;
   std::int32_t token_count = 0;
   std::int32_t chunk_count = 0;
@@ -100,23 +103,38 @@ struct PpuChunkedGdnTraits {
                 "PPU GDN V head dimension must be a positive multiple of 16");
 };
 
-template <class Traits>
+// ValueTileSize is an execution tile, not a public tensor-layout change.  A
+// V128 head can be partitioned into two independent V64 recurrence columns:
+// every state/output element has exactly one owner, so no inter-CTA reduction
+// or synchronization is required.  Keeping the default equal to HeadSizeV
+// preserves a whole-head scheduler authority for host counterfactuals; the
+// shipping kernel explicitly selects its collective's V tile below.
+template <class Traits, int ValueTileSize_ = Traits::HeadSizeV>
 struct PpuChunkedGdnScheduler {
+  static constexpr std::int32_t ValueTileSize = ValueTileSize_;
+  static constexpr std::int32_t ValueTiles =
+      Traits::HeadSizeV / ValueTileSize;
+
+  static_assert(ValueTileSize > 0 && Traits::HeadSizeV % ValueTileSize == 0,
+                "value tile must divide the recurrent V head exactly");
+
   QZ_GDN_HOST_DEVICE static constexpr std::int32_t ceil_div(std::int32_t x, std::int32_t y) {
     return x / y + (x % y != 0);
   }
 
   QZ_GDN_HOST_DEVICE static constexpr std::int32_t grid_size(PpuChunkedGdnProblem const& p) {
     std::int64_t const grid =
-        std::int64_t(p.num_sequences) * std::int64_t(p.num_v_heads);
+        std::int64_t(p.num_sequences) * std::int64_t(p.num_v_heads) *
+        std::int64_t(ValueTiles);
     return grid > 0 && grid <= std::numeric_limits<std::int32_t>::max()
                ? std::int32_t(grid)
                : 0;
   }
 
-  // A work tile owns the complete recurrence chain for one (sequence,V-head).
-  // Chunks are intentionally serial inside that owner: there is no global
-  // state handoff, counter, or lock in the first fully-fused implementation.
+  // A work tile owns the complete recurrence chain for one
+  // (sequence,V-head,V-column-tile).  Chunks remain serial inside that owner;
+  // splitting only the independent V columns introduces no state handoff,
+  // counter, lock, or reduction.
   QZ_GDN_HOST_DEVICE static constexpr PpuChunkedGdnWorkTileInfo
   work(std::int32_t linear_block, PpuChunkedGdnProblem const& p) {
     PpuChunkedGdnWorkTileInfo w{};
@@ -127,9 +145,13 @@ struct PpuChunkedGdnScheduler {
       return w;
     }
     std::int32_t const value_heads_per_qk_head = p.num_v_heads / p.num_qk_heads;
-    w.sequence_idx = linear_block / p.num_v_heads;
-    w.v_head_idx = linear_block % p.num_v_heads;
+    std::int32_t const head_tile = linear_block / ValueTiles;
+    w.value_tile_idx = linear_block % ValueTiles;
+    w.sequence_idx = head_tile / p.num_v_heads;
+    w.v_head_idx = head_tile % p.num_v_heads;
     w.qk_head_idx = w.v_head_idx / value_heads_per_qk_head;
+    w.value_begin = w.value_tile_idx * ValueTileSize;
+    w.value_count = ValueTileSize;
     std::int64_t const token_begin =
         std::int64_t(w.sequence_idx) * std::int64_t(p.sequence_length);
     if (token_begin < 0 || token_begin > std::numeric_limits<std::int32_t>::max()) {

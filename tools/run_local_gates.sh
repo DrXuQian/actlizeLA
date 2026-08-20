@@ -6,6 +6,8 @@ OUT="${OUT:-/workspace/actlizeLA-local-gates}"
 
 mkdir -p "$OUT"
 
+L211_OUT="$OUT/l211" \
+  bash "$ROOT/dev/gates/run_l211_actlize_extensions_install.sh"
 L203_BUILD_ROOT="$OUT/l203" \
   bash "$ROOT/dev/gates/run_l203_chunked_gdn_oracle.sh"
 QUACTLIZE_L204_OUT="$OUT/l204" \
@@ -23,4 +25,4 @@ L210_OUT="$OUT/l210" \
 QZ_GDN_SKIP_CUDA="${QZ_GDN_SKIP_CUDA:-0}" OUT="$OUT/l205" \
   bash "$ROOT/dev/gates/run_l205_ppu_chunked_gdn_abi.sh" --local
 
-echo "[actlizeLA local] PASS: forward algebra, ABI, device type, ownership, fragment delivery, and TF32 inverse gates"
+echo "[actlizeLA local] PASS: canonical installed headers, forward algebra, ABI, device type, ownership, fragment delivery, and TF32 inverse gates"

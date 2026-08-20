@@ -1,7 +1,7 @@
 // Local RTX correctness adapter for the exact production collective body.
 //
 // RTX 5090 exposes 101376 bytes of opt-in shared memory per block while the
-// PPU specialization owns 139776 bytes.  A normal CUDA launch therefore
+// PPU split-V specialization owns 107008 bytes.  A normal CUDA launch therefore
 // cannot instantiate the exact body.  This test-only adapter places the
 // unchanged SharedStorage object in global memory and passes it to the same
 // PpuChunkedGdnKernel::operator().  Every scalar CUDA fallback instruction,
@@ -15,7 +15,7 @@
 
 #include "cutlass/bfloat16.h"
 #include "quactlize_ppu_linear_attention.h"
-#include "quactlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
 
 namespace {
 
@@ -76,7 +76,7 @@ extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v1(
   }
 
   int const blocks = Traits::ChunkSize == 64
-      ? args.problem.num_sequences * args.problem.num_v_heads
+      ? Kernel::Scheduler::grid_size(args.problem)
       : 0;
   if (blocks <= 0) return QUACTLIZE_PPU_CHUNKED_GDN_INVALID_PROBLEM;
   typename Kernel::SharedStorage* scratch = nullptr;

@@ -24,6 +24,11 @@ target_link_libraries(chunked_gdn_oracle PRIVATE actlize_la_headers)
 
 if(BUILD_TESTING)
   add_test(NAME chunked_gdn_oracle COMMAND chunked_gdn_oracle)
+  add_test(
+    NAME actlize_extensions_install_contract
+    COMMAND ${CMAKE_COMMAND} -E env
+            L211_OUT=${CMAKE_CURRENT_BINARY_DIR}/l211-install-contract
+            bash ${CMAKE_CURRENT_SOURCE_DIR}/dev/gates/run_l211_actlize_extensions_install.sh)
   if(ACTLIZELA_ENABLE_LOCAL_GATES)
     add_test(
       NAME chunked_gdn_local_gates
