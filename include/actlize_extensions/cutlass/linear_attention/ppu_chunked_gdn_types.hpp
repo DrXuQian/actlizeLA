@@ -96,6 +96,16 @@ struct PpuChunkedGdnPrepareWorkTileInfo {
   bool valid = false;
 };
 
+// A value-chunk cell is the independently parallel part of the forward DAG:
+// one (sequence, V-head, chunk, BV tile).  U and O use this ownership directly;
+// the H kernel consumes the same cells in chunk order through the existing
+// whole-chain scheduler.
+struct PpuChunkedGdnValueChunkWorkTileInfo {
+  PpuChunkedGdnWorkTileInfo head{};
+  std::int32_t chunk_idx = 0;
+  bool valid = false;
+};
+
 template <int ChunkSize_, int HeadSizeK_, int HeadSizeV_>
 struct PpuChunkedGdnTraits {
   static constexpr int ChunkSize = ChunkSize_;
@@ -216,6 +226,45 @@ struct PpuChunkedGdnPrepareScheduler {
     result.valid = result.head.valid && result.head.value_begin == 0 &&
                    result.head.value_count == Traits::HeadSizeV &&
                    result.chunk_idx < result.head.chunk_count;
+    return result;
+  }
+};
+
+template <class Traits, int ValueTileSize_>
+struct PpuChunkedGdnValueChunkScheduler {
+  using HeadScheduler = PpuChunkedGdnScheduler<Traits, ValueTileSize_>;
+  static constexpr std::int32_t ValueTiles = HeadScheduler::ValueTiles;
+
+  QZ_GDN_HOST_DEVICE static constexpr std::int32_t chunk_count(
+      PpuChunkedGdnProblem const& p) {
+    return PpuChunkedGdnPrepareScheduler<Traits>::chunk_count(p);
+  }
+
+  QZ_GDN_HOST_DEVICE static constexpr std::int32_t grid_size(
+      PpuChunkedGdnProblem const& p) {
+    std::int64_t const grid =
+        std::int64_t(HeadScheduler::grid_size(p)) * chunk_count(p);
+    return grid > 0 && grid <= std::numeric_limits<std::int32_t>::max()
+               ? std::int32_t(grid)
+               : 0;
+  }
+
+  // Linear order is [logical head][chunk][value tile].  Consequently the
+  // returned block id is also the canonical value-workspace record index.
+  QZ_GDN_HOST_DEVICE static constexpr PpuChunkedGdnValueChunkWorkTileInfo work(
+      std::int32_t linear_block, PpuChunkedGdnProblem const& p) {
+    PpuChunkedGdnValueChunkWorkTileInfo result{};
+    std::int32_t const chunks = chunk_count(p);
+    std::int32_t const grid = grid_size(p);
+    if (chunks <= 0 || linear_block < 0 || linear_block >= grid) return result;
+    std::int32_t const cells_per_head = chunks * ValueTiles;
+    std::int32_t const logical_head = linear_block / cells_per_head;
+    std::int32_t const within_head = linear_block % cells_per_head;
+    result.chunk_idx = within_head / ValueTiles;
+    std::int32_t const value_tile = within_head % ValueTiles;
+    result.head = HeadScheduler::work(
+        logical_head * ValueTiles + value_tile, p);
+    result.valid = result.head.valid && result.chunk_idx < result.head.chunk_count;
     return result;
   }
 };

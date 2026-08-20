@@ -25,6 +25,13 @@ using Pipeline =
 using PrepareKernel = cutlass::linear_attention::PpuChunkedGdnPrepareKernel<Pipeline>;
 using RecurrenceKernel =
     cutlass::linear_attention::PpuChunkedGdnRecurrenceKernel<Pipeline>;
+using FourStagePipeline =
+    cutlass::linear_attention::PpuChunkedGdnFourStagePipeline<Arguments, Traits>;
+using FourPrepareKernel =
+    cutlass::linear_attention::PpuChunkedGdnFourStagePrepareKernel<FourStagePipeline>;
+using UKernel = cutlass::linear_attention::PpuChunkedGdnUKernel<FourStagePipeline>;
+using HKernel = cutlass::linear_attention::PpuChunkedGdnHKernel<FourStagePipeline>;
+using OKernel = cutlass::linear_attention::PpuChunkedGdnOKernel<FourStagePipeline>;
 using Admission = cutlass::linear_attention::PpuChunkedGdnStatus;
 
 static_assert(int(Admission::kSuccess) == QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS &&
@@ -234,6 +241,85 @@ extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v2(
       <<<RecurrenceKernel::get_grid_shape(params),
          RecurrenceKernel::get_block_shape(),
          sizeof(typename RecurrenceKernel::SharedStorage), launch_stream>>>(params);
+  return launch_succeeded()
+      ? QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS
+      : QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+}
+
+extern "C" std::size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem) {
+  if (!valid_schema(problem)) return 0;
+  auto const p = convert_problem(*problem);
+  std::int64_t const tokens =
+      std::int64_t(p.num_sequences) * std::int64_t(p.sequence_length);
+  if (p.total_tokens <= 0 || tokens != p.total_tokens ||
+      p.num_sequences <= 0 || p.sequence_length <= 0 ||
+      p.num_qk_heads <= 0 || p.num_v_heads <= 0 ||
+      p.num_v_heads % p.num_qk_heads != 0 ||
+      p.head_size_k != Traits::HeadSizeK ||
+      p.head_size_v != Traits::HeadSizeV || p.chunk_size != Traits::ChunkSize) {
+    return 0;
+  }
+  return FourStagePipeline::get_workspace_size(p);
+}
+
+extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v3(
+    std::uint16_t const* q,
+    std::uint16_t const* k,
+    std::uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    std::uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    std::size_t workspace_bytes,
+    void* stream) {
+  if (problem == nullptr) return QUACTLIZE_PPU_CHUNKED_GDN_NULL_POINTER;
+  if (!valid_schema(problem)) {
+    return QUACTLIZE_PPU_CHUNKED_GDN_INVALID_PROBLEM;
+  }
+  Arguments args = make_arguments(
+      q, k, v, gamma_log2_cumsum, beta, initial_state, output, final_state,
+      *problem, scale);
+  Admission const status =
+      FourStagePipeline::argument_status(args, workspace, workspace_bytes);
+  if (status != Admission::kSuccess) return int(status);
+
+  int const prepare_status = configure_dynamic_shared_memory<FourPrepareKernel>();
+  if (prepare_status != QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS) return prepare_status;
+  int const u_status = configure_dynamic_shared_memory<UKernel>();
+  if (u_status != QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS) return u_status;
+  int const h_status = configure_dynamic_shared_memory<HKernel>();
+  if (h_status != QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS) return h_status;
+  int const o_status = configure_dynamic_shared_memory<OKernel>();
+  if (o_status != QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS) return o_status;
+
+  clear_runtime_error();
+  auto const params = FourStagePipeline::to_underlying_arguments(args, workspace);
+#if defined(__HGGCCC__)
+  hggcStream_t const launch_stream = static_cast<hggcStream_t>(stream);
+#else
+  cudaStream_t const launch_stream = static_cast<cudaStream_t>(stream);
+#endif
+  cutlass::device_kernel<FourPrepareKernel>
+      <<<FourPrepareKernel::get_grid_shape(params),
+         FourPrepareKernel::get_block_shape(),
+         sizeof(typename FourPrepareKernel::SharedStorage), launch_stream>>>(params);
+  if (!launch_succeeded()) return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+  cutlass::device_kernel<UKernel>
+      <<<UKernel::get_grid_shape(params), UKernel::get_block_shape(),
+         sizeof(typename UKernel::SharedStorage), launch_stream>>>(params);
+  if (!launch_succeeded()) return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+  cutlass::device_kernel<HKernel>
+      <<<HKernel::get_grid_shape(params), HKernel::get_block_shape(),
+         sizeof(typename HKernel::SharedStorage), launch_stream>>>(params);
+  if (!launch_succeeded()) return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+  cutlass::device_kernel<OKernel>
+      <<<OKernel::get_grid_shape(params), OKernel::get_block_shape(),
+         sizeof(typename OKernel::SharedStorage), launch_stream>>>(params);
   return launch_succeeded()
       ? QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS
       : QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;

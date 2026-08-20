@@ -102,6 +102,30 @@ int quactlize_ppu_chunked_gdn_fwd_bf16_v2(
     size_t workspace_bytes,
     void* stream);
 
+// Four-stage C64/K128/V128 forward.  This preserves v2's public tensor
+// layouts and arithmetic boundaries, but exposes all chunk-independent work:
+// common A/W/P prepare, U, serial H recurrence, and O are separate ordered
+// launches on `stream`.  The workspace additionally carries BF16 U/H-start
+// and FP32 Vnew seams.  v1 and v2 remain available as numerical/performance
+// controls.
+size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem);
+
+int quactlize_ppu_chunked_gdn_fwd_bf16_v3(
+    uint16_t const* q,
+    uint16_t const* k,
+    uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    size_t workspace_bytes,
+    void* stream);
+
 #ifdef __cplusplus
 }
 #endif

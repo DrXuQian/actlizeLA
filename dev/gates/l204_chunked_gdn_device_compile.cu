@@ -26,6 +26,13 @@ using Pipeline = cutlass::linear_attention::PpuChunkedGdnTwoStagePipeline<Args, 
 using PrepareKernel = cutlass::linear_attention::PpuChunkedGdnPrepareKernel<Pipeline>;
 using RecurrenceKernel =
     cutlass::linear_attention::PpuChunkedGdnRecurrenceKernel<Pipeline>;
+using FourStagePipeline =
+    cutlass::linear_attention::PpuChunkedGdnFourStagePipeline<Args, Traits>;
+using FourPrepareKernel =
+    cutlass::linear_attention::PpuChunkedGdnFourStagePrepareKernel<FourStagePipeline>;
+using UKernel = cutlass::linear_attention::PpuChunkedGdnUKernel<FourStagePipeline>;
+using HKernel = cutlass::linear_attention::PpuChunkedGdnHKernel<FourStagePipeline>;
+using OKernel = cutlass::linear_attention::PpuChunkedGdnOKernel<FourStagePipeline>;
 
 static_assert(Kernel::Collective::kAllStagesConnected,
               "L204 requires the complete GDN dataflow");
@@ -51,6 +58,7 @@ static_assert(Kernel::Scheduler::ValueTiles == 2 &&
                   Kernel::Collective::kTf32MmaPerLogicalHeadChunk == 80,
               "L204 split-V BF16/TF32 execution denominators changed");
 static_assert(Kernel::Collective::kPreparedChunkBytes == 32768 &&
+                  Kernel::Collective::kPreparedValueChunkBytes == 40960 &&
                   Kernel::Collective::kPrepareBf16MmaPerChunk == 384 &&
                   Kernel::Collective::kRecurrenceBf16MmaPerValueTileChunk == 512 &&
                   Kernel::Collective::kTwoStageBf16MmaPerLogicalHeadChunk == 1408 &&
@@ -80,6 +88,12 @@ __global__ void nvcc_recurrence_kernel(typename Pipeline::Params params) {
   RecurrenceKernel{}(params, smem);
 }
 
+template <class DeviceKernel>
+__global__ void nvcc_four_stage_kernel(typename FourStagePipeline::Params params) {
+  extern __shared__ char smem[];
+  DeviceKernel{}(params, smem);
+}
+
 // The launch expression forces nvcc to instantiate the complete operator.
 // main() deliberately does not call it.
 void instantiate_device_body(typename Kernel::Params params) {
@@ -96,6 +110,22 @@ void instantiate_two_stage_body(typename Pipeline::Params params) {
       <<<RecurrenceKernel::get_grid_shape(params),
          RecurrenceKernel::get_block_shape(),
          sizeof(typename RecurrenceKernel::SharedStorage)>>>(params);
+}
+
+void instantiate_four_stage_body(typename FourStagePipeline::Params params) {
+  nvcc_four_stage_kernel<FourPrepareKernel>
+      <<<FourPrepareKernel::get_grid_shape(params),
+         FourPrepareKernel::get_block_shape(),
+         sizeof(typename FourPrepareKernel::SharedStorage)>>>(params);
+  nvcc_four_stage_kernel<UKernel>
+      <<<UKernel::get_grid_shape(params), UKernel::get_block_shape(),
+         sizeof(typename UKernel::SharedStorage)>>>(params);
+  nvcc_four_stage_kernel<HKernel>
+      <<<HKernel::get_grid_shape(params), HKernel::get_block_shape(),
+         sizeof(typename HKernel::SharedStorage)>>>(params);
+  nvcc_four_stage_kernel<OKernel>
+      <<<OKernel::get_grid_shape(params), OKernel::get_block_shape(),
+         sizeof(typename OKernel::SharedStorage)>>>(params);
 }
 
 }  // namespace
@@ -119,10 +149,20 @@ int main() {
   dim3 const block = Kernel::get_block_shape();
   dim3 const prepare_grid = PrepareKernel::get_grid_shape(pipeline_params);
   dim3 const recurrence_grid = RecurrenceKernel::get_grid_shape(pipeline_params);
+  std::size_t const four_workspace_bytes =
+      FourStagePipeline::get_workspace_size(args.problem);
+  auto const four_params = FourStagePipeline::to_underlying_arguments(args, qkv);
+  dim3 const four_prepare_grid = FourPrepareKernel::get_grid_shape(four_params);
+  dim3 const u_grid = UKernel::get_grid_shape(four_params);
+  dim3 const h_grid = HKernel::get_grid_shape(four_params);
+  dim3 const o_grid = OKernel::get_grid_shape(four_params);
   bool const ok = admitted && grid.x == 2 && grid.y == 1 && grid.z == 1 &&
                   block.x == 128 && Kernel::get_workspace_size(args) == 0 &&
                   workspace_bytes == 2u * 32768u && prepare_grid.x == 2 &&
-                  recurrence_grid.x == 2;
+                  recurrence_grid.x == 2 &&
+                  four_workspace_bytes == 2u * 32768u + 4u * 40960u &&
+                  four_prepare_grid.x == 2 && u_grid.x == 4 &&
+                  h_grid.x == 2 && o_grid.x == 4;
   std::printf(
       "[l204] %s: device-body=INSTANTIATED C=64 K=128 V=128 threads=%u "
       "shared=%zu value-tiles=2 all-stages=1 global-dot=PPU-AIU "
@@ -132,9 +172,11 @@ int main() {
       "inverse-cta-barriers/work-tile=8 "
       "all-matrix-products=AIU inverse-base=16x16-sequential "
       "two-stage=A+W+P/32768B prepare-grid=%u recurrence-grid=%u "
-      "bf16-mma/logical-head=1408 tf32-mma/logical-head=40\n",
+      "bf16-mma/logical-head=1408 tf32-mma/logical-head=40 "
+      "four-stage-grid=%u/%u/%u/%u seams=32768B+40960B\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage), unsigned(prepare_grid.x),
-      unsigned(recurrence_grid.x));
+      unsigned(recurrence_grid.x), unsigned(four_prepare_grid.x),
+      unsigned(u_grid.x), unsigned(h_grid.x), unsigned(o_grid.x));
   return ok ? 0 : 1;
 }

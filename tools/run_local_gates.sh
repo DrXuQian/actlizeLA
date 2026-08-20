@@ -22,9 +22,11 @@ QUACTLIZE_L209_OUT="$OUT/l209" \
   bash "$ROOT/dev/gates/run_l209_chunked_gdn_blocked_inverse.sh"
 L212_OUT="$OUT/l212" \
   bash "$ROOT/dev/gates/run_l212_chunked_gdn_two_stage_schedule.sh"
+OUT="$OUT/l213" \
+  bash "$ROOT/dev/gates/run_l213_chunked_gdn_four_stage_schedule.sh"
 L210_OUT="$OUT/l210" \
   bash "$ROOT/dev/gates/run_l210_ppu_device_object_graph.sh"
 QZ_GDN_SKIP_CUDA="${QZ_GDN_SKIP_CUDA:-0}" OUT="$OUT/l205" \
   bash "$ROOT/dev/gates/run_l205_ppu_chunked_gdn_abi.sh" --local
 
-echo "[actlizeLA local] PASS: canonical installed headers, forward algebra, ABI, device type, ownership, fragment delivery, and TF32 inverse gates"
+echo "[actlizeLA local] PASS: canonical installed headers, forward algebra, v1/v2/v3 ABI, device type, ownership, four-stage schedule, fragment delivery, and TF32 inverse gates"

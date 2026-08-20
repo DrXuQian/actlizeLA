@@ -553,6 +553,29 @@ bool check_admission() {
         QUACTLIZE_PPU_CHUNKED_GDN_INSUFFICIENT_WORKSPACE,
         pass ? "EXPECTED_RED/PASS" : "FAIL");
   }
+  {
+    auto p = valid_problem();
+    std::size_t const required =
+        quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(&p);
+    int const got_null = quactlize_ppu_chunked_gdn_fwd_bf16_v3(
+        dummy_bf16, dummy_bf16, dummy_bf16, &dummy_float, &dummy_float,
+        nullptr, dummy_bf16, &dummy_float, &p, kScale,
+        nullptr, required, nullptr);
+    int const got_short = quactlize_ppu_chunked_gdn_fwd_bf16_v3(
+        dummy_bf16, dummy_bf16, dummy_bf16, &dummy_float, &dummy_float,
+        nullptr, dummy_bf16, &dummy_float, &p, kScale,
+        dummy_bf16, required - 1, nullptr);
+    bool const pass = required == 4u * 32768u + 8u * 40960u &&
+                      got_null == QUACTLIZE_PPU_CHUNKED_GDN_INSUFFICIENT_WORKSPACE &&
+                      got_short == QUACTLIZE_PPU_CHUNKED_GDN_INSUFFICIENT_WORKSPACE;
+    ok &= pass;
+    std::printf(
+        "[GDN admission] plant=v3-null-or-one-byte-short-workspace bytes=%zu "
+        "got=%d/%d expected=%d %s\n",
+        required, got_null, got_short,
+        QUACTLIZE_PPU_CHUNKED_GDN_INSUFFICIENT_WORKSPACE,
+        pass ? "EXPECTED_RED/PASS" : "FAIL");
+  }
   return ok;
 }
 
@@ -607,6 +630,9 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
   std::vector<std::uint16_t> got_output_v2(ref.output.size(), 0xffffu);
   std::vector<float> got_state_v2(
       ref.final_state.size(), std::numeric_limits<float>::quiet_NaN());
+  std::vector<std::uint16_t> got_output_v3(ref.output.size(), 0xffffu);
+  std::vector<float> got_state_v3(
+      ref.final_state.size(), std::numeric_limits<float>::quiet_NaN());
 
   DeviceBuffer dq(f.q.size() * sizeof(f.q[0]));
   DeviceBuffer dk(f.k.size() * sizeof(f.k[0]));
@@ -618,10 +644,13 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
   DeviceBuffer dstate(got_state.size() * sizeof(got_state[0]));
   DeviceBuffer doutput_v2(got_output_v2.size() * sizeof(got_output_v2[0]));
   DeviceBuffer dstate_v2(got_state_v2.size() * sizeof(got_state_v2[0]));
+  DeviceBuffer doutput_v3(got_output_v3.size() * sizeof(got_output_v3[0]));
+  DeviceBuffer dstate_v3(got_state_v3.size() * sizeof(got_state_v3[0]));
   bool ok = exact.ok && coverage_ok && dq.pointer && dk.pointer && dv.pointer &&
             dgamma.pointer && dbeta.pointer &&
             dinitial.pointer && doutput.pointer && dstate.pointer &&
-            doutput_v2.pointer && dstate_v2.pointer;
+            doutput_v2.pointer && dstate_v2.pointer &&
+            doutput_v3.pointer && dstate_v3.pointer;
   ok &= dq.upload(f.q.data()) && dk.upload(f.k.data()) && dv.upload(f.v.data());
   ok &= dgamma.upload(f.gamma.data()) && dbeta.upload(f.beta.data());
   ok &= dinitial.upload(f.initial.data());
@@ -631,7 +660,12 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
   std::size_t const workspace_bytes =
       quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(&problem);
   DeviceBuffer dworkspace(workspace_bytes);
-  ok &= workspace_bytes == 4u * 32768u && dworkspace.pointer != nullptr;
+  std::size_t const workspace_v3_bytes =
+      quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(&problem);
+  DeviceBuffer dworkspace_v3(workspace_v3_bytes);
+  ok &= workspace_bytes == 4u * 32768u && dworkspace.pointer != nullptr &&
+        workspace_v3_bytes == 4u * 32768u + 8u * 40960u &&
+        dworkspace_v3.pointer != nullptr;
   int const launch = quactlize_ppu_chunked_gdn_fwd_bf16_v1(
       dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
       dgamma.as<float>(), dbeta.as<float>(),
@@ -643,16 +677,27 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
       nonzero_initial_state ? dinitial.as<float>() : nullptr,
       doutput_v2.as<std::uint16_t>(), dstate_v2.as<float>(), &problem, kScale,
       dworkspace.pointer, dworkspace.bytes, nullptr);
+  int const launch_v3 = quactlize_ppu_chunked_gdn_fwd_bf16_v3(
+      dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
+      dgamma.as<float>(), dbeta.as<float>(),
+      nonzero_initial_state ? dinitial.as<float>() : nullptr,
+      doutput_v3.as<std::uint16_t>(), dstate_v3.as<float>(), &problem, kScale,
+      dworkspace_v3.pointer, dworkspace_v3.bytes, nullptr);
   ok &= launch == QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS;
   ok &= launch_v2 == QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS;
+  ok &= launch_v3 == QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS;
   ok &= runtime_ok(device_synchronize(), "device synchronize");
   ok &= doutput.download(got_output.data()) && dstate.download(got_state.data());
   ok &= doutput_v2.download(got_output_v2.data()) &&
         dstate_v2.download(got_state_v2.data());
+  ok &= doutput_v3.download(got_output_v3.data()) &&
+        dstate_v3.download(got_state_v3.data());
 
   std::size_t output_bad = 0, state_bad = 0;
   std::size_t output_v2_bad = 0, state_v2_bad = 0;
+  std::size_t output_v3_bad = 0, state_v3_bad = 0;
   std::size_t v1_v2_output_bad = 0, v1_v2_state_bad = 0;
+  std::size_t v1_v3_output_bad = 0, v1_v3_state_bad = 0;
   float max_output_abs = 0.0f, max_state_abs = 0.0f;
   std::size_t first_output = got_output.size(), first_state = got_state.size();
   for (std::size_t i = 0; i < got_output.size(); ++i) {
@@ -664,6 +709,8 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
     }
     output_v2_bad += got_output_v2[i] != ref.output[i];
     v1_v2_output_bad += got_output_v2[i] != got_output[i];
+    output_v3_bad += got_output_v3[i] != ref.output[i];
+    v1_v3_output_bad += got_output_v3[i] != got_output[i];
   }
   for (std::size_t i = 0; i < got_state.size(); ++i) {
     float const diff = std::abs(got_state[i] - ref.final_state[i]);
@@ -679,22 +726,33 @@ bool check_device_case(bool nonzero_initial_state, KeyPattern pattern) {
     std::memcpy(&got_v2_bits, &got_state_v2[i], sizeof(got_v2_bits));
     state_v2_bad += got_v2_bits != ref_bits;
     v1_v2_state_bad += got_v2_bits != got_bits;
+    std::uint32_t got_v3_bits = 0;
+    std::memcpy(&got_v3_bits, &got_state_v3[i], sizeof(got_v3_bits));
+    state_v3_bad += got_v3_bits != ref_bits;
+    v1_v3_state_bad += got_v3_bits != got_bits;
   }
   ok &= output_bad == 0 && state_bad == 0 && output_v2_bad == 0 &&
-        state_v2_bad == 0 && v1_v2_output_bad == 0 && v1_v2_state_bad == 0;
+        state_v2_bad == 0 && v1_v2_output_bad == 0 && v1_v2_state_bad == 0 &&
+        output_v3_bad == 0 && state_v3_bad == 0 &&
+        v1_v3_output_bad == 0 && v1_v3_state_bad == 0;
   std::printf(
       "[GDN device] pattern=%s state=%s T=65 C=64 K=128 V=128 GVA=1:2 "
       "v1_output_raw_bad=%zu/%zu v1_state_raw_bad=%zu/%zu "
       "v2_output_raw_bad=%zu/%zu v2_state_raw_bad=%zu/%zu "
+      "v3_output_raw_bad=%zu/%zu v3_state_raw_bad=%zu/%zu "
       "v1_v2_output_raw_bad=%zu/%zu v1_v2_state_raw_bad=%zu/%zu "
-      "workspace=%zu max_output_abs=%g "
-      "max_state_abs=%g launch_rc=%d/%d %s\n",
+      "v1_v3_output_raw_bad=%zu/%zu v1_v3_state_raw_bad=%zu/%zu "
+      "workspace=%zu/%zu max_output_abs=%g "
+      "max_state_abs=%g launch_rc=%d/%d/%d %s\n",
       pattern_name(pattern), nonzero_initial_state ? "nonzero" : "zero",
       output_bad, got_output.size(), state_bad, got_state.size(),
       output_v2_bad, got_output_v2.size(), state_v2_bad, got_state_v2.size(),
+      output_v3_bad, got_output_v3.size(), state_v3_bad, got_state_v3.size(),
       v1_v2_output_bad, got_output.size(), v1_v2_state_bad, got_state.size(),
-      workspace_bytes, max_output_abs,
-      max_state_abs, launch, launch_v2, ok ? "RAW-BIT/PASS" : "FAIL");
+      v1_v3_output_bad, got_output.size(), v1_v3_state_bad, got_state.size(),
+      workspace_bytes, workspace_v3_bytes, max_output_abs,
+      max_state_abs, launch, launch_v2, launch_v3,
+      ok ? "RAW-BIT/PASS" : "FAIL");
   if (first_output != got_output.size()) {
     std::printf("  first output mismatch i=%zu got=0x%04x/%g want=0x%04x/%g\n",
                 first_output, unsigned(got_output[first_output]),

@@ -53,6 +53,7 @@ struct Options {
   bool final_state = true;
   bool acu = false;
   bool legacy = false;
+  bool two_stage = false;
 };
 
 bool runtime_ok(hggcError_t status, char const* where) {
@@ -162,7 +163,8 @@ void usage(char const* argv0) {
   std::printf(
       "usage: %s [--sequences=N] [--length=N] [--qk-heads=N] [--v-heads=N] "
       "[--warmup=N] [--iterations=N] [--samples=N] "
-      "[--initial-state=0|1] [--final-state=0|1] [--legacy] [--acu]\n",
+      "[--initial-state=0|1] [--final-state=0|1] "
+      "[--legacy|--two-stage] [--acu]\n",
       argv0);
 }
 
@@ -179,6 +181,10 @@ bool parse_options(int argc, char** argv, Options& o) {
     }
     if (std::strcmp(arg, "--legacy") == 0) {
       o.legacy = true;
+      continue;
+    }
+    if (std::strcmp(arg, "--two-stage") == 0) {
+      o.two_stage = true;
       continue;
     }
     int flag = 0;
@@ -204,6 +210,7 @@ bool parse_options(int argc, char** argv, Options& o) {
     std::fprintf(stderr, "unknown argument: %s\n", arg);
     return false;
   }
+  if (o.legacy && o.two_stage) return false;
   if (o.sequences <= 0 || o.sequence_length <= 0 || o.qk_heads <= 0 ||
       o.v_heads <= 0 || o.v_heads % o.qk_heads != 0 || o.warmup < 0 ||
       o.iterations <= 0 || o.samples <= 0) {
@@ -324,10 +331,12 @@ int run(Options const& o) {
   };
   std::size_t const workspace_bytes = o.legacy
       ? 0
-      : quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(&problem);
+      : (o.two_stage
+             ? quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(&problem)
+             : quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(&problem));
   DeviceBuffer dworkspace(workspace_bytes);
   if (!o.legacy && (workspace_bytes == 0 || dworkspace.pointer == nullptr)) {
-    std::fprintf(stderr, "[GDN perf] v2 workspace query/allocation failed: %zu bytes\n",
+    std::fprintf(stderr, "[GDN perf] workspace query/allocation failed: %zu bytes\n",
                  workspace_bytes);
     return 1;
   }
@@ -340,7 +349,13 @@ int run(Options const& o) {
           doutput.as<std::uint16_t>(), o.final_state ? dfinal.as<float>() : nullptr,
           &problem, kScale, nullptr);
     }
-    return quactlize_ppu_chunked_gdn_fwd_bf16_v2(
+    if (o.two_stage) return quactlize_ppu_chunked_gdn_fwd_bf16_v2(
+        dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
+        dgamma.as<float>(), dbeta.as<float>(),
+        o.initial_state ? dinitial.as<float>() : nullptr,
+        doutput.as<std::uint16_t>(), o.final_state ? dfinal.as<float>() : nullptr,
+        &problem, kScale, dworkspace.pointer, dworkspace.bytes, nullptr);
+    return quactlize_ppu_chunked_gdn_fwd_bf16_v3(
         dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
         dgamma.as<float>(), dbeta.as<float>(),
         o.initial_state ? dinitial.as<float>() : nullptr,
@@ -365,11 +380,13 @@ int run(Options const& o) {
   std::int64_t const logical_work_units = logical_heads * chunks;
   std::int64_t const legacy_work_units = recurrence_grid * chunks;
   std::int64_t const prepare_grid = logical_work_units;
+  std::int64_t const value_grid = logical_work_units * kValueTilesPerHead;
   std::printf(
       "[GDN perf config] implementation=%s "
       "shape=B%d,T%d,H%d,HV%d,K128,V128,C64 GVA=%d:%d "
       "tokens=%d token_heads=%lld value_tiles_per_head=%d chunks_per_sequence=%d "
-      "logical_work_units=%lld prepare_grid=%lld recurrence_grid=%lld "
+      "logical_work_units=%lld prepare_grid=%lld u_grid=%lld recurrence_grid=%lld "
+      "output_grid=%lld "
       "legacy_physical_work_units=%lld threads=%d shared_bytes=%zu "
       "workspace_bytes=%zu device=%d cu=%d "
       "logical_flops_per_full_chunk=%llu "
@@ -380,14 +397,18 @@ int run(Options const& o) {
       "initial_state=%d final_state=%d\n",
       o.legacy
           ? "legacy-split-v64/all-dense-products-aiu+blocked-tf32-inverse"
-          : "two-stage-prepare+split-v64-recurrence/all-dense-products-aiu+blocked-tf32-inverse",
+          : (o.two_stage
+                 ? "two-stage-prepare+split-v64-recurrence/all-dense-products-aiu+blocked-tf32-inverse"
+                 : "four-stage-prepare+U+H-only-recurrence+O/all-dense-products-aiu+blocked-tf32-inverse"),
       o.sequences, o.sequence_length, o.qk_heads, o.v_heads,
       o.qk_heads, o.v_heads, tokens,
       static_cast<long long>(std::int64_t(tokens) * o.v_heads),
       kValueTilesPerHead, chunks,
       static_cast<long long>(logical_work_units),
       static_cast<long long>(prepare_grid),
+      static_cast<long long>(o.legacy || o.two_stage ? 0 : value_grid),
       static_cast<long long>(recurrence_grid),
+      static_cast<long long>(o.legacy || o.two_stage ? 0 : value_grid),
       static_cast<long long>(legacy_work_units),
       kThreads, kSharedBytes, workspace_bytes, current_device, cu,
       static_cast<unsigned long long>(kLogicalFlopsPerFullChunk),
@@ -424,7 +445,8 @@ int run(Options const& o) {
         "device_kernel_launches=%d warmup=0 "
         "timing=NOT_TIMING rc=%d output_nonfinite=%zu state_nonfinite=%zu "
         "output_fnv=%016llx state_fnv=%016llx writeback=%s %s\n",
-        o.legacy ? 1 : 2, rc, output_nonfinite, state_nonfinite,
+        o.legacy ? 1 : (o.two_stage ? 2 : 4), rc,
+        output_nonfinite, state_nonfinite,
         static_cast<unsigned long long>(output_hash),
         static_cast<unsigned long long>(state_hash),
         writeback_ok ? "FINITE-NONPOISON" : "INVALID",

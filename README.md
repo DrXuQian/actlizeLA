@@ -96,7 +96,7 @@ LD_LIBRARY_PATH=/workspace/actlizeLA-ppu-build:/usr/local/PPU_SDK/lib \
 
 Or run the source-bound box gate, which builds and links the standalone
 library before checking a 64+1 tail, GVA 1:2, zero/nonzero state, two WY
-fixtures, eight admission negatives, and raw-bit v1/v2 parity:
+fixtures, workspace admission negatives, and raw-bit v1/v2/v3 parity:
 
 ```bash
 OUT=/workspace/actlizeLA-l205-box \
@@ -110,8 +110,9 @@ OUT=/workspace/actlizeLA-gdn-perf \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```
 
-Set `GDN_PIPELINE=legacy` with a distinct `OUT` to run the v1 control; the
-default is the two-stage v2 subject.  Both default to the exact
+Set `GDN_PIPELINE=two-stage` or `GDN_PIPELINE=legacy` with a distinct `OUT` to
+run the v2 or v1 controls; the default is the four-stage v3 subject.  All use
+the exact
 `B1,T2048,Hqk16,Hv32,K128,V128,C64` Qwen3.5-35B-A3B shape.
 
 Artifacts stay under `/workspace`; no runner uses `/tmp` or `mktemp`.
@@ -121,12 +122,15 @@ BV64 CTA owners.  v2 adds a 1,024-CTA common prepare stage for the published
 Qwen3.5-35B-A3B `B1,T2048,Hqk16,Hv32,K128,V128` shape, then retains 64 BV64
 recurrence CTAs.  Its fixed interpretation is recorded in
 `dev/gates/QWEN35_TWO_STAGE_PERFORMANCE_PREREGISTRATION.md`.
+v3 moves U and O onto independent 2,048-CTA grids, leaving only WH and the
+state update in the 64-CTA ordered H chain.  Its fixed interpretation is in
+`dev/gates/QWEN35_FOUR_STAGE_PERFORMANCE_PREREGISTRATION.md`.
 
 To capture the same mathematical shape under ACU with exactly one public-ABI
-invocation (one device kernel for v1, prepare plus recurrence for v2):
+invocation (one kernel for v1, two for v2, four for v3):
 
 ```bash
-OUT=/workspace/actlizeLA-gdn-qwen35-two-stage-acu \
+OUT=/workspace/actlizeLA-gdn-qwen35-four-stage-acu \
 ACU=1 GDN_ACU_SHAPE=1,2048,16,32,qwen35-35b-a3b-t2048 \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```

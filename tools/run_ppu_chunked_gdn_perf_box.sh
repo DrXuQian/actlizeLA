@@ -16,7 +16,7 @@ JOBS="${JOBS:-16}"
 WARMUP="${WARMUP:-5}"
 ITERATIONS="${ITERATIONS:-20}"
 SAMPLES="${SAMPLES:-7}"
-PIPELINE="${GDN_PIPELINE:-two-stage}"
+PIPELINE="${GDN_PIPELINE:-four-stage}"
 if [[ -e "$OUT" ]]; then
   if [[ ! -d "$OUT" || -n "$(find "$OUT" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
     echo "[GDN perf] FAIL: OUT must be absent or an empty directory: $OUT" >&2
@@ -33,10 +33,11 @@ case "$MODE" in
     ;;
 esac
 case "$PIPELINE" in
-  two-stage) pipeline_args=() ;;
+  four-stage) pipeline_args=() ;;
+  two-stage) pipeline_args=(--two-stage) ;;
   legacy) pipeline_args=(--legacy) ;;
   *)
-    echo "[GDN perf] FAIL: GDN_PIPELINE must be two-stage or legacy" >&2
+    echo "[GDN perf] FAIL: GDN_PIPELINE must be four-stage, two-stage, or legacy" >&2
     exit 2
     ;;
 esac
@@ -192,13 +193,18 @@ if [[ "${ACU:-0}" == 1 ]]; then
     exit 1
   fi
   # One public-ABI invocation, no warmup and no timing loop.  Legacy v1 emits
-  # one device kernel; two-stage v2 emits prepare plus recurrence.  The report
+  # one device kernel; v2 emits two and v3 emits four.  The report
   # is an instruction/resource profile and is deliberately NOT_TIMING.
   REPORT="$OUT/${label}.report.acurep"
   chunks=$((length / 64 + (length % 64 != 0)))
   logical_work_units=$((sequences * v_heads * chunks))
   physical_work_units=$((logical_work_units * 2))
-  if [[ "$PIPELINE" == two-stage ]]; then
+  if [[ "$PIPELINE" == four-stage ]]; then
+    expected_bf16_mma=$((logical_work_units * 1408))
+    expected_tf32_mma=$((logical_work_units * 40))
+    expected_workspace=$((logical_work_units * 32768 + physical_work_units * 40960))
+    echo "[GDN perf ACU preregistration] pipeline=four-stage prepare_grid=$logical_work_units u_grid=$physical_work_units h_grid=$((sequences * v_heads * 2)) output_grid=$physical_work_units value_tiles_per_head=2 logical_work_units=$logical_work_units expected_workspace_bytes=$expected_workspace expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
+  elif [[ "$PIPELINE" == two-stage ]]; then
     expected_bf16_mma=$((logical_work_units * 1408))
     expected_tf32_mma=$((logical_work_units * 40))
     expected_workspace=$((logical_work_units * 32768))

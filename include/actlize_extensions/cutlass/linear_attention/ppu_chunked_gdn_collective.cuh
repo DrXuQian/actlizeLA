@@ -214,9 +214,23 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
     Element w[kWElements];
     Element causal[kScoreElements];
   };
+  // Per-(chunk,BV64) seam for the four-stage forward DAG.
+  //
+  // h_start is stored in the exact B-operand order consumed by ResidentMma:
+  // [K64 block][value][feature-within-block].  It is BF16 because the fused
+  // path explicitly rounds H before both QH and WH.  v_new remains FP32: the
+  // state update rounds exp2(gamma_last-gamma) * v_new, whereas O rounds the
+  // unscaled v_new.  Storing only BF16 v_new would move that rounding boundary.
+  struct alignas(16) PreparedValueChunk {
+    Element u[kValueTileElements];
+    Element h_start[kHeadK * kValueBlock];
+    float v_new[kValueTileElements];
+  };
   static constexpr int kPreparedChunkElements =
       2 * kScoreElements + kWElements;
   static constexpr int kPreparedChunkBytes = int(sizeof(PreparedChunk));
+  static constexpr int kPreparedValueChunkBytes =
+      int(sizeof(PreparedValueChunk));
   static constexpr int kPrepareBf16MmaPerChunk =
       kGlobalDotMmaPerWorkTileChunk +
       (kGeneratedMmaPerWorkTileChunk - 512);
@@ -232,6 +246,8 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
                     kPreparedChunkBytes ==
                         PpuChunkedGdnPreparedChunkBytes<Traits>,
                 "A/W/P prepared workspace must be exactly 32 KiB per chunk");
+  static_assert(kPreparedValueChunkBytes == 40960,
+                "U/H-start/Vnew seam must be exactly 40 KiB per BV64 chunk");
   static_assert(kPrepareBf16MmaPerChunk == 384 &&
                     kRecurrenceBf16MmaPerValueTileChunk == 512 &&
                     kTwoStageBf16MmaPerLogicalHeadChunk == 1408 &&
@@ -983,7 +999,207 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       __syncthreads();
     }
   }
-#endif
+
+  QZ_PPU_GDN_DEVICE static void ppu0010_prepare_u(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk& dst, SharedStorage& shared, int thread_idx) {
+    Element const* const a = inverse_bf16(shared);
+    Element* const generated_operand =
+        reinterpret_cast<Element*>(shared.phase + kOffsetOState);
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      int const value = index / kChunk;
+      int const row = index % kChunk;
+      generated_operand[index] = to_bf16(
+          row < valid
+              ? shared.beta[row] *
+                    to_float(params.v[vo_offset(
+                        params, work, chunk_begin + row,
+                        value_base + value)])
+              : 0.0f);
+    }
+    __syncthreads();
+    auto accum = ResidentMma::make_accumulator();
+    ResidentMma::clear(accum);
+    ResidentMma::mma(
+        accum,
+        a, kChunk, 1,
+        generated_operand, kChunk, 1,
+        thread_idx, valid, kValueBlock, kChunk);
+    __syncthreads();
+    ResidentMma::visit_output(
+        accum, thread_idx,
+        [&](int row, int value, float product) {
+          dst.u[row * kValueBlock + value] = to_bf16(product);
+        });
+  }
+
+  QZ_PPU_GDN_DEVICE static void ppu0010_recur_h(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk& value_chunk,
+      SharedStorage& shared, int thread_idx) {
+    Element const* const w = w_matrix(shared);
+    Element* const h_operand =
+        reinterpret_cast<Element*>(shared.phase + kOffsetVNew);
+    Element* const rounded_vnew = u_tile(shared);
+    std::int64_t const qk_row_pitch =
+        std::int64_t(params.problem.num_qk_heads) * kHeadK;
+
+    // Publish the exact rounded H boundary once.  WH below and the later O
+    // kernel consume the same bits, so splitting the kernels cannot invent a
+    // second, different materialization.
+    for (int index = thread_idx; index < kHeadK * kValueBlock;
+         index += kThreadCount) {
+      int const block = index / kScoreElements;
+      int const within = index % kScoreElements;
+      int const value = within / kChunk;
+      int const feature = within % kChunk;
+      value_chunk.h_start[index] = to_bf16(
+          shared.state[(block * kChunk + feature) * kStateStride + value]);
+    }
+    __syncthreads();
+
+    // Vnew = U - W H_start.  This is part of the true recurrent dependency:
+    // the subsequent K^T Vnew update determines the next chunk's H.
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+#pragma unroll
+      for (int feature_base = 0; feature_base < kHeadK;
+           feature_base += kChunk) {
+        Element const* const source =
+            value_chunk.h_start + (feature_base / kChunk) * kScoreElements;
+        for (int index = thread_idx; index < kScoreElements;
+             index += kThreadCount) {
+          h_operand[index] = source[index];
+        }
+        __syncthreads();
+        ResidentMma::mma(
+            accum,
+            w + feature_base, kHeadK, 1,
+            h_operand, kChunk, 1,
+            thread_idx, valid, kValueBlock, kChunk);
+        __syncthreads();
+      }
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float product) {
+            value_chunk.v_new[row * kValueBlock + value] =
+                row < valid
+                    ? to_float(value_chunk.u[row * kValueBlock + value]) - product
+                    : 0.0f;
+          });
+    }
+    __syncthreads();
+
+    float const gamma_last = shared.gamma[valid - 1];
+    float const state_decay = exp2_gate(gamma_last);
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      rounded_vnew[index] = to_bf16(
+          row < valid
+              ? exp2_gate(gamma_last - shared.gamma[row]) *
+                    value_chunk.v_new[index]
+              : 0.0f);
+    }
+    __syncthreads();
+#pragma unroll
+    for (int feature_base = 0; feature_base < kHeadK;
+         feature_base += kChunk) {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+      Element const* const k =
+          params.k + qk_offset(params, work, chunk_begin, feature_base);
+      ResidentMma::mma(
+          accum,
+          k, 1, qk_row_pitch,
+          rounded_vnew, 1, kValueBlock,
+          thread_idx, kChunk, kValueBlock, valid);
+      __syncthreads();
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int feature, int value, float update) {
+            int const h_index =
+                (feature_base + feature) * kStateStride + value;
+            shared.state[h_index] =
+                state_decay * shared.state[h_index] + update;
+          });
+      __syncthreads();
+    }
+    (void)value_base;
+  }
+
+  QZ_PPU_GDN_DEVICE static void ppu0010_write_o(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk const& value_chunk,
+      SharedStorage& shared, int thread_idx) {
+    float* const qh = o_state(shared);
+    Element const* const p = causal_score(shared);
+    Element* const operand =
+        reinterpret_cast<Element*>(shared.phase + kOffsetVNew);
+    Element* const rounded_vnew = u_tile(shared);
+    std::int64_t const qk_row_pitch =
+        std::int64_t(params.problem.num_qk_heads) * kHeadK;
+
+    {
+      auto accum = ResidentMma::make_accumulator();
+      ResidentMma::clear(accum);
+#pragma unroll
+      for (int feature_base = 0; feature_base < kHeadK;
+           feature_base += kChunk) {
+        Element const* const source =
+            value_chunk.h_start + (feature_base / kChunk) * kScoreElements;
+        for (int index = thread_idx; index < kScoreElements;
+             index += kThreadCount) {
+          operand[index] = source[index];
+        }
+        __syncthreads();
+        Element const* const q =
+            params.q + qk_offset(params, work, chunk_begin, feature_base);
+        ResidentMma::mma(
+            accum,
+            q, qk_row_pitch, 1,
+            operand, kChunk, 1,
+            thread_idx, valid, kValueBlock, kChunk);
+        __syncthreads();
+      }
+      ResidentMma::visit_output(
+          accum, thread_idx,
+          [&](int row, int value, float product) {
+            qh[row * kValueBlock + value] =
+                row < valid ? exp2_gate(shared.gamma[row]) * product : 0.0f;
+          });
+    }
+    __syncthreads();
+
+    for (int index = thread_idx; index < kScoreElements;
+         index += kThreadCount) {
+      rounded_vnew[index] = to_bf16(value_chunk.v_new[index]);
+    }
+    __syncthreads();
+    auto accum = ResidentMma::make_accumulator();
+    ResidentMma::clear(accum);
+    ResidentMma::mma(
+        accum,
+        p, kChunk, 1,
+        rounded_vnew, 1, kValueBlock,
+        thread_idx, valid, kValueBlock, valid);
+    __syncthreads();
+    ResidentMma::visit_output(
+        accum, thread_idx,
+        [&](int row, int value, float causal) {
+          params.output[vo_offset(
+              params, work, chunk_begin + row, value_base + value)] =
+              to_bf16(params.scale * qh[row * kValueBlock + value] +
+                      params.scale * causal);
+        },
+        valid, kValueBlock);
+  }
+  #endif
 
   QZ_PPU_GDN_DEVICE static void compute_value_tile(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
@@ -1084,6 +1300,166 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 #endif
   }
 
+  QZ_PPU_GDN_DEVICE static void prepare_u_stage(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk& dst, SharedStorage& shared, int thread_idx) {
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    ppu0010_prepare_u(
+        params, work, chunk_begin, valid, value_base, dst, shared, thread_idx);
+#elif defined(__HGGC_ARCH__)
+    (void)params;
+    (void)work;
+    (void)chunk_begin;
+    (void)valid;
+    (void)value_base;
+    (void)dst;
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("four-stage GDN U requires ppu0010");
+#else
+    Element const* const a = inverse_bf16(shared);
+    for (int index = thread_idx; index < kValueTileElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      int const value = index % kValueBlock;
+      float sum = 0.0f;
+      for (int j = 0; j < kChunk; ++j) {
+        Element const vb = to_bf16(
+            j < valid
+                ? shared.beta[j] *
+                      to_float(params.v[vo_offset(
+                          params, work, chunk_begin + j,
+                          value_base + value)])
+                : 0.0f);
+        sum += to_float(a[row * kChunk + j]) * to_float(vb);
+      }
+      dst.u[index] = to_bf16(sum);
+    }
+    __syncthreads();
+#endif
+  }
+
+  QZ_PPU_GDN_DEVICE static void recur_h_stage(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk& value_chunk,
+      SharedStorage& shared, int thread_idx) {
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    ppu0010_recur_h(
+        params, work, chunk_begin, valid, value_base,
+        value_chunk, shared, thread_idx);
+#elif defined(__HGGC_ARCH__)
+    (void)params;
+    (void)work;
+    (void)chunk_begin;
+    (void)valid;
+    (void)value_base;
+    (void)value_chunk;
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("four-stage GDN H requires ppu0010");
+#else
+    Element const* const w = w_matrix(shared);
+    for (int index = thread_idx; index < kHeadK * kValueBlock;
+         index += kThreadCount) {
+      int const block = index / kScoreElements;
+      int const within = index % kScoreElements;
+      int const value = within / kChunk;
+      int const feature = within % kChunk;
+      value_chunk.h_start[index] = to_bf16(
+          shared.state[(block * kChunk + feature) * kStateStride + value]);
+    }
+    __syncthreads();
+
+    for (int index = thread_idx; index < kValueTileElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      int const value = index % kValueBlock;
+      float wh = 0.0f;
+      if (row < valid) {
+        for (int d = 0; d < kHeadK; ++d) {
+          int const h_index =
+              (d / kChunk) * kScoreElements + value * kChunk + d % kChunk;
+          wh += to_float(w[row * kHeadK + d]) *
+                to_float(value_chunk.h_start[h_index]);
+        }
+      }
+      value_chunk.v_new[index] =
+          row < valid ? to_float(value_chunk.u[index]) - wh : 0.0f;
+    }
+    __syncthreads();
+
+    float const gamma_last = shared.gamma[valid - 1];
+    float const state_decay = exp2_gate(gamma_last);
+    for (int index = thread_idx; index < kHeadK * kValueBlock;
+         index += kThreadCount) {
+      int const d = index / kValueBlock;
+      int const value = index % kValueBlock;
+      float update = 0.0f;
+      for (int row = 0; row < valid; ++row) {
+        Element const scaled_v = to_bf16(
+            exp2_gate(gamma_last - shared.gamma[row]) *
+            value_chunk.v_new[row * kValueBlock + value]);
+        update +=
+            to_float(params.k[qk_offset(params, work, chunk_begin + row, d)]) *
+            to_float(scaled_v);
+      }
+      shared.state[index] = state_decay * shared.state[index] + update;
+    }
+    __syncthreads();
+    (void)value_base;
+#endif
+  }
+
+  QZ_PPU_GDN_DEVICE static void write_o_stage(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_begin, int valid, int value_base,
+      PreparedValueChunk const& value_chunk,
+      SharedStorage& shared, int thread_idx) {
+#if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
+    ppu0010_write_o(
+        params, work, chunk_begin, valid, value_base,
+        value_chunk, shared, thread_idx);
+#elif defined(__HGGC_ARCH__)
+    (void)params;
+    (void)work;
+    (void)chunk_begin;
+    (void)valid;
+    (void)value_base;
+    (void)value_chunk;
+    (void)shared;
+    (void)thread_idx;
+    CUTE_INVALID_CONTROL_PATH("four-stage GDN O requires ppu0010");
+#else
+    Element const* const p = causal_score(shared);
+    for (int index = thread_idx; index < kValueTileElements;
+         index += kThreadCount) {
+      int const row = index / kValueBlock;
+      int const value = index % kValueBlock;
+      if (row >= valid) continue;
+      float qh = 0.0f;
+      for (int d = 0; d < kHeadK; ++d) {
+        int const h_index =
+            (d / kChunk) * kScoreElements + value * kChunk + d % kChunk;
+        qh += to_float(params.q[qk_offset(params, work, chunk_begin + row, d)]) *
+              to_float(value_chunk.h_start[h_index]);
+      }
+      qh *= exp2_gate(shared.gamma[row]);
+      float causal = 0.0f;
+      for (int j = 0; j <= row; ++j) {
+        causal += to_float(p[row * kChunk + j]) *
+                  to_float(to_bf16(
+                      value_chunk.v_new[j * kValueBlock + value]));
+      }
+      params.output[vo_offset(
+          params, work, chunk_begin + row, value_base + value)] =
+          to_bf16(params.scale * qh + params.scale * causal);
+    }
+    __syncthreads();
+#endif
+  }
+
  public:
   CUTLASS_HOST_DEVICE static constexpr std::int64_t prepared_chunk_index(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
@@ -1092,6 +1468,13 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
              work.v_head_idx) *
                 work.chunk_count +
             chunk_idx);
+  }
+
+  CUTLASS_HOST_DEVICE static constexpr std::int64_t prepared_value_chunk_index(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_idx) {
+    return prepared_chunk_index(params, work, chunk_idx) * kValueBlocks +
+           work.value_tile_idx;
   }
 
   QZ_PPU_GDN_DEVICE static void prepare_chunk(
@@ -1126,6 +1509,96 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
     for (int i = thread_idx; i < kWElements; i += kThreadCount) {
       dst.w[i] = w[i];
     }
+  }
+
+  QZ_PPU_GDN_DEVICE static void prepare_value_chunk(
+      Params const& params,
+      PpuChunkedGdnValueChunkWorkTileInfo const& prepare,
+      PreparedChunk const* common_workspace,
+      PreparedValueChunk* value_workspace,
+      SharedStorage& shared) {
+    int const thread_idx = int(threadIdx.x);
+    if (!prepare.valid || common_workspace == nullptr ||
+        value_workspace == nullptr) {
+      return;
+    }
+    PpuChunkedGdnWorkTileInfo const& work = prepare.head;
+    int const chunk_begin = prepare.chunk_idx * kChunk;
+    int const valid = load_chunk_scalars(
+        params, work, prepare.chunk_idx, shared, thread_idx);
+    PreparedChunk const& source = common_workspace[
+        prepared_chunk_index(params, work, prepare.chunk_idx)];
+    Element* const a = inverse_bf16(shared);
+    for (int i = thread_idx; i < kScoreElements; i += kThreadCount) {
+      a[i] = source.inverse[i];
+    }
+    __syncthreads();
+    PreparedValueChunk& dst = value_workspace[
+        prepared_value_chunk_index(params, work, prepare.chunk_idx)];
+    prepare_u_stage(
+        params, work, chunk_begin, valid, work.value_begin,
+        dst, shared, thread_idx);
+  }
+
+  QZ_PPU_GDN_DEVICE static void run_h_recurrence(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      PreparedChunk const* common_workspace,
+      PreparedValueChunk* value_workspace,
+      SharedStorage& shared) {
+    int const thread_idx = int(threadIdx.x);
+    if (common_workspace == nullptr || value_workspace == nullptr ||
+        work.value_count != kValueBlock || work.value_begin < 0 ||
+        work.value_begin + kValueBlock > kHeadV) {
+      return;
+    }
+    load_state(params, work, shared, thread_idx);
+    for (int chunk = 0; chunk < work.chunk_count; ++chunk) {
+      int const chunk_begin = chunk * kChunk;
+      int const valid = load_chunk_scalars(
+          params, work, chunk, shared, thread_idx);
+      PreparedChunk const& common = common_workspace[
+          prepared_chunk_index(params, work, chunk)];
+      Element* const w = w_matrix(shared);
+      for (int i = thread_idx; i < kWElements; i += kThreadCount) {
+        w[i] = common.w[i];
+      }
+      __syncthreads();
+      PreparedValueChunk& value_chunk = value_workspace[
+          prepared_value_chunk_index(params, work, chunk)];
+      recur_h_stage(
+          params, work, chunk_begin, valid, work.value_begin,
+          value_chunk, shared, thread_idx);
+    }
+    store_final_state(params, work, shared, thread_idx);
+  }
+
+  QZ_PPU_GDN_DEVICE static void write_output_chunk(
+      Params const& params,
+      PpuChunkedGdnValueChunkWorkTileInfo const& output_work,
+      PreparedChunk const* common_workspace,
+      PreparedValueChunk const* value_workspace,
+      SharedStorage& shared) {
+    int const thread_idx = int(threadIdx.x);
+    if (!output_work.valid || common_workspace == nullptr ||
+        value_workspace == nullptr) {
+      return;
+    }
+    PpuChunkedGdnWorkTileInfo const& work = output_work.head;
+    int const chunk_begin = output_work.chunk_idx * kChunk;
+    int const valid = load_chunk_scalars(
+        params, work, output_work.chunk_idx, shared, thread_idx);
+    PreparedChunk const& common = common_workspace[
+        prepared_chunk_index(params, work, output_work.chunk_idx)];
+    Element* const p = causal_score(shared);
+    for (int i = thread_idx; i < kScoreElements; i += kThreadCount) {
+      p[i] = common.causal[i];
+    }
+    __syncthreads();
+    PreparedValueChunk const& value_chunk = value_workspace[
+        prepared_value_chunk_index(params, work, output_work.chunk_idx)];
+    write_o_stage(
+        params, work, chunk_begin, valid, work.value_begin,
+        value_chunk, shared, thread_idx);
   }
 
   QZ_PPU_GDN_DEVICE static void run_prepared(
