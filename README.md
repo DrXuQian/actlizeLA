@@ -125,6 +125,10 @@ recurrence CTAs.  Its fixed interpretation is recorded in
 v3 moves U and O onto independent 2,048-CTA grids, leaving only WH and the
 state update in the 64-CTA ordered H chain.  Its fixed interpretation is in
 `dev/gates/QWEN35_FOUR_STAGE_PERFORMANCE_PREREGISTRATION.md`.
+The first v3 timing was slower than v2, so the follow-up keeps that DAG and
+shrinks only the stage-local shared ledgers to
+`57856/41472/98816/66048 B` for prepare/U/H/O.  Its before-the-run verdict is
+in `dev/gates/QWEN35_FOUR_STAGE_STAGE_SMEM_PREREGISTRATION.md`.
 
 To capture the same mathematical shape under ACU with exactly one public-ABI
 invocation (one kernel for v1, two for v2, four for v3):

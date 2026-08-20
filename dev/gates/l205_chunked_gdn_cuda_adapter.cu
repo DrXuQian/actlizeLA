@@ -37,6 +37,8 @@ using FourPrepareKernel =
 using UKernel = cutlass::linear_attention::PpuChunkedGdnUKernel<FourStagePipeline>;
 using HKernel = cutlass::linear_attention::PpuChunkedGdnHKernel<FourStagePipeline>;
 using OKernel = cutlass::linear_attention::PpuChunkedGdnOKernel<FourStagePipeline>;
+constexpr std::size_t kFourStageScratchStride =
+    sizeof(typename HKernel::SharedStorage);
 
 __global__ void chunked_gdn_global_scratch_kernel(
     Arguments args, typename Kernel::SharedStorage* scratch) {
@@ -59,8 +61,10 @@ __global__ void chunked_gdn_recurrence_global_scratch_kernel(
 template <class DeviceKernel>
 __global__ void chunked_gdn_four_stage_global_scratch_kernel(
     typename FourStagePipeline::Params params,
-    typename DeviceKernel::SharedStorage* scratch) {
-  DeviceKernel{}(params, reinterpret_cast<char*>(&scratch[blockIdx.x]));
+    std::uint8_t* scratch) {
+  DeviceKernel{}(
+      params,
+      reinterpret_cast<char*>(scratch + blockIdx.x * kFourStageScratchStride));
 }
 
 Arguments make_arguments(
@@ -290,16 +294,21 @@ extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v3(
       prepare_blocks > value_blocks
           ? (prepare_blocks > h_blocks ? prepare_blocks : h_blocks)
           : (value_blocks > h_blocks ? value_blocks : h_blocks);
-  static_assert(sizeof(typename FourPrepareKernel::SharedStorage) ==
+  static_assert(sizeof(typename FourPrepareKernel::SharedStorage) == 57856 &&
+                    sizeof(typename UKernel::SharedStorage) == 41472 &&
+                    sizeof(typename HKernel::SharedStorage) == 98816 &&
+                    sizeof(typename OKernel::SharedStorage) == 66048 &&
+                    kFourStageScratchStride >=
+                        sizeof(typename FourPrepareKernel::SharedStorage) &&
+                    kFourStageScratchStride >=
                         sizeof(typename UKernel::SharedStorage) &&
-                    sizeof(typename UKernel::SharedStorage) ==
-                        sizeof(typename HKernel::SharedStorage) &&
-                    sizeof(typename HKernel::SharedStorage) ==
+                    kFourStageScratchStride >=
                         sizeof(typename OKernel::SharedStorage),
-                "test adapter expects one four-stage scratch ledger");
-  typename FourPrepareKernel::SharedStorage* scratch = nullptr;
+                "test adapter must cover every stage-specific scratch ledger");
+  std::uint8_t* scratch = nullptr;
   if (scratch_blocks <= 0 ||
-      cudaMalloc(&scratch, std::size_t(scratch_blocks) * sizeof(*scratch)) !=
+      cudaMalloc(&scratch,
+                 std::size_t(scratch_blocks) * kFourStageScratchStride) !=
           cudaSuccess) {
     return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
   }

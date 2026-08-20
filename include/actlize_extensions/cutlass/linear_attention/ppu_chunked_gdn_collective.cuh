@@ -262,6 +262,13 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
                     std::is_same_v<ElementState, float>,
                 "v1 requires BF16 Q/K/V/O and FP32 recurrent state");
 
+  struct SharedStorageView {
+    float* state;
+    float* gamma;
+    float* beta;
+    std::uint8_t* phase;
+  };
+
   struct alignas(32) SharedStorage {
     // Only this CTA's BV64 state columns remain resident while chunks are the
     // outer loop.  The other half of the V128 head has a disjoint CTA owner.
@@ -269,11 +276,70 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
     float gamma[kChunk];
     float beta[kChunk];
     alignas(32) std::uint8_t phase[kPhaseBytes];
+
+    QZ_PPU_GDN_DEVICE operator SharedStorageView() {
+      return SharedStorageView{state, gamma, beta, phase};
+    }
+  };
+
+  // The four-stage DAG deliberately gives each kernel only the storage that
+  // is live in that stage.  Keeping the original phase offsets preserves the
+  // proved resident-MMA layouts while removing dead state/arenas from the
+  // launch resource contract.
+  static constexpr int kPreparePhaseBytes = kOffsetP + kBf16CubeBytes;
+  static constexpr int kUPhaseBytes = kOffsetOState + kBf16CubeBytes;
+  static constexpr int kHPhaseBytes = kOffsetVNew + kBf16CubeBytes;
+  static constexpr int kOPhaseBytes = kOffsetVNew + kBf16CubeBytes;
+
+  struct alignas(32) PrepareSharedStorage {
+    float gamma[kChunk];
+    float beta[kChunk];
+    alignas(32) std::uint8_t phase[kPreparePhaseBytes];
+
+    QZ_PPU_GDN_DEVICE operator SharedStorageView() {
+      return SharedStorageView{nullptr, gamma, beta, phase};
+    }
+  };
+
+  struct alignas(32) USharedStorage {
+    float gamma[kChunk];
+    float beta[kChunk];
+    alignas(32) std::uint8_t phase[kUPhaseBytes];
+
+    QZ_PPU_GDN_DEVICE operator SharedStorageView() {
+      return SharedStorageView{nullptr, gamma, beta, phase};
+    }
+  };
+
+  struct alignas(32) HSharedStorage {
+    float state[kStateElements];
+    float gamma[kChunk];
+    float beta[kChunk];
+    alignas(32) std::uint8_t phase[kHPhaseBytes];
+
+    QZ_PPU_GDN_DEVICE operator SharedStorageView() {
+      return SharedStorageView{state, gamma, beta, phase};
+    }
+  };
+
+  struct alignas(32) OSharedStorage {
+    float gamma[kChunk];
+    float beta[kChunk];
+    alignas(32) std::uint8_t phase[kOPhaseBytes];
+
+    QZ_PPU_GDN_DEVICE operator SharedStorageView() {
+      return SharedStorageView{nullptr, gamma, beta, phase};
+    }
   };
 
   static constexpr int kSharedStorageBytes = int(sizeof(SharedStorage));
   static_assert(kSharedStorageBytes == 107008,
                 "C64/D128/BV64 split-V shared-memory liveness ledger changed");
+  static_assert(sizeof(PrepareSharedStorage) == 57856 &&
+                    sizeof(USharedStorage) == 41472 &&
+                    sizeof(HSharedStorage) == 98816 &&
+                    sizeof(OSharedStorage) == 66048,
+                "four-stage shared-memory liveness ledger changed");
   static_assert(kSharedStorageBytes <= 262144,
                 "PPU0010 exposes at most 256 KiB shared storage per CTA");
   static_assert(sizeof(typename GlobalDotMainloop::SharedStorage) <= kPhaseBytes,
@@ -291,28 +357,28 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   }
 
  private:
-  QZ_PPU_GDN_DEVICE static float* strict_lower(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static float* strict_lower(SharedStorageView s) {
     return reinterpret_cast<float*>(s.phase + kOffsetStrictLower);
   }
-  QZ_PPU_GDN_DEVICE static float* inverse(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static float* inverse(SharedStorageView s) {
     return reinterpret_cast<float*>(s.phase + kOffsetInverse);
   }
-  QZ_PPU_GDN_DEVICE static Element* inverse_bf16(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static Element* inverse_bf16(SharedStorageView s) {
     return reinterpret_cast<Element*>(s.phase + kOffsetA);
   }
-  QZ_PPU_GDN_DEVICE static Element* w_matrix(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static Element* w_matrix(SharedStorageView s) {
     return reinterpret_cast<Element*>(s.phase + kOffsetW);
   }
-  QZ_PPU_GDN_DEVICE static Element* u_tile(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static Element* u_tile(SharedStorageView s) {
     return reinterpret_cast<Element*>(s.phase + kOffsetU);
   }
-  QZ_PPU_GDN_DEVICE static float* o_state(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static float* o_state(SharedStorageView s) {
     return reinterpret_cast<float*>(s.phase + kOffsetOState);
   }
-  QZ_PPU_GDN_DEVICE static Element* causal_score(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static Element* causal_score(SharedStorageView s) {
     return reinterpret_cast<Element*>(s.phase + kOffsetP);
   }
-  QZ_PPU_GDN_DEVICE static float* v_new(SharedStorage& s) {
+  QZ_PPU_GDN_DEVICE static float* v_new(SharedStorageView s) {
     return reinterpret_cast<float*>(s.phase + kOffsetVNew);
   }
 
@@ -376,7 +442,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void load_state(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     for (int i = thread_idx; i < kStateElements; i += kThreadCount) {
       int const feature = i / kStateStride;
       int const local_value = i % kStateStride;
@@ -391,7 +457,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void store_final_state(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      SharedStorage const& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     if (params.final_state != nullptr) {
       for (int i = thread_idx; i < kStateElements; i += kThreadCount) {
         int const feature = i / kStateStride;
@@ -404,7 +470,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static int load_chunk_scalars(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      int chunk_idx, SharedStorage& shared, int thread_idx) {
+      int chunk_idx, SharedStorageView shared, int thread_idx) {
     int const chunk_begin = chunk_idx * kChunk;
     int const valid = work.token_count - chunk_begin < kChunk
                           ? work.token_count - chunk_begin
@@ -427,7 +493,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void scalar_global_dot(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, detail::PpuChunkedGdnGlobalDotKind kind,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const l = strict_lower(shared);
     Element* const p = causal_score(shared);
     for (int index = thread_idx; index < kScoreElements; index += kThreadCount) {
@@ -463,7 +529,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void ppu0010_global_dot(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, detail::PpuChunkedGdnGlobalDotKind kind,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     using namespace cute;
     using X = Underscore;
     using Mainloop = GlobalDotMainloop;
@@ -543,7 +609,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void global_dot(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, detail::PpuChunkedGdnGlobalDotKind kind,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_global_dot(params, work, chunk_begin, valid, kind, shared, thread_idx);
 #elif defined(__HGGC_ARCH__)
@@ -561,7 +627,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   }
 
   QZ_PPU_GDN_DEVICE static void scalar_solve_inverse(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const l = strict_lower(shared);
     float* const a = inverse(shared);
     // One thread per RHS column; rows are a true dependency chain.
@@ -590,7 +656,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   // register-ordered dependency rather than a CTA dependency.  One barrier
   // after all four blocks is sufficient before the block GEMMs consume them.
   QZ_PPU_GDN_DEVICE static void ppu0010_inverse_base16(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const l = strict_lower(shared);
     float* const a = inverse(shared);
     for (int index = thread_idx; index < kScoreElements;
@@ -620,7 +686,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   // 16x16 TF32 update is exactly one physical warp.  The dead strict-lower C
   // block is reused for D^-1*C after every source value is resident.
   QZ_PPU_GDN_DEVICE static void ppu0010_inverse_16_to_32(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const l = strict_lower(shared);
     float* const a = inverse(shared);
     int const warp = thread_idx / 32;
@@ -667,7 +733,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   // overwriting the strict-lower C block because A/B values are duplicated
   // across the 2M x 2N warp topology.
   QZ_PPU_GDN_DEVICE static void ppu0010_inverse_32_to_64(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const l = strict_lower(shared);
     float* const a = inverse(shared);
     constexpr int lower = 32;
@@ -706,7 +772,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   }
 
   QZ_PPU_GDN_DEVICE static void ppu0010_solve_inverse(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     ppu0010_inverse_base16(shared, thread_idx);
     ppu0010_inverse_16_to_32(shared, thread_idx);
     ppu0010_inverse_32_to_64(shared, thread_idx);
@@ -720,7 +786,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 #endif
 
   QZ_PPU_GDN_DEVICE static void solve_inverse(
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_solve_inverse(shared, thread_idx);
 #elif defined(__HGGC_ARCH__)
@@ -734,7 +800,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void compute_w(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      int chunk_begin, int valid, SharedStorage& shared, int thread_idx) {
+      int chunk_begin, int valid, SharedStorageView shared, int thread_idx) {
     Element const* const a = inverse_bf16(shared);
     Element* const w = w_matrix(shared);
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
@@ -811,7 +877,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void ppu0010_compute_value_tile(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     Element const* const a = inverse_bf16(shared);
     Element const* const w = w_matrix(shared);
     Element* const u = u_tile(shared);
@@ -1003,7 +1069,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void ppu0010_prepare_u(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
-      PreparedValueChunk& dst, SharedStorage& shared, int thread_idx) {
+      PreparedValueChunk& dst, SharedStorageView shared, int thread_idx) {
     Element const* const a = inverse_bf16(shared);
     Element* const generated_operand =
         reinterpret_cast<Element*>(shared.phase + kOffsetOState);
@@ -1039,7 +1105,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
       PreparedValueChunk& value_chunk,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     Element const* const w = w_matrix(shared);
     Element* const h_operand =
         reinterpret_cast<Element*>(shared.phase + kOffsetVNew);
@@ -1136,7 +1202,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
       PreparedValueChunk const& value_chunk,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
     float* const qh = o_state(shared);
     Element const* const p = causal_score(shared);
     Element* const operand =
@@ -1204,7 +1270,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void compute_value_tile(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_compute_value_tile(
         params, work, chunk_begin, valid, value_base, shared, thread_idx);
@@ -1303,7 +1369,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   QZ_PPU_GDN_DEVICE static void prepare_u_stage(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
-      PreparedValueChunk& dst, SharedStorage& shared, int thread_idx) {
+      PreparedValueChunk& dst, SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_prepare_u(
         params, work, chunk_begin, valid, value_base, dst, shared, thread_idx);
@@ -1344,7 +1410,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
       PreparedValueChunk& value_chunk,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_recur_h(
         params, work, chunk_begin, valid, value_base,
@@ -1416,7 +1482,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       int chunk_begin, int valid, int value_base,
       PreparedValueChunk const& value_chunk,
-      SharedStorage& shared, int thread_idx) {
+      SharedStorageView shared, int thread_idx) {
 #if defined(__HGGC_ARCH__) && __HGGC_ARCH__ == 100
     ppu0010_write_o(
         params, work, chunk_begin, valid, value_base,
@@ -1479,7 +1545,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void prepare_chunk(
       Params const& params, PpuChunkedGdnPrepareWorkTileInfo const& prepare,
-      PreparedChunk* workspace, SharedStorage& shared) {
+      PreparedChunk* workspace, SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     if (!prepare.valid || workspace == nullptr) return;
     PpuChunkedGdnWorkTileInfo const& work = prepare.head;
@@ -1516,7 +1582,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       PpuChunkedGdnValueChunkWorkTileInfo const& prepare,
       PreparedChunk const* common_workspace,
       PreparedValueChunk* value_workspace,
-      SharedStorage& shared) {
+      SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     if (!prepare.valid || common_workspace == nullptr ||
         value_workspace == nullptr) {
@@ -1544,7 +1610,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       PreparedChunk const* common_workspace,
       PreparedValueChunk* value_workspace,
-      SharedStorage& shared) {
+      SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     if (common_workspace == nullptr || value_workspace == nullptr ||
         work.value_count != kValueBlock || work.value_begin < 0 ||
@@ -1577,7 +1643,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
       PpuChunkedGdnValueChunkWorkTileInfo const& output_work,
       PreparedChunk const* common_workspace,
       PreparedValueChunk const* value_workspace,
-      SharedStorage& shared) {
+      SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     if (!output_work.valid || common_workspace == nullptr ||
         value_workspace == nullptr) {
@@ -1603,7 +1669,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void run_prepared(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      PreparedChunk const* workspace, SharedStorage& shared) {
+      PreparedChunk const* workspace, SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     if (workspace == nullptr || work.value_count != kValueBlock ||
         work.value_begin < 0 || work.value_begin + kValueBlock > kHeadV) {
@@ -1636,7 +1702,7 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
 
   QZ_PPU_GDN_DEVICE static void run(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
-      SharedStorage& shared) {
+      SharedStorageView shared) {
     int const thread_idx = int(threadIdx.x);
     // Scheduler/collective mismatch must fail at compile time in the shipping
     // type.  These uniform runtime values document the address contract used

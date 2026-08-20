@@ -35,6 +35,10 @@ constexpr int kHeadV = 128;
 constexpr int kThreads = 128;
 constexpr int kValueTilesPerHead = 2;
 constexpr std::size_t kSharedBytes = 107008;
+constexpr std::size_t kFourPrepareSharedBytes = 57856;
+constexpr std::size_t kFourUSharedBytes = 41472;
+constexpr std::size_t kFourHSharedBytes = 98816;
+constexpr std::size_t kFourOSharedBytes = 66048;
 constexpr float kScale = 0.5f;
 constexpr std::uint16_t kBf16Poison = 0x7fc1u;
 // Mathematical work performed by one full C64 / Dk128 / Dv128 value-head
@@ -388,6 +392,7 @@ int run(Options const& o) {
       "logical_work_units=%lld prepare_grid=%lld u_grid=%lld recurrence_grid=%lld "
       "output_grid=%lld "
       "legacy_physical_work_units=%lld threads=%d shared_bytes=%zu "
+      "four_stage_shared_bytes=prepare:%zu/U:%zu/H:%zu/O:%zu "
       "workspace_bytes=%zu device=%d cu=%d "
       "logical_flops_per_full_chunk=%llu "
       "bf16_mma_per_logical_head_chunk=%d tf32_mma_per_logical_head_chunk=%d "
@@ -410,7 +415,10 @@ int run(Options const& o) {
       static_cast<long long>(recurrence_grid),
       static_cast<long long>(o.legacy || o.two_stage ? 0 : value_grid),
       static_cast<long long>(legacy_work_units),
-      kThreads, kSharedBytes, workspace_bytes, current_device, cu,
+      kThreads, kSharedBytes,
+      kFourPrepareSharedBytes, kFourUSharedBytes,
+      kFourHSharedBytes, kFourOSharedBytes,
+      workspace_bytes, current_device, cu,
       static_cast<unsigned long long>(kLogicalFlopsPerFullChunk),
       o.legacy ? 1792 : 1408, o.legacy ? 80 : 40,
       o.legacy ? "QK+KK+inverse+W-per-value-tile" : "NONE/A+W+P-prepared-once",

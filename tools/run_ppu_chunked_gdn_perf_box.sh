@@ -203,7 +203,7 @@ if [[ "${ACU:-0}" == 1 ]]; then
     expected_bf16_mma=$((logical_work_units * 1408))
     expected_tf32_mma=$((logical_work_units * 40))
     expected_workspace=$((logical_work_units * 32768 + physical_work_units * 40960))
-    echo "[GDN perf ACU preregistration] pipeline=four-stage prepare_grid=$logical_work_units u_grid=$physical_work_units h_grid=$((sequences * v_heads * 2)) output_grid=$physical_work_units value_tiles_per_head=2 logical_work_units=$logical_work_units expected_workspace_bytes=$expected_workspace expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
+    echo "[GDN perf ACU preregistration] pipeline=four-stage prepare_grid=$logical_work_units u_grid=$physical_work_units h_grid=$((sequences * v_heads * 2)) output_grid=$physical_work_units value_tiles_per_head=2 logical_work_units=$logical_work_units expected_workspace_bytes=$expected_workspace expected_threads=128 expected_shared_bytes=prepare:57856/U:41472/H:98816/O:66048 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
   elif [[ "$PIPELINE" == two-stage ]]; then
     expected_bf16_mma=$((logical_work_units * 1408))
     expected_tf32_mma=$((logical_work_units * 40))

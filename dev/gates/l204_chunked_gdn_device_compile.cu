@@ -68,6 +68,11 @@ static_assert(Kernel::MaxThreadsPerBlock == 128,
               "L204 launch geometry changed without a new proof");
 static_assert(sizeof(typename Kernel::SharedStorage) <= 262144,
               "L204 exceeds the PPU per-CTA shared-memory budget");
+static_assert(sizeof(typename FourPrepareKernel::SharedStorage) == 57856 &&
+                  sizeof(typename UKernel::SharedStorage) == 41472 &&
+                  sizeof(typename HKernel::SharedStorage) == 98816 &&
+                  sizeof(typename OKernel::SharedStorage) == 66048,
+              "L204 four-stage storage must contain only each stage's live set");
 
 // actlize's generic device_kernel ends in an hgcc-only synclog call, so plain
 // nvcc cannot use that wrapper as a portability gate.  This minimal equivalent
@@ -173,7 +178,8 @@ int main() {
       "all-matrix-products=AIU inverse-base=16x16-sequential "
       "two-stage=A+W+P/32768B prepare-grid=%u recurrence-grid=%u "
       "bf16-mma/logical-head=1408 tf32-mma/logical-head=40 "
-      "four-stage-grid=%u/%u/%u/%u seams=32768B+40960B\n",
+      "four-stage-grid=%u/%u/%u/%u seams=32768B+40960B "
+      "four-stage-shared=57856/41472/98816/66048B\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage), unsigned(prepare_grid.x),
       unsigned(recurrence_grid.x), unsigned(four_prepare_grid.x),

@@ -224,7 +224,7 @@ struct PpuChunkedGdnFourStagePrepareKernel {
   using Params = typename Pipeline::Params;
   using Collective = typename Pipeline::Collective;
   using Scheduler = typename Pipeline::PrepareScheduler;
-  using SharedStorage = typename Collective::SharedStorage;
+  using SharedStorage = typename Collective::PrepareSharedStorage;
   static constexpr std::uint32_t MaxThreadsPerBlock = Collective::kThreadCount;
   static constexpr std::uint32_t MinBlocksPerMultiprocessor = 1;
   static constexpr int SharedStorageSize = int(sizeof(SharedStorage));
@@ -246,7 +246,7 @@ struct PpuChunkedGdnUKernel {
   using Params = typename Pipeline::Params;
   using Collective = typename Pipeline::Collective;
   using Scheduler = typename Pipeline::ValueScheduler;
-  using SharedStorage = typename Collective::SharedStorage;
+  using SharedStorage = typename Collective::USharedStorage;
   static constexpr std::uint32_t MaxThreadsPerBlock = Collective::kThreadCount;
   static constexpr std::uint32_t MinBlocksPerMultiprocessor = 1;
   static constexpr int SharedStorageSize = int(sizeof(SharedStorage));
@@ -270,7 +270,7 @@ struct PpuChunkedGdnHKernel {
   using Params = typename Pipeline::Params;
   using Collective = typename Pipeline::Collective;
   using Scheduler = typename Pipeline::RecurrenceScheduler;
-  using SharedStorage = typename Collective::SharedStorage;
+  using SharedStorage = typename Collective::HSharedStorage;
   static constexpr std::uint32_t MaxThreadsPerBlock = Collective::kThreadCount;
   static constexpr std::uint32_t MinBlocksPerMultiprocessor = 1;
   static constexpr int SharedStorageSize = int(sizeof(SharedStorage));
@@ -294,7 +294,7 @@ struct PpuChunkedGdnOKernel {
   using Params = typename Pipeline::Params;
   using Collective = typename Pipeline::Collective;
   using Scheduler = typename Pipeline::ValueScheduler;
-  using SharedStorage = typename Collective::SharedStorage;
+  using SharedStorage = typename Collective::OSharedStorage;
   static constexpr std::uint32_t MaxThreadsPerBlock = Collective::kThreadCount;
   static constexpr std::uint32_t MinBlocksPerMultiprocessor = 1;
   static constexpr int SharedStorageSize = int(sizeof(SharedStorage));
