@@ -16,6 +16,7 @@
 #include "cutlass/bfloat16.h"
 #include "quactlize_ppu_linear_attention.h"
 #include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh"
 
 namespace {
 
@@ -24,11 +25,56 @@ using Traits = cutlass::linear_attention::PpuChunkedGdnTraits<64, 128, 128>;
 using Arguments =
     cutlass::linear_attention::PpuChunkedGdnArguments<Element, Element, float>;
 using Kernel = cutlass::linear_attention::PpuChunkedGdnKernel<Arguments, Traits>;
+using Pipeline =
+    cutlass::linear_attention::PpuChunkedGdnTwoStagePipeline<Arguments, Traits>;
+using PrepareKernel = cutlass::linear_attention::PpuChunkedGdnPrepareKernel<Pipeline>;
+using RecurrenceKernel =
+    cutlass::linear_attention::PpuChunkedGdnRecurrenceKernel<Pipeline>;
 
 __global__ void chunked_gdn_global_scratch_kernel(
     Arguments args, typename Kernel::SharedStorage* scratch) {
   Kernel kernel;
   kernel(args, reinterpret_cast<char*>(&scratch[blockIdx.x]));
+}
+
+__global__ void chunked_gdn_prepare_global_scratch_kernel(
+    typename Pipeline::Params params,
+    typename PrepareKernel::SharedStorage* scratch) {
+  PrepareKernel{}(params, reinterpret_cast<char*>(&scratch[blockIdx.x]));
+}
+
+__global__ void chunked_gdn_recurrence_global_scratch_kernel(
+    typename Pipeline::Params params,
+    typename RecurrenceKernel::SharedStorage* scratch) {
+  RecurrenceKernel{}(params, reinterpret_cast<char*>(&scratch[blockIdx.x]));
+}
+
+Arguments make_arguments(
+    std::uint16_t const* q, std::uint16_t const* k, std::uint16_t const* v,
+    float const* gamma_log2_cumsum, float const* beta,
+    float const* initial_state, std::uint16_t* output, float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const& problem, float scale) {
+  Arguments args{};
+  args.q = reinterpret_cast<Element const*>(q);
+  args.k = reinterpret_cast<Element const*>(k);
+  args.v = reinterpret_cast<Element const*>(v);
+  args.gamma_log2_cumsum = gamma_log2_cumsum;
+  args.beta = beta;
+  args.initial_state = initial_state;
+  args.output = reinterpret_cast<Element*>(output);
+  args.final_state = final_state;
+  args.problem = {
+      problem.total_tokens,
+      problem.num_sequences,
+      problem.sequence_length,
+      problem.num_qk_heads,
+      problem.num_v_heads,
+      problem.head_size_k,
+      problem.head_size_v,
+      problem.chunk_size,
+  };
+  args.scale = scale;
+  return args;
 }
 
 }  // namespace
@@ -87,6 +133,84 @@ extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v1(
   chunked_gdn_global_scratch_kernel<<<blocks, Kernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
       args, scratch);
   cudaError_t status = cudaGetLastError();
+  if (status == cudaSuccess) status = cudaStreamSynchronize(cuda_stream);
+  cudaError_t const free_status = cudaFree(scratch);
+  if (status == cudaSuccess) status = free_status;
+  return status == cudaSuccess ? QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS
+                               : QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+}
+
+extern "C" std::size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem) {
+  if (problem == nullptr ||
+      problem->schema_version != QUACTLIZE_PPU_CHUNKED_GDN_SCHEMA_V1 ||
+      std::int64_t(problem->total_tokens) !=
+          std::int64_t(problem->num_sequences) * problem->sequence_length ||
+      problem->num_sequences <= 0 || problem->sequence_length <= 0 ||
+      problem->num_qk_heads <= 0 || problem->num_v_heads <= 0 ||
+      problem->num_v_heads % problem->num_qk_heads != 0 ||
+      problem->head_size_k != 128 || problem->head_size_v != 128 ||
+      problem->chunk_size != 64) {
+    return 0;
+  }
+  cutlass::linear_attention::PpuChunkedGdnProblem const p{
+      problem->total_tokens, problem->num_sequences, problem->sequence_length,
+      problem->num_qk_heads, problem->num_v_heads, problem->head_size_k,
+      problem->head_size_v, problem->chunk_size};
+  return Pipeline::get_workspace_size(p);
+}
+
+extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v2(
+    std::uint16_t const* q,
+    std::uint16_t const* k,
+    std::uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    std::uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    std::size_t workspace_bytes,
+    void* stream) {
+  if (problem == nullptr) return QUACTLIZE_PPU_CHUNKED_GDN_NULL_POINTER;
+  if (problem->schema_version != QUACTLIZE_PPU_CHUNKED_GDN_SCHEMA_V1) {
+    return QUACTLIZE_PPU_CHUNKED_GDN_INVALID_PROBLEM;
+  }
+  Arguments args = make_arguments(
+      q, k, v, gamma_log2_cumsum, beta, initial_state, output, final_state,
+      *problem, scale);
+  auto const admission = Pipeline::argument_status(args, workspace, workspace_bytes);
+  if (admission != cutlass::linear_attention::PpuChunkedGdnStatus::kSuccess) {
+    return int(admission);
+  }
+
+  auto const params = Pipeline::to_underlying_arguments(args, workspace);
+  int const prepare_blocks = Pipeline::PrepareScheduler::grid_size(args.problem);
+  int const recurrence_blocks = Pipeline::RecurrenceScheduler::grid_size(args.problem);
+  int const scratch_blocks =
+      prepare_blocks > recurrence_blocks ? prepare_blocks : recurrence_blocks;
+  static_assert(sizeof(typename PrepareKernel::SharedStorage) ==
+                    sizeof(typename RecurrenceKernel::SharedStorage),
+                "test adapter expects a common scratch ledger");
+  typename PrepareKernel::SharedStorage* scratch = nullptr;
+  if (scratch_blocks <= 0 ||
+      cudaMalloc(&scratch, std::size_t(scratch_blocks) * sizeof(*scratch)) !=
+          cudaSuccess) {
+    return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+  }
+  cudaStream_t const cuda_stream = static_cast<cudaStream_t>(stream);
+  chunked_gdn_prepare_global_scratch_kernel
+      <<<prepare_blocks, PrepareKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
+          params, scratch);
+  cudaError_t status = cudaGetLastError();
+  if (status == cudaSuccess) {
+    chunked_gdn_recurrence_global_scratch_kernel
+        <<<recurrence_blocks, RecurrenceKernel::MaxThreadsPerBlock, 0,
+           cuda_stream>>>(params, scratch);
+    status = cudaGetLastError();
+  }
   if (status == cudaSuccess) status = cudaStreamSynchronize(cuda_stream);
   cudaError_t const free_status = cudaFree(scratch);
   if (status == cudaSuccess) status = free_status;

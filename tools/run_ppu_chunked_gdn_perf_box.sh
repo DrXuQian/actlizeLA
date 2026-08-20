@@ -16,6 +16,7 @@ JOBS="${JOBS:-16}"
 WARMUP="${WARMUP:-5}"
 ITERATIONS="${ITERATIONS:-20}"
 SAMPLES="${SAMPLES:-7}"
+PIPELINE="${GDN_PIPELINE:-two-stage}"
 if [[ -e "$OUT" ]]; then
   if [[ ! -d "$OUT" || -n "$(find "$OUT" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
     echo "[GDN perf] FAIL: OUT must be absent or an empty directory: $OUT" >&2
@@ -28,6 +29,14 @@ case "$MODE" in
   --local|--box) ;;
   *)
     echo "usage: $0 [--local|--box]" >&2
+    exit 2
+    ;;
+esac
+case "$PIPELINE" in
+  two-stage) pipeline_args=() ;;
+  legacy) pipeline_args=(--legacy) ;;
+  *)
+    echo "[GDN perf] FAIL: GDN_PIPELINE must be two-stage or legacy" >&2
     exit 2
     ;;
 esac
@@ -52,7 +61,7 @@ declare -a shape_rows=()
 # expensive PPU build. Thus malformed, empty and duplicate selections are
 # locally falsifiable properties, not box-only surprises.
 if [[ "${ACU:-0}" == 1 ]]; then
-  ACU_SHAPE="${GDN_ACU_SHAPE:-3,256,12,24,same-shape-splitv-grid144}"
+  ACU_SHAPE="${GDN_ACU_SHAPE:-1,2048,16,32,qwen35-35b-a3b-t2048}"
   IFS=',' read -r sequences length qk_heads v_heads label extra <<< "$ACU_SHAPE"
   if [[ -z "${label:-}" || -n "${extra:-}" ]] || ! valid_label "$label" ||
       ! valid_shape_fields "$sequences" "$length" "$qk_heads" "$v_heads"; then
@@ -60,7 +69,7 @@ if [[ "${ACU:-0}" == 1 ]]; then
     exit 2
   fi
 else
-  DEFAULT_SHAPES="1,256,32,32,splitv-grid64;2,256,16,32,splitv-grid128;3,256,12,24,same-shape-splitv-grid144;4,256,16,32,splitv-grid256;2,2048,32,32,cula-like-long-splitv-grid128"
+  DEFAULT_SHAPES="1,2048,16,32,qwen35-35b-a3b-t2048"
   if [[ -v GDN_SHAPES ]]; then
     SHAPES="$GDN_SHAPES"
   else
@@ -157,6 +166,7 @@ fi
     "$ROOT/dev/gates/reference/ppu_chunked_gdn_inverse.hpp" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh" \
     "$LIB" "$BIN"
 } | tee "$OUT/binary-identity.txt"
@@ -170,7 +180,7 @@ run_shape() {
       --sequences="$sequences" --length="$length" \
       --qk-heads="$qk_heads" --v-heads="$v_heads" \
       --warmup="$WARMUP" --iterations="$ITERATIONS" --samples="$SAMPLES" \
-      --initial-state=1 --final-state=1
+      --initial-state=1 --final-state=1 "${pipeline_args[@]}"
   } | tee "$log"
   CURRENT_LOGS+=("$log")
 }
@@ -181,19 +191,27 @@ if [[ "${ACU:-0}" == 1 ]]; then
     echo "[GDN perf ACU] FAIL: acu unavailable at $ACU_BIN" >&2
     exit 1
   fi
-  # One launch, no warmup and no timing loop. The report is an instruction/
-  # resource profile; it is deliberately labelled NOT_TIMING by the binary.
+  # One public-ABI invocation, no warmup and no timing loop.  Legacy v1 emits
+  # one device kernel; two-stage v2 emits prepare plus recurrence.  The report
+  # is an instruction/resource profile and is deliberately NOT_TIMING.
   REPORT="$OUT/${label}.report.acurep"
   chunks=$((length / 64 + (length % 64 != 0)))
   logical_work_units=$((sequences * v_heads * chunks))
   physical_work_units=$((logical_work_units * 2))
-  expected_bf16_mma=$((physical_work_units * 896))
-  expected_tf32_mma=$((physical_work_units * 40))
-  echo "[GDN perf ACU preregistration] scheduler=split-v64 value_tiles_per_head=2 logical_work_units=$logical_work_units physical_work_units=$physical_work_units expected_grid=$((sequences * v_heads * 2)) expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 expected_shared_block_limit_at_least=2 adjudication=REPORT_REQUIRED"
+  if [[ "$PIPELINE" == two-stage ]]; then
+    expected_bf16_mma=$((logical_work_units * 1408))
+    expected_tf32_mma=$((logical_work_units * 40))
+    expected_workspace=$((logical_work_units * 32768))
+    echo "[GDN perf ACU preregistration] pipeline=two-stage prepare_grid=$logical_work_units recurrence_grid=$((sequences * v_heads * 2)) value_tiles_per_head=2 logical_work_units=$logical_work_units expected_workspace_bytes=$expected_workspace expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
+  else
+    expected_bf16_mma=$((physical_work_units * 896))
+    expected_tf32_mma=$((physical_work_units * 40))
+    echo "[GDN perf ACU preregistration] pipeline=legacy-split-v64 grid=$((sequences * v_heads * 2)) value_tiles_per_head=2 logical_work_units=$logical_work_units physical_work_units=$physical_work_units expected_threads=128 expected_shared_bytes=107008 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 adjudication=REPORT_REQUIRED"
+  fi
   "$ACU_BIN" -f -o "$REPORT" --set full "$BIN" \
     --sequences="$sequences" --length="$length" \
     --qk-heads="$qk_heads" --v-heads="$v_heads" \
-    --initial-state=1 --final-state=1 --acu \
+    --initial-state=1 --final-state=1 --acu "${pipeline_args[@]}" \
     | tee "$OUT/${label}.acu.log"
   if [[ ! -s "$REPORT" ]]; then
     echo "[GDN perf ACU] FAIL: acu produced no nonempty report at $REPORT" >&2
@@ -204,10 +222,9 @@ if [[ "${ACU:-0}" == 1 ]]; then
   exit 0
 fi
 
-# B,T,H,HV,label.  Split-V emits two BV64 CTAs per logical V128 head, so these
-# same workloads now cover physical grids 64, 128, 144 and 256 plus a cuLA-like
-# long sequence.  The grid144 row is the exact same mathematical shape whose
-# whole-V baseline occupied one 4-warp CTA on each of 72 CUs.
+# B,T,H,HV,label.  The default is the exact Qwen3.5-35B-A3B linear-attention
+# head geometry at sequence length 2048: 16 QK heads, 32 V heads, K=V=128.
+# Override GDN_SHAPES only for an explicitly labelled diagnostic matrix.
 for row in "${shape_rows[@]}"; do
   IFS=',' read -r sequences length qk_heads v_heads label extra <<< "$row"
   run_shape "$sequences" "$length" "$qk_heads" "$v_heads" "$label"

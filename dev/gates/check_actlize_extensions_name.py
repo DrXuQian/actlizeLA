@@ -12,6 +12,7 @@ CANONICAL_ROOT = Path("include/actlize_extensions")
 CANONICAL_HEADERS = (
     "cutlass/linear_attention/ppu_chunked_gdn_collective.cuh",
     "cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh",
+    "cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh",
     "cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh",
     "cutlass/linear_attention/ppu_chunked_gdn_types.hpp",
 )

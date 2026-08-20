@@ -33,6 +33,7 @@ enum class PpuChunkedGdnStatus : std::int32_t {
   kUnsupportedHeadMapping = 5,
   kInvalidSequenceLayout = 6,
   kMisalignedPointer = 7,
+  kInsufficientWorkspace = 9,
 };
 
 // Public inputs use the standard packed-token convention:
@@ -89,6 +90,12 @@ struct PpuChunkedGdnWorkTileInfo {
   bool valid = false;
 };
 
+struct PpuChunkedGdnPrepareWorkTileInfo {
+  PpuChunkedGdnWorkTileInfo head{};
+  std::int32_t chunk_idx = 0;
+  bool valid = false;
+};
+
 template <int ChunkSize_, int HeadSizeK_, int HeadSizeV_>
 struct PpuChunkedGdnTraits {
   static constexpr int ChunkSize = ChunkSize_;
@@ -102,6 +109,12 @@ struct PpuChunkedGdnTraits {
   static_assert(HeadSizeV > 0 && HeadSizeV % 16 == 0,
                 "PPU GDN V head dimension must be a positive multiple of 16");
 };
+
+template <class Traits>
+inline constexpr std::int32_t PpuChunkedGdnPreparedChunkBytes =
+    (2 * Traits::ChunkSize * Traits::ChunkSize +
+     Traits::ChunkSize * Traits::HeadSizeK) *
+    std::int32_t(sizeof(std::uint16_t));
 
 // ValueTileSize is an execution tile, not a public tensor-layout change.  A
 // V128 head can be partitioned into two independent V64 recurrence columns:
@@ -162,6 +175,48 @@ struct PpuChunkedGdnScheduler {
     w.chunk_count = ceil_div(w.token_count, Traits::ChunkSize);
     w.valid = true;
     return w;
+  }
+};
+
+// The prepare launch owns independent (sequence,V-head,chunk) cells.  It uses
+// the same logical head identity as the recurrence scheduler, but deliberately
+// has no V-column tile: A/W/P are common to every V slice and must be produced
+// exactly once.  Fixed-length v1 makes chunk_count uniform, so the linear map
+// is both closed-form and exhaustive.
+template <class Traits>
+struct PpuChunkedGdnPrepareScheduler {
+  using HeadScheduler = PpuChunkedGdnScheduler<Traits, Traits::HeadSizeV>;
+
+  QZ_GDN_HOST_DEVICE static constexpr std::int32_t chunk_count(
+      PpuChunkedGdnProblem const& p) {
+    return p.sequence_length > 0
+               ? HeadScheduler::ceil_div(p.sequence_length, Traits::ChunkSize)
+               : 0;
+  }
+
+  QZ_GDN_HOST_DEVICE static constexpr std::int32_t grid_size(
+      PpuChunkedGdnProblem const& p) {
+    std::int64_t const grid =
+        std::int64_t(p.num_sequences) * std::int64_t(p.num_v_heads) *
+        std::int64_t(chunk_count(p));
+    return grid > 0 && grid <= std::numeric_limits<std::int32_t>::max()
+               ? std::int32_t(grid)
+               : 0;
+  }
+
+  QZ_GDN_HOST_DEVICE static constexpr PpuChunkedGdnPrepareWorkTileInfo work(
+      std::int32_t linear_block, PpuChunkedGdnProblem const& p) {
+    PpuChunkedGdnPrepareWorkTileInfo result{};
+    std::int32_t const chunks = chunk_count(p);
+    std::int32_t const grid = grid_size(p);
+    if (chunks <= 0 || linear_block < 0 || linear_block >= grid) return result;
+    std::int32_t const head_idx = linear_block / chunks;
+    result.chunk_idx = linear_block % chunks;
+    result.head = HeadScheduler::work(head_idx, p);
+    result.valid = result.head.valid && result.head.value_begin == 0 &&
+                   result.head.value_count == Traits::HeadSizeV &&
+                   result.chunk_idx < result.head.chunk_count;
+    return result;
   }
 };
 

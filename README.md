@@ -6,8 +6,9 @@ runtime dependency, autograd entry, or backward kernel.
 
 The public ABI intentionally retains the proven
 `quactlize_ppu_chunked_gdn_fwd_bf16_v1` symbol so extracting the code does not
-silently break existing consumers. The standalone shared library is named
-`libactlize_la_ppu.so`.
+silently break existing consumers.  The explicit-workspace v2 entry prepares
+the common A/W/P seam once and then runs the same split-V64 recurrence. The
+standalone shared library is named `libactlize_la_ppu.so`.
 
 The canonical C++ header root is `actlize_extensions/`.  The retained
 `quactlize_ppu_*` spelling is limited to the stable public C ABI; it is not an
@@ -95,7 +96,7 @@ LD_LIBRARY_PATH=/workspace/actlizeLA-ppu-build:/usr/local/PPU_SDK/lib \
 
 Or run the source-bound box gate, which builds and links the standalone
 library before checking a 64+1 tail, GVA 1:2, zero/nonzero state, two WY
-fixtures, and seven admission negatives:
+fixtures, eight admission negatives, and raw-bit v1/v2 parity:
 
 ```bash
 OUT=/workspace/actlizeLA-l205-box \
@@ -109,19 +110,24 @@ OUT=/workspace/actlizeLA-gdn-perf \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```
 
+Set `GDN_PIPELINE=legacy` with a distinct `OUT` to run the v1 control; the
+default is the two-stage v2 subject.  Both default to the exact
+`B1,T2048,Hqk16,Hv32,K128,V128,C64` Qwen3.5-35B-A3B shape.
+
 Artifacts stay under `/workspace`; no runner uses `/tmp` or `mktemp`.
 
-The current PPU tactic partitions each V128 recurrence head into two
-independent BV64 CTA owners.  This reduces per-CTA shared storage from 139,776
-to 107,008 bytes and changes the same-shape grid from 72 to 144.  The fixed
-before/after interpretation is recorded in
-`dev/gates/SPLIT_V64_PERFORMANCE_PREREGISTRATION.md`.
+The v1 PPU tactic partitions each V128 recurrence head into two independent
+BV64 CTA owners.  v2 adds a 1,024-CTA common prepare stage for the published
+Qwen3.5-35B-A3B `B1,T2048,Hqk16,Hv32,K128,V128` shape, then retains 64 BV64
+recurrence CTAs.  Its fixed interpretation is recorded in
+`dev/gates/QWEN35_TWO_STAGE_PERFORMANCE_PREREGISTRATION.md`.
 
-To capture the same mathematical shape under ACU with exactly one launch:
+To capture the same mathematical shape under ACU with exactly one public-ABI
+invocation (one device kernel for v1, prepare plus recurrence for v2):
 
 ```bash
-OUT=/workspace/actlizeLA-gdn-splitv-acu \
-ACU=1 GDN_ACU_SHAPE=3,256,12,24,same-shape-splitv-grid144 \
+OUT=/workspace/actlizeLA-gdn-qwen35-two-stage-acu \
+ACU=1 GDN_ACU_SHAPE=1,2048,16,32,qwen35-35b-a3b-t2048 \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```
 

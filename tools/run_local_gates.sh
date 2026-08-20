@@ -20,6 +20,8 @@ QUACTLIZE_L208_OUT="$OUT/l208" \
   bash "$ROOT/dev/gates/run_l208_chunked_gdn_fragment_delivery.sh"
 QUACTLIZE_L209_OUT="$OUT/l209" \
   bash "$ROOT/dev/gates/run_l209_chunked_gdn_blocked_inverse.sh"
+L212_OUT="$OUT/l212" \
+  bash "$ROOT/dev/gates/run_l212_chunked_gdn_two_stage_schedule.sh"
 L210_OUT="$OUT/l210" \
   bash "$ROOT/dev/gates/run_l210_ppu_device_object_graph.sh"
 QZ_GDN_SKIP_CUDA="${QZ_GDN_SKIP_CUDA:-0}" OUT="$OUT/l205" \

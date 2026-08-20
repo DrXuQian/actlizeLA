@@ -27,7 +27,8 @@ The first specialization is fixed-length forward inference with:
 - BF16 Q/K/V/output and FP32 recurrent state;
 - grouped value attention where `num_v_heads` is divisible by
   `num_qk_heads`;
-- one CTA owning the entire recurrence chain for one `(sequence, value-head)`;
+- two independent BV64 CTAs owning disjoint recurrence columns for one
+  `(sequence, value-head)`;
 - chunk-local cumulative log2 decay and post-sigmoid beta supplied by the
   caller.
 
@@ -78,9 +79,12 @@ wrong destination-stride plant creates 2048 holes plus 2048 duplicate owners.
 Generated matrices bypass the unavailable register-to-swizzled-TSM store.
 They are gathered directly into the production `TiledMma` register fragments:
 the coordinate tensor selects the logical source and CuTe's compact fragment
-layout selects the physical register.  Six product kinds (11 logical product
-instances) therefore contribute 1,152 `m16n16k16` BF16 MMA instructions per
-full chunk, in addition to the 256 QK/KK instructions.  L207 anchors the
+layout selects the physical register.  Six product kinds contribute 640
+`m16n16k16` BF16 MMA instructions per BV64 work tile, in addition to 256 QK/KK
+instructions.  Legacy v1 repeats both sets for two V tiles: 1,792 BF16 and 80
+TF32 MMA per logical head/chunk.  Two-stage v2 prepares QK/KK/inverse/W once
+and runs only the 512 V-dependent BF16 MMA per BV64 recurrence tile: 1,408 BF16
+and 40 TF32 MMA per logical head/chunk.  L207 anchors the
 logical A/B/C coordinates against the public PPU0010 atom formula.  L208 then
 anchors the actual compact physical-register maps for BF16 C64 and both TF32
 inverse tiles; rotating one physical slot or transposing B must turn red.
@@ -95,15 +99,21 @@ claim of all-FP32 bit identity: L209 requires an exact dyadic fixture to remain
 raw-bit equal and separately bounds a non-TF32-exact fixture's inverse
 residual.
 
-The full 128x128 FP32 state stays CTA-local across chunks.  Phase storage is
-unioned; the checked peak is 139,776 bytes (64 KiB state, 512 bytes of gates,
+One 128x64 FP32 state slice stays CTA-local across chunks.  Phase storage is
+unioned; the checked peak is 107,008 bytes (32 KiB state, 512 bytes of gates,
 and a 72 KiB phase arena), below the repository's 256-KiB PPU block budget.
+
+The v2 prepare kernel emits one 32-KiB BF16 A/W/P record per
+`(sequence,V-head,chunk)` into caller-owned workspace.  Its recurrence kernel
+loads that seam and does not execute QK, KK, inverse, or W.  On the published
+Qwen3.5-35B-A3B `B1,T2048,Hqk16,Hv32,K128,V128,C64` shape this is a 1,024-CTA
+prepare launch, a 64-CTA recurrence launch, and exactly 32 MiB of workspace.
 
 ## Deliberate limits and next measurements
 
 The local gates establish algebra, scheduler ownership, tail handling and
 generated-code reachability.  On a local RTX 5090, the same scalar collective
-body is also executed with test-only global scratch (the 139,776-byte PPU
+body is also executed with test-only global scratch (the 107,008-byte PPU
 shared ledger exceeds sm_120's per-block limit): both zero and nonzero initial
 state are raw-bit equal to an exact token-recurrence fixture across a 64+1
 tail.  A second fixture makes the WY path nontrivial while remaining
@@ -113,9 +123,9 @@ initial-state executions remain raw-bit equal.  This is a correctness check,
 not a CUDA performance proxy.
 
 A PPU box remains necessary for the hardware-only facts: the actual AIU opcode
-path, 139,776-byte shared-memory admission, registers, numerical agreement and
-timing.  The preregistered ACU denominator is 1,408 BF16 m16n16k16 plus 40 TF32
-m16n16k8 instructions per full chunk, with zero spills.  No PPU performance
+path, 107,008-byte shared-memory admission, registers, numerical agreement and
+timing.  v2 preregisters 1,408 BF16 `m16n16k16` plus 40 TF32 `m16n16k8`
+instructions per logical head/chunk, with zero spills.  No PPU performance
 claim is made from the host oracle or CUDA arm.
 
 After the all-AIU device verdict, the next additive tactics are variable-length

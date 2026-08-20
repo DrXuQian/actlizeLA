@@ -8,6 +8,7 @@
 // separate from the GEMM/GEMV ABI: chunked GDN has recurrent-state and gate
 // semantics that must not be inferred from matrix dimensions.
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -28,6 +29,7 @@ extern "C" {
 #define QUACTLIZE_PPU_CHUNKED_GDN_INVALID_SEQUENCE_LAYOUT 6
 #define QUACTLIZE_PPU_CHUNKED_GDN_MISALIGNED_POINTER 7
 #define QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR 8
+#define QUACTLIZE_PPU_CHUNKED_GDN_INSUFFICIENT_WORKSPACE 9
 
 typedef struct quactlize_ppu_chunked_gdn_problem_v1 {
   uint32_t schema_version;
@@ -74,6 +76,30 @@ int quactlize_ppu_chunked_gdn_fwd_bf16_v1(
     float* final_state,
     quactlize_ppu_chunked_gdn_problem_v1 const* problem,
     float scale,
+    void* stream);
+
+// Two-stage C64/K128/V128 forward.  The caller-owned workspace contains the
+// BF16 A/W/P seam prepared once per (sequence,V-head,chunk).  Its size depends
+// only on `problem`; query it once, allocate it once, and reuse it across
+// asynchronous launches.  The workspace must remain live until `stream`
+// reaches both the prepare and recurrence kernels.  v2 is numerically and
+// layout compatible with v1; v1 remains the no-workspace fallback/control.
+size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem);
+
+int quactlize_ppu_chunked_gdn_fwd_bf16_v2(
+    uint16_t const* q,
+    uint16_t const* k,
+    uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    size_t workspace_bytes,
     void* stream);
 
 #ifdef __cplusplus

@@ -206,6 +206,38 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   static constexpr int kTf32MmaPerLogicalHeadChunk =
       kInverseTf32MmaPerWorkTileChunk * kValueBlocks;
 
+  // Two-stage execution stores only BF16 values that already cross an
+  // explicit BF16 boundary in the fused collective.  Copying them through
+  // global workspace therefore changes neither arithmetic nor rounding.
+  struct alignas(16) PreparedChunk {
+    Element inverse[kScoreElements];
+    Element w[kWElements];
+    Element causal[kScoreElements];
+  };
+  static constexpr int kPreparedChunkElements =
+      2 * kScoreElements + kWElements;
+  static constexpr int kPreparedChunkBytes = int(sizeof(PreparedChunk));
+  static constexpr int kPrepareBf16MmaPerChunk =
+      kGlobalDotMmaPerWorkTileChunk +
+      (kGeneratedMmaPerWorkTileChunk - 512);
+  static constexpr int kRecurrenceBf16MmaPerValueTileChunk = 512;
+  static constexpr int kTwoStageBf16MmaPerLogicalHeadChunk =
+      kPrepareBf16MmaPerChunk +
+      kRecurrenceBf16MmaPerValueTileChunk * kValueBlocks;
+  static constexpr int kTwoStageTf32MmaPerLogicalHeadChunk =
+      kInverseTf32MmaPerWorkTileChunk;
+
+  static_assert(kPreparedChunkElements == 16384 &&
+                    kPreparedChunkBytes == 32768 &&
+                    kPreparedChunkBytes ==
+                        PpuChunkedGdnPreparedChunkBytes<Traits>,
+                "A/W/P prepared workspace must be exactly 32 KiB per chunk");
+  static_assert(kPrepareBf16MmaPerChunk == 384 &&
+                    kRecurrenceBf16MmaPerValueTileChunk == 512 &&
+                    kTwoStageBf16MmaPerLogicalHeadChunk == 1408 &&
+                    kTwoStageTf32MmaPerLogicalHeadChunk == 40,
+                "two-stage execution denominator changed");
+
   static_assert(Traits::ChunkSize == kChunk && Traits::HeadSizeK == kHeadK &&
                     Traits::HeadSizeV == kHeadV,
                 "this collective is the fixed C64/D128 implementation");
@@ -1053,6 +1085,82 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
   }
 
  public:
+  CUTLASS_HOST_DEVICE static constexpr std::int64_t prepared_chunk_index(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      int chunk_idx) {
+    return ((std::int64_t(work.sequence_idx) * params.problem.num_v_heads +
+             work.v_head_idx) *
+                work.chunk_count +
+            chunk_idx);
+  }
+
+  QZ_PPU_GDN_DEVICE static void prepare_chunk(
+      Params const& params, PpuChunkedGdnPrepareWorkTileInfo const& prepare,
+      PreparedChunk* workspace, SharedStorage& shared) {
+    int const thread_idx = int(threadIdx.x);
+    if (!prepare.valid || workspace == nullptr) return;
+    PpuChunkedGdnWorkTileInfo const& work = prepare.head;
+    int const chunk_begin = prepare.chunk_idx * kChunk;
+    int const valid = load_chunk_scalars(
+        params, work, prepare.chunk_idx, shared, thread_idx);
+    global_dot(
+        params, work, chunk_begin, valid,
+        detail::PpuChunkedGdnGlobalDotKind::kCausalQk,
+        shared, thread_idx);
+    global_dot(
+        params, work, chunk_begin, valid,
+        detail::PpuChunkedGdnGlobalDotKind::kStrictLowerKk,
+        shared, thread_idx);
+    solve_inverse(shared, thread_idx);
+    compute_w(params, work, chunk_begin, valid, shared, thread_idx);
+
+    PreparedChunk& dst = workspace[prepared_chunk_index(
+        params, work, prepare.chunk_idx)];
+    Element const* const a = inverse_bf16(shared);
+    Element const* const w = w_matrix(shared);
+    Element const* const p = causal_score(shared);
+    for (int i = thread_idx; i < kScoreElements; i += kThreadCount) {
+      dst.inverse[i] = a[i];
+      dst.causal[i] = p[i];
+    }
+    for (int i = thread_idx; i < kWElements; i += kThreadCount) {
+      dst.w[i] = w[i];
+    }
+  }
+
+  QZ_PPU_GDN_DEVICE static void run_prepared(
+      Params const& params, PpuChunkedGdnWorkTileInfo const& work,
+      PreparedChunk const* workspace, SharedStorage& shared) {
+    int const thread_idx = int(threadIdx.x);
+    if (workspace == nullptr || work.value_count != kValueBlock ||
+        work.value_begin < 0 || work.value_begin + kValueBlock > kHeadV) {
+      return;
+    }
+    load_state(params, work, shared, thread_idx);
+    for (int chunk = 0; chunk < work.chunk_count; ++chunk) {
+      int const chunk_begin = chunk * kChunk;
+      int const valid = load_chunk_scalars(
+          params, work, chunk, shared, thread_idx);
+      PreparedChunk const& src = workspace[
+          prepared_chunk_index(params, work, chunk)];
+      Element* const a = inverse_bf16(shared);
+      Element* const w = w_matrix(shared);
+      Element* const p = causal_score(shared);
+      for (int i = thread_idx; i < kScoreElements; i += kThreadCount) {
+        a[i] = src.inverse[i];
+        p[i] = src.causal[i];
+      }
+      for (int i = thread_idx; i < kWElements; i += kThreadCount) {
+        w[i] = src.w[i];
+      }
+      __syncthreads();
+      compute_value_tile(
+          params, work, chunk_begin, valid, work.value_begin,
+          shared, thread_idx);
+    }
+    store_final_state(params, work, shared, thread_idx);
+  }
+
   QZ_PPU_GDN_DEVICE static void run(
       Params const& params, PpuChunkedGdnWorkTileInfo const& work,
       SharedStorage& shared) {
