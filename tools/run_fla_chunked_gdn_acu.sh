@@ -6,7 +6,6 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FLA_ROOT="${FLA_ROOT:-/workspace/gdn-reference/flash-linear-attention}"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 ACU_BIN="${ACU_BIN:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
 SCOPE="${FLA_SCOPE:-post-cumsum}"
@@ -21,8 +20,30 @@ case "$SCOPE" in
     exit 2
     ;;
 esac
+
+# FLA_ROOT is an operator override, not a required identity field. With no
+# override, measure the source authority actually imported by PYTHON_BIN.
+if [[ -n "${FLA_ROOT:-}" ]]; then
+  FLA_ROOT_SOURCE=operator
+else
+  FLA_ROOT="$($PYTHON_BIN - <<'PY'
+import importlib.util
+import pathlib
+import sys
+
+spec = importlib.util.find_spec("fla")
+if spec is None or spec.origin is None:
+    sys.exit(1)
+print(pathlib.Path(spec.origin).resolve().parent.parent)
+PY
+  )" || {
+    echo "[FLA GDN ACU] FAIL: PYTHON_BIN=$PYTHON_BIN cannot resolve the installed fla package; set FLA_ROOT only as an explicit fallback" >&2
+    exit 2
+  }
+  FLA_ROOT_SOURCE=measured
+fi
 if [[ ! -d "$FLA_ROOT/fla" ]]; then
-  echo "[FLA GDN ACU] FAIL: FLA source tree not found at $FLA_ROOT" >&2
+  echo "[FLA GDN ACU] FAIL: resolved FLA authority has no fla/ package: $FLA_ROOT (source=$FLA_ROOT_SOURCE)" >&2
   exit 2
 fi
 if [[ ! -x "$ACU_BIN" ]]; then
@@ -62,6 +83,8 @@ subject_args=(
 {
   echo "actlizela_git_head=$SHA"
   echo "fla_git_head=$(git -C "$FLA_ROOT" rev-parse HEAD 2>/dev/null || echo UNKNOWN)"
+  echo "fla_root=$FLA_ROOT"
+  echo "fla_root_source=$FLA_ROOT_SOURCE"
   echo "scope=$SCOPE"
   echo "shape=B1,T2048,H16,HV32,K128,V128,C64"
   echo "fixture=q:(i%7-3)/64,k:(i%5-2)/32,v:(i%9-4)/64,beta:0.5,gamma:-local/64,initial:(i%5-2)/1024,scale:0.5"

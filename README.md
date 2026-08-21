@@ -165,7 +165,6 @@ report instead of adding candidate launches to it.
 
 ```bash
 OUT=/workspace/actlizeLA-fla-gdn-post-cumsum-acu \
-FLA_ROOT=/workspace/gdn-reference/flash-linear-attention \
 FLA_SCOPE=post-cumsum \
   bash tools/run_fla_chunked_gdn_acu.sh
 
@@ -182,6 +181,9 @@ KKT+solve, W+U, recurrent H, and O. To profile FLA's complete public forward
 including its cumsum launch, rerun the first command with `FLA_SCOPE=full` and
 a new `OUT`; that five-kernel report is not the primary four-stage timing
 denominator.
+The FLA source authority is resolved from the `fla` package imported by the
+selected `PYTHON_BIN`; set `FLA_ROOT` only when that package is intentionally
+used from a separate source checkout.
 
 ## Source authorities
 
