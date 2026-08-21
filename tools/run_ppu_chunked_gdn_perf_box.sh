@@ -34,10 +34,11 @@ case "$MODE" in
 esac
 case "$PIPELINE" in
   four-stage) pipeline_args=() ;;
+  triton-aligned) pipeline_args=(--triton-aligned) ;;
   two-stage) pipeline_args=(--two-stage) ;;
   legacy) pipeline_args=(--legacy) ;;
   *)
-    echo "[GDN perf] FAIL: GDN_PIPELINE must be four-stage, two-stage, or legacy" >&2
+    echo "[GDN perf] FAIL: GDN_PIPELINE must be triton-aligned, four-stage, two-stage, or legacy" >&2
     exit 2
     ;;
 esac
@@ -168,6 +169,8 @@ fi
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_resident_mma.cuh" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_triton_collective.cuh" \
+    "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_triton_pipeline.cuh" \
     "$ROOT/include/actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_collective.cuh" \
     "$LIB" "$BIN"
 } | tee "$OUT/binary-identity.txt"
@@ -199,7 +202,12 @@ if [[ "${ACU:-0}" == 1 ]]; then
   chunks=$((length / 64 + (length % 64 != 0)))
   logical_work_units=$((sequences * v_heads * chunks))
   physical_work_units=$((logical_work_units * 2))
-  if [[ "$PIPELINE" == four-stage ]]; then
+  if [[ "$PIPELINE" == triton-aligned ]]; then
+    expected_bf16_mma=$((logical_work_units * 1536))
+    expected_tf32_mma=$((logical_work_units * 40))
+    expected_workspace=$((logical_work_units * 90112))
+    echo "[GDN perf ACU preregistration] pipeline=triton-post-cumsum kkt_grid=$logical_work_units wu_grid=$logical_work_units h_grid=$((sequences * v_heads * 2)) output_grid=$physical_work_units value_tiles_per_head=2 logical_work_units=$logical_work_units expected_workspace_bytes=$expected_workspace expected_threads=128 expected_shared_bytes=KKT:33280/WU:8704/H:8704/O:8704 expected_bf16_m16n16k16=$expected_bf16_mma expected_tf32_m16n16k8=$expected_tf32_mma expected_spills=0 stage_contract=KKT+solve/W+U/resident-H/on-the-fly-QH+QK adjudication=REPORT_REQUIRED"
+  elif [[ "$PIPELINE" == four-stage ]]; then
     expected_bf16_mma=$((logical_work_units * 1408))
     expected_tf32_mma=$((logical_work_units * 40))
     expected_workspace=$((logical_work_units * 32768 + physical_work_units * 40960))

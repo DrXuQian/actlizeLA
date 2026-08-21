@@ -17,6 +17,7 @@
 #include "quactlize_ppu_linear_attention.h"
 #include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
 #include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_triton_pipeline.cuh"
 
 namespace {
 
@@ -37,6 +38,16 @@ using FourPrepareKernel =
 using UKernel = cutlass::linear_attention::PpuChunkedGdnUKernel<FourStagePipeline>;
 using HKernel = cutlass::linear_attention::PpuChunkedGdnHKernel<FourStagePipeline>;
 using OKernel = cutlass::linear_attention::PpuChunkedGdnOKernel<FourStagePipeline>;
+using TritonPipeline =
+    cutlass::linear_attention::PpuChunkedGdnTritonPipeline<Arguments, Traits>;
+using TritonKktKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonKktKernel<TritonPipeline>;
+using TritonWuKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonWuKernel<TritonPipeline>;
+using TritonHKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonHKernel<TritonPipeline>;
+using TritonOKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonOKernel<TritonPipeline>;
 constexpr std::size_t kFourStageScratchStride =
     sizeof(typename HKernel::SharedStorage);
 
@@ -65,6 +76,15 @@ __global__ void chunked_gdn_four_stage_global_scratch_kernel(
   DeviceKernel{}(
       params,
       reinterpret_cast<char*>(scratch + blockIdx.x * kFourStageScratchStride));
+}
+
+template <class DeviceKernel>
+__global__ void chunked_gdn_triton_global_scratch_kernel(
+    typename TritonPipeline::Params params,
+    std::uint8_t* scratch, std::size_t scratch_stride) {
+  DeviceKernel{}(
+      params,
+      reinterpret_cast<char*>(scratch + blockIdx.x * scratch_stride));
 }
 
 Arguments make_arguments(
@@ -333,6 +353,106 @@ extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v3(
     chunked_gdn_four_stage_global_scratch_kernel<OKernel>
         <<<value_blocks, OKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
             params, scratch);
+    status = cudaGetLastError();
+  }
+  if (status == cudaSuccess) status = cudaStreamSynchronize(cuda_stream);
+  cudaError_t const free_status = cudaFree(scratch);
+  if (status == cudaSuccess) status = free_status;
+  return status == cudaSuccess ? QUACTLIZE_PPU_CHUNKED_GDN_SUCCESS
+                               : QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+}
+
+extern "C" std::size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v4(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem) {
+  if (problem == nullptr ||
+      problem->schema_version != QUACTLIZE_PPU_CHUNKED_GDN_SCHEMA_V1 ||
+      std::int64_t(problem->total_tokens) !=
+          std::int64_t(problem->num_sequences) * problem->sequence_length ||
+      problem->num_sequences <= 0 || problem->sequence_length <= 0 ||
+      problem->num_qk_heads <= 0 || problem->num_v_heads <= 0 ||
+      problem->num_v_heads % problem->num_qk_heads != 0 ||
+      problem->head_size_k != 128 || problem->head_size_v != 128 ||
+      problem->chunk_size != 64) {
+    return 0;
+  }
+  cutlass::linear_attention::PpuChunkedGdnProblem const p{
+      problem->total_tokens, problem->num_sequences, problem->sequence_length,
+      problem->num_qk_heads, problem->num_v_heads, problem->head_size_k,
+      problem->head_size_v, problem->chunk_size};
+  return TritonPipeline::get_workspace_size(p);
+}
+
+extern "C" int quactlize_ppu_chunked_gdn_fwd_bf16_v4(
+    std::uint16_t const* q,
+    std::uint16_t const* k,
+    std::uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    std::uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    std::size_t workspace_bytes,
+    void* stream) {
+  if (problem == nullptr) return QUACTLIZE_PPU_CHUNKED_GDN_NULL_POINTER;
+  if (problem->schema_version != QUACTLIZE_PPU_CHUNKED_GDN_SCHEMA_V1) {
+    return QUACTLIZE_PPU_CHUNKED_GDN_INVALID_PROBLEM;
+  }
+  Arguments args = make_arguments(
+      q, k, v, gamma_log2_cumsum, beta, initial_state, output, final_state,
+      *problem, scale);
+  auto const admission =
+      TritonPipeline::argument_status(args, workspace, workspace_bytes);
+  if (admission != cutlass::linear_attention::PpuChunkedGdnStatus::kSuccess) {
+    return int(admission);
+  }
+
+  auto const params = TritonPipeline::to_underlying_arguments(args, workspace);
+  int const prepare_blocks =
+      TritonPipeline::PrepareScheduler::grid_size(args.problem);
+  int const h_blocks =
+      TritonPipeline::RecurrenceScheduler::grid_size(args.problem);
+  int const value_blocks =
+      TritonPipeline::ValueScheduler::grid_size(args.problem);
+  int const scratch_blocks =
+      prepare_blocks > value_blocks
+          ? (prepare_blocks > h_blocks ? prepare_blocks : h_blocks)
+          : (value_blocks > h_blocks ? value_blocks : h_blocks);
+  constexpr std::size_t scratch_stride =
+      sizeof(typename TritonHKernel::SharedStorage);
+  static_assert(scratch_stride >= sizeof(typename TritonKktKernel::SharedStorage) &&
+                    scratch_stride >= sizeof(typename TritonWuKernel::SharedStorage) &&
+                    scratch_stride >= sizeof(typename TritonOKernel::SharedStorage),
+                "CUDA oracle scratch must cover every Triton-aligned stage");
+  std::uint8_t* scratch = nullptr;
+  if (scratch_blocks <= 0 ||
+      cudaMalloc(&scratch, std::size_t(scratch_blocks) * scratch_stride) !=
+          cudaSuccess) {
+    return QUACTLIZE_PPU_CHUNKED_GDN_RUNTIME_ERROR;
+  }
+  cudaStream_t const cuda_stream = static_cast<cudaStream_t>(stream);
+  chunked_gdn_triton_global_scratch_kernel<TritonKktKernel>
+      <<<prepare_blocks, TritonKktKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
+          params, scratch, scratch_stride);
+  cudaError_t status = cudaGetLastError();
+  if (status == cudaSuccess) {
+    chunked_gdn_triton_global_scratch_kernel<TritonWuKernel>
+        <<<prepare_blocks, TritonWuKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
+            params, scratch, scratch_stride);
+    status = cudaGetLastError();
+  }
+  if (status == cudaSuccess) {
+    chunked_gdn_triton_global_scratch_kernel<TritonHKernel>
+        <<<h_blocks, TritonHKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
+            params, scratch, scratch_stride);
+    status = cudaGetLastError();
+  }
+  if (status == cudaSuccess) {
+    chunked_gdn_triton_global_scratch_kernel<TritonOKernel>
+        <<<value_blocks, TritonOKernel::MaxThreadsPerBlock, 0, cuda_stream>>>(
+            params, scratch, scratch_stride);
     status = cudaGetLastError();
   }
   if (status == cudaSuccess) status = cudaStreamSynchronize(cuda_stream);

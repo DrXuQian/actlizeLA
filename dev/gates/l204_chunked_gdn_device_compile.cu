@@ -9,6 +9,7 @@
 #include "cutlass/bfloat16.h"
 #include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_kernel.cuh"
 #include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_pipeline.cuh"
+#include "actlize_extensions/cutlass/linear_attention/ppu_chunked_gdn_triton_pipeline.cuh"
 
 namespace {
 
@@ -33,6 +34,16 @@ using FourPrepareKernel =
 using UKernel = cutlass::linear_attention::PpuChunkedGdnUKernel<FourStagePipeline>;
 using HKernel = cutlass::linear_attention::PpuChunkedGdnHKernel<FourStagePipeline>;
 using OKernel = cutlass::linear_attention::PpuChunkedGdnOKernel<FourStagePipeline>;
+using TritonPipeline =
+    cutlass::linear_attention::PpuChunkedGdnTritonPipeline<Args, Traits>;
+using TritonKktKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonKktKernel<TritonPipeline>;
+using TritonWuKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonWuKernel<TritonPipeline>;
+using TritonHKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonHKernel<TritonPipeline>;
+using TritonOKernel =
+    cutlass::linear_attention::PpuChunkedGdnTritonOKernel<TritonPipeline>;
 
 static_assert(Kernel::Collective::kAllStagesConnected,
               "L204 requires the complete GDN dataflow");
@@ -73,6 +84,12 @@ static_assert(sizeof(typename FourPrepareKernel::SharedStorage) == 57856 &&
                   sizeof(typename HKernel::SharedStorage) == 98816 &&
                   sizeof(typename OKernel::SharedStorage) == 66048,
               "L204 four-stage storage must contain only each stage's live set");
+static_assert(TritonPipeline::Collective::kChunkWorkspaceBytes == 90112 &&
+                  sizeof(typename TritonKktKernel::SharedStorage) == 33280 &&
+                  sizeof(typename TritonWuKernel::SharedStorage) == 8704 &&
+                  sizeof(typename TritonHKernel::SharedStorage) == 41472 &&
+                  sizeof(typename TritonOKernel::SharedStorage) == 8704,
+              "L204 Triton-aligned seams changed");
 
 // actlize's generic device_kernel ends in an hgcc-only synclog call, so plain
 // nvcc cannot use that wrapper as a portability gate.  This minimal equivalent
@@ -95,6 +112,12 @@ __global__ void nvcc_recurrence_kernel(typename Pipeline::Params params) {
 
 template <class DeviceKernel>
 __global__ void nvcc_four_stage_kernel(typename FourStagePipeline::Params params) {
+  extern __shared__ char smem[];
+  DeviceKernel{}(params, smem);
+}
+
+template <class DeviceKernel>
+__global__ void nvcc_triton_stage_kernel(typename TritonPipeline::Params params) {
   extern __shared__ char smem[];
   DeviceKernel{}(params, smem);
 }
@@ -133,6 +156,25 @@ void instantiate_four_stage_body(typename FourStagePipeline::Params params) {
          sizeof(typename OKernel::SharedStorage)>>>(params);
 }
 
+void instantiate_triton_aligned_body(typename TritonPipeline::Params params) {
+  nvcc_triton_stage_kernel<TritonKktKernel>
+      <<<TritonKktKernel::get_grid_shape(params),
+         TritonKktKernel::get_block_shape(),
+         sizeof(typename TritonKktKernel::SharedStorage)>>>(params);
+  nvcc_triton_stage_kernel<TritonWuKernel>
+      <<<TritonWuKernel::get_grid_shape(params),
+         TritonWuKernel::get_block_shape(),
+         sizeof(typename TritonWuKernel::SharedStorage)>>>(params);
+  nvcc_triton_stage_kernel<TritonHKernel>
+      <<<TritonHKernel::get_grid_shape(params),
+         TritonHKernel::get_block_shape(),
+         sizeof(typename TritonHKernel::SharedStorage)>>>(params);
+  nvcc_triton_stage_kernel<TritonOKernel>
+      <<<TritonOKernel::get_grid_shape(params),
+         TritonOKernel::get_block_shape(),
+         sizeof(typename TritonOKernel::SharedStorage)>>>(params);
+}
+
 }  // namespace
 
 int main() {
@@ -161,13 +203,24 @@ int main() {
   dim3 const u_grid = UKernel::get_grid_shape(four_params);
   dim3 const h_grid = HKernel::get_grid_shape(four_params);
   dim3 const o_grid = OKernel::get_grid_shape(four_params);
+  std::size_t const triton_workspace_bytes =
+      TritonPipeline::get_workspace_size(args.problem);
+  auto const triton_params =
+      TritonPipeline::to_underlying_arguments(args, qkv);
+  dim3 const triton_kkt_grid = TritonKktKernel::get_grid_shape(triton_params);
+  dim3 const triton_wu_grid = TritonWuKernel::get_grid_shape(triton_params);
+  dim3 const triton_h_grid = TritonHKernel::get_grid_shape(triton_params);
+  dim3 const triton_o_grid = TritonOKernel::get_grid_shape(triton_params);
   bool const ok = admitted && grid.x == 2 && grid.y == 1 && grid.z == 1 &&
                   block.x == 128 && Kernel::get_workspace_size(args) == 0 &&
                   workspace_bytes == 2u * 32768u && prepare_grid.x == 2 &&
                   recurrence_grid.x == 2 &&
                   four_workspace_bytes == 2u * 32768u + 4u * 40960u &&
                   four_prepare_grid.x == 2 && u_grid.x == 4 &&
-                  h_grid.x == 2 && o_grid.x == 4;
+                  h_grid.x == 2 && o_grid.x == 4 &&
+                  triton_workspace_bytes == 2u * 90112u &&
+                  triton_kkt_grid.x == 2 && triton_wu_grid.x == 2 &&
+                  triton_h_grid.x == 2 && triton_o_grid.x == 4;
   std::printf(
       "[l204] %s: device-body=INSTANTIATED C=64 K=128 V=128 threads=%u "
       "shared=%zu value-tiles=2 all-stages=1 global-dot=PPU-AIU "
@@ -179,10 +232,14 @@ int main() {
       "two-stage=A+W+P/32768B prepare-grid=%u recurrence-grid=%u "
       "bf16-mma/logical-head=1408 tf32-mma/logical-head=40 "
       "four-stage-grid=%u/%u/%u/%u seams=32768B+40960B "
-      "four-stage-shared=57856/41472/98816/66048B\n",
+      "four-stage-shared=57856/41472/98816/66048B "
+      "triton-aligned-grid=%u/%u/%u/%u seam=90112B "
+      "shared=33280/8704/41472/8704B\n",
       ok ? "PASS" : "FAIL", unsigned(block.x),
       sizeof(typename Kernel::SharedStorage), unsigned(prepare_grid.x),
       unsigned(recurrence_grid.x), unsigned(four_prepare_grid.x),
-      unsigned(u_grid.x), unsigned(h_grid.x), unsigned(o_grid.x));
+      unsigned(u_grid.x), unsigned(h_grid.x), unsigned(o_grid.x),
+      unsigned(triton_kkt_grid.x), unsigned(triton_wu_grid.x),
+      unsigned(triton_h_grid.x), unsigned(triton_o_grid.x));
   return ok ? 0 : 1;
 }

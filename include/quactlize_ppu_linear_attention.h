@@ -126,6 +126,30 @@ int quactlize_ppu_chunked_gdn_fwd_bf16_v3(
     size_t workspace_bytes,
     void* stream);
 
+// Triton-post-cumsum-aligned four-stage forward.  Unlike v3, the global seam
+// contains exactly A/W/U/H-start/Vnew and never materializes causal QK/P.
+// The ordered launches are KKT+solve, W+U, serial H, and O; H owns the only
+// cross-chunk dependency.  gamma_log2_cumsum remains caller-provided, matching
+// all earlier ABI versions.  v4 is an explicit comparison subject until its
+// PPU performance is admitted; v3 remains the current shipping control.
+size_t quactlize_ppu_chunked_gdn_workspace_size_bf16_v4(
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem);
+
+int quactlize_ppu_chunked_gdn_fwd_bf16_v4(
+    uint16_t const* q,
+    uint16_t const* k,
+    uint16_t const* v,
+    float const* gamma_log2_cumsum,
+    float const* beta,
+    float const* initial_state,
+    uint16_t* output,
+    float* final_state,
+    quactlize_ppu_chunked_gdn_problem_v1 const* problem,
+    float scale,
+    void* workspace,
+    size_t workspace_bytes,
+    void* stream);
+
 #ifdef __cplusplus
 }
 #endif

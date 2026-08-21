@@ -39,6 +39,10 @@ constexpr std::size_t kFourPrepareSharedBytes = 57856;
 constexpr std::size_t kFourUSharedBytes = 41472;
 constexpr std::size_t kFourHSharedBytes = 98816;
 constexpr std::size_t kFourOSharedBytes = 66048;
+constexpr std::size_t kTritonKktSharedBytes = 33280;
+constexpr std::size_t kTritonWuSharedBytes = 8704;
+constexpr std::size_t kTritonHSharedBytes = 8704;
+constexpr std::size_t kTritonOSharedBytes = 8704;
 constexpr float kScale = 0.5f;
 constexpr std::uint16_t kBf16Poison = 0x7fc1u;
 // Mathematical work performed by one full C64 / Dk128 / Dv128 value-head
@@ -58,6 +62,7 @@ struct Options {
   bool acu = false;
   bool legacy = false;
   bool two_stage = false;
+  bool triton_aligned = false;
 };
 
 bool runtime_ok(hggcError_t status, char const* where) {
@@ -168,7 +173,7 @@ void usage(char const* argv0) {
       "usage: %s [--sequences=N] [--length=N] [--qk-heads=N] [--v-heads=N] "
       "[--warmup=N] [--iterations=N] [--samples=N] "
       "[--initial-state=0|1] [--final-state=0|1] "
-      "[--legacy|--two-stage] [--acu]\n",
+      "[--legacy|--two-stage|--triton-aligned] [--acu]\n",
       argv0);
 }
 
@@ -189,6 +194,10 @@ bool parse_options(int argc, char** argv, Options& o) {
     }
     if (std::strcmp(arg, "--two-stage") == 0) {
       o.two_stage = true;
+      continue;
+    }
+    if (std::strcmp(arg, "--triton-aligned") == 0) {
+      o.triton_aligned = true;
       continue;
     }
     int flag = 0;
@@ -214,7 +223,7 @@ bool parse_options(int argc, char** argv, Options& o) {
     std::fprintf(stderr, "unknown argument: %s\n", arg);
     return false;
   }
-  if (o.legacy && o.two_stage) return false;
+  if (int(o.legacy) + int(o.two_stage) + int(o.triton_aligned) > 1) return false;
   if (o.sequences <= 0 || o.sequence_length <= 0 || o.qk_heads <= 0 ||
       o.v_heads <= 0 || o.v_heads % o.qk_heads != 0 || o.warmup < 0 ||
       o.iterations <= 0 || o.samples <= 0) {
@@ -335,9 +344,11 @@ int run(Options const& o) {
   };
   std::size_t const workspace_bytes = o.legacy
       ? 0
-      : (o.two_stage
+      : (o.triton_aligned
+             ? quactlize_ppu_chunked_gdn_workspace_size_bf16_v4(&problem)
+             : (o.two_stage
              ? quactlize_ppu_chunked_gdn_workspace_size_bf16_v2(&problem)
-             : quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(&problem));
+             : quactlize_ppu_chunked_gdn_workspace_size_bf16_v3(&problem)));
   DeviceBuffer dworkspace(workspace_bytes);
   if (!o.legacy && (workspace_bytes == 0 || dworkspace.pointer == nullptr)) {
     std::fprintf(stderr, "[GDN perf] workspace query/allocation failed: %zu bytes\n",
@@ -354,6 +365,12 @@ int run(Options const& o) {
           &problem, kScale, nullptr);
     }
     if (o.two_stage) return quactlize_ppu_chunked_gdn_fwd_bf16_v2(
+        dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
+        dgamma.as<float>(), dbeta.as<float>(),
+        o.initial_state ? dinitial.as<float>() : nullptr,
+        doutput.as<std::uint16_t>(), o.final_state ? dfinal.as<float>() : nullptr,
+        &problem, kScale, dworkspace.pointer, dworkspace.bytes, nullptr);
+    if (o.triton_aligned) return quactlize_ppu_chunked_gdn_fwd_bf16_v4(
         dq.as<std::uint16_t>(), dk.as<std::uint16_t>(), dv.as<std::uint16_t>(),
         dgamma.as<float>(), dbeta.as<float>(),
         o.initial_state ? dinitial.as<float>() : nullptr,
@@ -393,6 +410,7 @@ int run(Options const& o) {
       "output_grid=%lld "
       "legacy_physical_work_units=%lld threads=%d shared_bytes=%zu "
       "four_stage_shared_bytes=prepare:%zu/U:%zu/H:%zu/O:%zu "
+      "triton_aligned_shared_bytes=KKT:%zu/WU:%zu/H:%zu/O:%zu "
       "workspace_bytes=%zu device=%d cu=%d "
       "logical_flops_per_full_chunk=%llu "
       "bf16_mma_per_logical_head_chunk=%d tf32_mma_per_logical_head_chunk=%d "
@@ -402,26 +420,37 @@ int run(Options const& o) {
       "initial_state=%d final_state=%d\n",
       o.legacy
           ? "legacy-split-v64/all-dense-products-aiu+blocked-tf32-inverse"
-          : (o.two_stage
+          : (o.triton_aligned
+                 ? "triton-post-cumsum/KKT+solve/W+U/resident-H/on-the-fly-O"
+                 : (o.two_stage
                  ? "two-stage-prepare+split-v64-recurrence/all-dense-products-aiu+blocked-tf32-inverse"
-                 : "four-stage-prepare+U+H-only-recurrence+O/all-dense-products-aiu+blocked-tf32-inverse"),
+                 : "four-stage-prepare+U+H-only-recurrence+O/all-dense-products-aiu+blocked-tf32-inverse")),
       o.sequences, o.sequence_length, o.qk_heads, o.v_heads,
       o.qk_heads, o.v_heads, tokens,
       static_cast<long long>(std::int64_t(tokens) * o.v_heads),
       kValueTilesPerHead, chunks,
       static_cast<long long>(logical_work_units),
       static_cast<long long>(prepare_grid),
-      static_cast<long long>(o.legacy || o.two_stage ? 0 : value_grid),
+      static_cast<long long>(o.legacy || o.two_stage
+                                 ? 0
+                                 : (o.triton_aligned ? prepare_grid : value_grid)),
       static_cast<long long>(recurrence_grid),
       static_cast<long long>(o.legacy || o.two_stage ? 0 : value_grid),
       static_cast<long long>(legacy_work_units),
       kThreads, kSharedBytes,
       kFourPrepareSharedBytes, kFourUSharedBytes,
       kFourHSharedBytes, kFourOSharedBytes,
+      kTritonKktSharedBytes, kTritonWuSharedBytes,
+      kTritonHSharedBytes, kTritonOSharedBytes,
       workspace_bytes, current_device, cu,
       static_cast<unsigned long long>(kLogicalFlopsPerFullChunk),
-      o.legacy ? 1792 : 1408, o.legacy ? 80 : 40,
-      o.legacy ? "QK+KK+inverse+W-per-value-tile" : "NONE/A+W+P-prepared-once",
+      o.legacy ? 1792 : (o.triton_aligned ? 1536 : 1408),
+      o.legacy ? 80 : 40,
+      o.legacy
+          ? "QK+KK+inverse+W-per-value-tile"
+          : (o.triton_aligned
+                 ? "NONE/A+W+U+H-start+Vnew;causal-QK-on-the-fly"
+                 : "NONE/A+W+P-prepared-once"),
       int(o.initial_state), int(o.final_state));
 
   auto snapshot = [&](std::uint64_t& output_hash, std::uint64_t& state_hash,

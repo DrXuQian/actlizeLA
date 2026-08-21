@@ -49,6 +49,10 @@ def main() -> int:
     require(source, "quactlize_ppu_chunked_gdn_workspace_size_bf16_v3", "v3 workspace query", failures)
     require(source, "quactlize_ppu_chunked_gdn_fwd_bf16_v3", "v3 public execution", failures)
     require(source, "v1_v3_output_raw_bad", "v1/v3 raw parity verdict", failures)
+    require(source, "plant=v4-null-or-one-byte-short-workspace", "v4 workspace admission negative", failures)
+    require(source, "quactlize_ppu_chunked_gdn_workspace_size_bf16_v4", "v4 workspace query", failures)
+    require(source, "quactlize_ppu_chunked_gdn_fwd_bf16_v4", "v4 public execution", failures)
+    require(source, "v1_v4_output_raw_bad", "v1/v4 raw parity verdict", failures)
     require(source, "output_raw_bad", "raw BF16 output verdict", failures)
     require(source, "state_raw_bad", "raw FP32 state verdict", failures)
     require(source, "check_bf16_boundaries", "constructive BF16-boundary proof", failures)
@@ -87,6 +91,7 @@ def main() -> int:
     require(cuda_adapter, "PpuChunkedGdnKernel<Arguments, Traits>", "exact scalar kernel type", failures)
     require(cuda_adapter, "PpuChunkedGdnTwoStagePipeline<Arguments, Traits>", "exact two-stage type", failures)
     require(cuda_adapter, "PpuChunkedGdnFourStagePipeline<Arguments, Traits>", "exact four-stage type", failures)
+    require(cuda_adapter, "PpuChunkedGdnTritonPipeline<Arguments, Traits>", "exact Triton-aligned type", failures)
     require(cuda_adapter, "scratch[blockIdx.x]", "global test scratch seam", failures)
     require(cuda_adapter, "Kernel::MaxThreadsPerBlock", "shipping block geometry", failures)
     if "/tmp" in runner or "mktemp" in runner:
@@ -103,8 +108,8 @@ def main() -> int:
     print(
         "[L205 contract] PASS: public ABI only; T65/C64/KV128/GVA1:2; "
         "distinct+paired WY; zero+nonzero state; A/W/U/P/vnew/H exact; "
-        "64/64/64 nontrivial-WY witness; v1/v2/v3 workspace negatives; "
-        "v1/v2/v3 raw verdicts"
+        "64/64/64 nontrivial-WY witness; v1/v2/v3/v4 workspace negatives; "
+        "v1/v2/v3/v4 raw verdicts"
     )
     return 0
 

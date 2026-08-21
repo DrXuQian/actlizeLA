@@ -6,6 +6,11 @@ OUT="${OUT:-/workspace/actlizeLA-local-gates}"
 
 mkdir -p "$OUT"
 
+bash -n "$ROOT/tools/run_fla_chunked_gdn_acu.sh" \
+  "$ROOT/tools/run_ppu_chunked_gdn_perf_box.sh"
+python -m py_compile "$ROOT/tools/run_fla_chunked_gdn_acu_subject.py"
+echo "[GDN ACU runners] PASS: FLA and C++/PPU comparison entrypoints parse"
+
 L211_OUT="$OUT/l211" \
   bash "$ROOT/dev/gates/run_l211_actlize_extensions_install.sh"
 L203_BUILD_ROOT="$OUT/l203" \
@@ -24,9 +29,11 @@ L212_OUT="$OUT/l212" \
   bash "$ROOT/dev/gates/run_l212_chunked_gdn_two_stage_schedule.sh"
 OUT="$OUT/l213" \
   bash "$ROOT/dev/gates/run_l213_chunked_gdn_four_stage_schedule.sh"
+OUT="$OUT/l214" \
+  bash "$ROOT/dev/gates/run_l214_chunked_gdn_triton_alignment.sh"
 L210_OUT="$OUT/l210" \
   bash "$ROOT/dev/gates/run_l210_ppu_device_object_graph.sh"
 QZ_GDN_SKIP_CUDA="${QZ_GDN_SKIP_CUDA:-0}" OUT="$OUT/l205" \
   bash "$ROOT/dev/gates/run_l205_ppu_chunked_gdn_abi.sh" --local
 
-echo "[actlizeLA local] PASS: canonical installed headers, forward algebra, v1/v2/v3 ABI, device type, ownership, four-stage schedule, fragment delivery, and TF32 inverse gates"
+echo "[actlizeLA local] PASS: canonical installed headers, forward algebra, v1/v2/v3/v4 ABI, device type, ownership, four-stage and Triton-aligned schedules, fragment delivery, and TF32 inverse gates"

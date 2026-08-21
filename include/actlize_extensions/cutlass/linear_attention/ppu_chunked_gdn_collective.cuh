@@ -356,7 +356,11 @@ struct PpuChunkedGdnCollectiveBf16C64D128BV64 {
     return PpuChunkedGdnStatus::kSuccess;
   }
 
- private:
+ protected:
+  // The Triton-aligned successor reuses only these proved arithmetic/address
+  // primitives.  Its launch boundaries and workspace are independent: making
+  // the primitives protected avoids either copying their address algebra or
+  // routing the new implementation through the legacy A/W/P seam.
   QZ_PPU_GDN_DEVICE static float* strict_lower(SharedStorageView s) {
     return reinterpret_cast<float*>(s.phase + kOffsetStrictLower);
   }

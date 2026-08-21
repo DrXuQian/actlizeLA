@@ -96,7 +96,7 @@ LD_LIBRARY_PATH=/workspace/actlizeLA-ppu-build:/usr/local/PPU_SDK/lib \
 
 Or run the source-bound box gate, which builds and links the standalone
 library before checking a 64+1 tail, GVA 1:2, zero/nonzero state, two WY
-fixtures, workspace admission negatives, and raw-bit v1/v2/v3 parity:
+fixtures, workspace admission negatives, and raw-bit v1/v2/v3/v4 parity:
 
 ```bash
 OUT=/workspace/actlizeLA-l205-box \
@@ -110,8 +110,8 @@ OUT=/workspace/actlizeLA-gdn-perf \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```
 
-Set `GDN_PIPELINE=two-stage` or `GDN_PIPELINE=legacy` with a distinct `OUT` to
-run the v2 or v1 controls; the default is the four-stage v3 subject.  All use
+Set `GDN_PIPELINE=triton-aligned`, `two-stage`, or `legacy` with a distinct
+`OUT` to run v4, v2, or v1; the default remains the four-stage v3 control. All use
 the exact
 `B1,T2048,Hqk16,Hv32,K128,V128,C64` Qwen3.5-35B-A3B shape.
 
@@ -130,14 +130,58 @@ shrinks only the stage-local shared ledgers to
 `57856/41472/98816/66048 B` for prepare/U/H/O.  Its before-the-run verdict is
 in `dev/gates/QWEN35_FOUR_STAGE_STAGE_SMEM_PREREGISTRATION.md`.
 
+v4 is a separate post-cumsum alignment subject rather than another v3
+storage optimization. Its four launches match flash-linear-attention's
+KKT/solve, W+U, recurrent-H, and O boundaries. For the Qwen shape their grids
+are exactly `1024/1024/64/2048`; the global seam is A/W/U/H-start/Vnew and
+does not materialize causal QK/P. The local CUDA oracle proves v4 raw-bit
+equivalent to the independent token recurrence on exact fixtures. The PPU
+performance target is the measured Triton post-cumsum sum (~230.04 us); it is
+not claimed until a box report establishes it.
+
 To capture the same mathematical shape under ACU with exactly one public-ABI
-invocation (one kernel for v1, two for v2, four for v3):
+invocation (one kernel for v1, two for v2, four for v3/v4):
 
 ```bash
 OUT=/workspace/actlizeLA-gdn-qwen35-four-stage-acu \
 ACU=1 GDN_ACU_SHAPE=1,2048,16,32,qwen35-35b-a3b-t2048 \
   bash tools/run_ppu_chunked_gdn_perf_box.sh --box
 ```
+
+For the aligned subject:
+
+```bash
+OUT=/workspace/actlizeLA-gdn-qwen35-triton-aligned-acu \
+ACU=1 GDN_PIPELINE=triton-aligned \
+GDN_ACU_SHAPE=1,2048,16,32,qwen35-35b-a3b-t2048 \
+  bash tools/run_ppu_chunked_gdn_perf_box.sh --box
+```
+
+For a direct ACU comparison against FLA/Triton, use the same registered
+`B1,T2048,H16,HV32,K128,V128,C64` fixture and the same post-cumsum API
+boundary.  The FLA runner first autotunes outside ACU into its private
+`/workspace` cache; a tuning-cache miss inside the profiled process voids the
+report instead of adding candidate launches to it.
+
+```bash
+OUT=/workspace/actlizeLA-fla-gdn-post-cumsum-acu \
+FLA_ROOT=/workspace/gdn-reference/flash-linear-attention \
+FLA_SCOPE=post-cumsum \
+  bash tools/run_fla_chunked_gdn_acu.sh
+
+OUT=/workspace/actlizeLA-cpp-gdn-post-cumsum-acu \
+ACU=1 GDN_PIPELINE=triton-aligned \
+GDN_ACU_SHAPE=1,2048,16,32,qwen35-35b-a3b-t2048 \
+  bash tools/run_ppu_chunked_gdn_perf_box.sh --box
+```
+
+The resulting reports are respectively
+`fla-post-cumsum.report.acurep` and
+`qwen35-35b-a3b-t2048.report.acurep`. Each must contain four ordered stages:
+KKT+solve, W+U, recurrent H, and O. To profile FLA's complete public forward
+including its cumsum launch, rerun the first command with `FLA_SCOPE=full` and
+a new `OUT`; that five-kernel report is not the primary four-stage timing
+denominator.
 
 ## Source authorities
 
