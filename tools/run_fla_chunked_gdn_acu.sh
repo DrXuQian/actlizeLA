@@ -21,9 +21,10 @@ case "$SCOPE" in
     ;;
 esac
 
-# FLA requires Python >=3.10. An obsolete PyPI ``dataclasses`` backport can
-# shadow the standard library and call the removed private typing._ClassVar;
-# reject that environment explicitly instead of suggesting a typing monkeypatch.
+# FLA requires Python >=3.10. One known source of ``typing._ClassVar`` failures
+# is an obsolete PyPI ``dataclasses`` backport shadowing the standard library.
+# Reject that exact condition, but do not infer it merely from the exception:
+# other packages can reach the same removed private symbol during lazy imports.
 if ! "$PYTHON_BIN" - <<'PY'
 import dataclasses
 import pathlib
@@ -128,9 +129,59 @@ subject_args=(
 } | tee "$OUT/identity.txt"
 
 # First process: choose configurations and persist both compiled code and
-# autotune timings. This process is deliberately outside ACU.
-TRITON_PRINT_AUTOTUNING=1 "$PYTHON_BIN" "${subject_args[@]}" \
-  | tee "$OUT/prewarm.log"
+# autotune timings. This process is deliberately outside ACU. Keep stderr in
+# the artifact: lazy-import failures otherwise leave only their final line in
+# copied logs, which is not enough to identify the responsible package.
+set +e
+TRITON_PRINT_AUTOTUNING=1 "$PYTHON_BIN" -X faulthandler "${subject_args[@]}" \
+  2>&1 | tee "$OUT/prewarm.log"
+prewarm_status=("${PIPESTATUS[@]}")
+set -e
+if [[ "${prewarm_status[0]}" -ne 0 || "${prewarm_status[1]}" -ne 0 ]]; then
+  echo "[FLA GDN ACU] prewarm failed; locating private typing references in the exact PYTHON_BIN environment" \
+    | tee "$OUT/python-private-typing-scan.log"
+  "$PYTHON_BIN" - <<'PY' 2>&1 | tee -a "$OUT/python-private-typing-scan.log"
+import dataclasses
+import pathlib
+import sys
+import typing
+
+print(f"python={sys.executable}")
+print(f"typing={typing.__file__}")
+print(f"dataclasses={dataclasses.__file__}")
+roots = []
+seen = set()
+for entry in sys.path:
+    if not entry:
+        continue
+    try:
+        root = pathlib.Path(entry).resolve()
+    except OSError:
+        continue
+    if root.is_dir() and root not in seen:
+        roots.append(root)
+        seen.add(root)
+
+hits = []
+for root in roots:
+    for source in root.rglob("*.py"):
+        try:
+            text = source.read_text(errors="replace")
+        except OSError:
+            continue
+        if "typing._ClassVar" in text:
+            hits.append(source)
+
+if hits:
+    for source in sorted(set(hits)):
+        print(f"typing_private_reference={source}")
+else:
+    print("typing_private_reference=NONE_IN_SYS_PATH")
+    print("diagnosis=the complete traceback in prewarm.log is authoritative")
+PY
+  echo "[FLA GDN ACU] FAIL: FLA prewarm returned ${prewarm_status[0]}; no kernel was profiled; traceback=$OUT/prewarm.log" >&2
+  exit 1
+fi
 
 expected=(
   chunk_gated_delta_rule_fwd_kkt_solve_kernel.autotune.json
