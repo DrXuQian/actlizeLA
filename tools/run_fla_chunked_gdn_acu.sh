@@ -21,6 +21,34 @@ case "$SCOPE" in
     ;;
 esac
 
+# FLA requires Python >=3.10. An obsolete PyPI ``dataclasses`` backport can
+# shadow the standard library and call the removed private typing._ClassVar;
+# reject that environment explicitly instead of suggesting a typing monkeypatch.
+if ! "$PYTHON_BIN" - <<'PY'
+import dataclasses
+import pathlib
+import sys
+
+print(f"[FLA Python] executable={sys.executable} version={sys.version.split()[0]} dataclasses={dataclasses.__file__}")
+if sys.version_info < (3, 10):
+    raise SystemExit("FLA requires Python >=3.10; select the interpreter used by the working FLA installation with PYTHON_BIN")
+path = pathlib.Path(dataclasses.__file__).resolve()
+source = path.with_suffix(".py") if path.suffix == ".pyc" else path
+try:
+    text = source.read_text(errors="replace")
+except OSError:
+    text = ""
+if "typing._ClassVar" in text:
+    raise SystemExit(
+        "obsolete dataclasses backport shadows the stdlib and accesses typing._ClassVar; "
+        "select a clean FLA Python environment with PYTHON_BIN"
+    )
+PY
+then
+  echo "[FLA GDN ACU] FAIL: incompatible PYTHON_BIN=$PYTHON_BIN; no kernel was profiled" >&2
+  exit 2
+fi
+
 # FLA_ROOT is an operator override, not a required identity field. With no
 # override, measure the source authority actually imported by PYTHON_BIN.
 if [[ -n "${FLA_ROOT:-}" ]]; then
