@@ -895,6 +895,18 @@ class ACUContract(unittest.TestCase):
             for forbidden in ("--launch-count", "--kernel-name", "--csv"):
                 self.assertNotIn(forbidden, command)
 
+    def test_paired_conversion_complete_same_binary_capture(self):
+        status, commands, _, _ = self.run_mock_capture(self.directory(),
+            control="residual-full-chunk", subject_delivery="residual-paired-conversion")
+        self.assertEqual(status["status"], "PASS", status["errors"])
+        subjects = [c for c in commands if "--set" in c]
+        self.assertEqual([(c[c.index("--role") + 1], c[c.index("--wy-delivery") + 1]) for c in subjects],
+                         [("wy", "residual-full-chunk"), ("wy", "residual-paired-conversion"),
+                          ("fla", "residual-paired-conversion")])
+        for command in subjects:
+            for forbidden in ("--launch-count", "--kernel-name", "--csv"):
+                self.assertNotIn(forbidden, command)
+
     def test_mixed_tail_rejects_ignored_sequence_and_unshaped_old_admission(self):
         root = self.directory()
         for plant in ("ignored-sequence", "missing-case-shape"):

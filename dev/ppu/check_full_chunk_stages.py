@@ -73,7 +73,7 @@ def check_source(old_solve, new_solve, old_output, new_output, composition, bind
                      f'm.def("residual_full_chunk_{suffix}",&forward<true,14,{i}>,'):
             if bound.count(seam) != 1:
                 raise AssertionError("wrong Python/native stage choice: " + suffix)
-    if "rc=selected(q.data_ptr()" not in bound or "FullStages<=6&&(!FullStages||(Residual&&Variant==14))" not in bound:
+    if "rc=selected(q.data_ptr()" not in bound or "FullStages<=7&&(!FullStages||(Residual&&Variant==14))" not in bound:
         raise AssertionError("stage option unused or unrestricted")
     for seam in (
         "hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,hggcFuncAttributeMaxDynamicSharedMemorySize,sizeof(gate_cache::Storage))",

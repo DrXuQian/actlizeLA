@@ -16,7 +16,7 @@ also not the same thing as an integrated public/default selector.
 | Full chunks specialized, guarded tail retained | Full-C64 candidates device-admitted; [mixed full-prefix/final-tail state](PPU10_MIXED_TAIL_ACU_20260928.md) device-validated and four-cell ACU evaluated | Mixed state saves1.40–3.47% whole-call in single captures; opt-in pending repeats, not default-promoted. FP32 recurrence stays in one CTA. Mixed-tail solve/output remain generic |
 | No-initial first-chunk KH/QH elimination | [Implemented and device-validated](PPU10_FIRST_CHUNK_ACU_20260928.md); both-gate ACU evaluated | Mixed timing (-1: +1.11%, -0.1: -0.41%); keep opt-in, no default promotion. Explicit state/tails unchanged |
 | Keep inverse intermediates with their final owner | [Implemented and device-validated; investigation closed](PPU10_INVERSE_REGISTER_ACU_20260928.md) | Both complete-call captures slightly slower (+0.54%/+0.17%); retain control, candidate opt-in only. BC -8.16%,84->76regs, same shared-limited capacity; lower scratch traffic is not a speed win |
-| Convert NewV before operand rearrangement; paired conversion | Partial / applicability not closed | PPU already casts into consumer-oriented shared planes. Native paired BF16 conversion/ownership benefit remains unproved; keep separate unscaled/scaled rounding |
+| Convert NewV before operand rearrangement; paired conversion | [Implemented; host/native/linked gates PASS](PPU10_PAIRED_CONVERSION.md), device pending | Conversion-before-delivery already present. Native paired BF16 conversion verified, but scattered NewV destinations need high-half extraction; static body +1 site, same registers. Both rounding inputs preserved. Opt-in A/B, no speed claim/default change |
 | Workload-dependent V tile and warp geometry | Existing V16/V32, 4/8-warp candidates | PPU-specific selection not integrated. Earlier V16 doubled input traffic without a meaningful win; do not copy H800's winning tile |
 | Unified shape-driven public selection | SM90 integrated; PPU optimized residual variants explicit | PPU numeric/backend selection and non-regression admission remain separate integration work |
 
@@ -92,10 +92,10 @@ universal rejection of register retention. Keep control/default unchanged.
 ## Closure order
 
 First-chunk, mixed full/tail state and inverse-retention device investigations
-are closed. Three items remain: conversion/publication applicability,
-PPU-specific shape/geometry selection, and unified public selection. Next,
-resolve conversion/publication applicability; finally integrate admitted PPU
-selections behind the common API. For each
+are closed. Three items remain, with conversion/publication now locally
+implemented and awaiting its two-gate complete-call device verdict. After
+that are PPU-specific shape/geometry selection and unified public selection.
+Finally integrate admitted PPU selections behind the common API. For each
 item record implemented+validated, already-equivalent, or inapplicable with
 evidence. A correctly tested slower candidate can close the investigation
 without being forced into the shipping path. Do not restart H800 for this.
