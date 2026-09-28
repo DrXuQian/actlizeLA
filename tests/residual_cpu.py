@@ -3,7 +3,7 @@ import torch
 from wy_cpu import block_inverse
 
 
-def residual_forward(inputs, initial=None, *, rounded=True, plant=None):
+def residual_forward(inputs, initial=None, *, rounded=True, plant=None, history_policy=None):
     q, k, v, g, beta = inputs
     b, length, hk, d = q.shape
     hv = v.shape[2]
@@ -29,7 +29,8 @@ def residual_forward(inputs, initial=None, *, rounded=True, plant=None):
         if plant == "reset":
             state.zero_()
         old = cast(state)
-        kh = ki @ old
+        has_history = history_policy(first // 64, initial is not None) if history_policy else True
+        kh = ki @ old if has_history else torch.zeros_like(vi)
         residual = cast(be[..., :, None] * (vi - gi.exp()[..., :, None] * kh))
         if plant == "gate-omitted":
             residual = cast(be[..., :, None] * (vi - kh))
@@ -41,7 +42,8 @@ def residual_forward(inputs, initial=None, *, rounded=True, plant=None):
         new[..., count:, :] = 0
         p = cast(torch.where(causal, (qi @ ki.transpose(-1, -2)) *
                               differences.masked_fill(~causal, 0).exp(), 0))
-        out = ((qi @ old) * gi.exp()[..., :, None] + p @ cast(new)) * d ** -0.5
+        qh = qi @ old if has_history else torch.zeros_like(vi)
+        out = (qh * gi.exp()[..., :, None] + p @ cast(new)) * d ** -0.5
         outputs.append(out[..., :count, :])
         scaled = cast(new * (gi[..., count-1, None] - gi).exp()[..., :, None])
         state = state * gi[..., count-1].exp()[..., None, None] + ki.transpose(-1, -2) @ scaled

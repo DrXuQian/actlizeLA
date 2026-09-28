@@ -1,61 +1,68 @@
-# Remaining SM90 lessons for PPU1.0
+# SM90 -> PPU1.0 migration status
 
-This is a transfer plan, not a claim that H800 speedups carry over unchanged.
-Execution primitives stay separate: PPU1.0 uses native AIU and matching shared
-readers; SM90 uses TMA/WGMMA and warpgroup resources.
+Updated 2026-09-28. The user suspended the old 1.5x FLA goal; the current
+criterion is **architecture-independent transfer completeness**, with
+unchanged numerical admission and measured non-regression before promotion.
+Historical experiment registrations remain historical, not current targets.
 
-## Priorities
+Not all portable mechanisms are closed. Implemented opt-in candidates are
+also not the same thing as an integrated public/default selector.
 
-1. **Inverse ownership and static indices.** SM90 S55 localized the final
-   inverse partials to their row-owning warps. Its actual primitive is SM80
-   warp-level MMA, not WGMMA. Transfer that ownership idea to PPU's off-diagonal
-   merge and intermediate publication. PPU's diagonal is already warp-local;
-   do not pretend the same cross-warp exchange exists there. Its separately
-   implemented `solve-static` candidate removes indirect register indexing and
-   is a useful first step, not a measured speed win. Keep the three TF32
-   high/residual products and the current rounding order unless a separately
-   named arithmetic candidate passes independent admission.
-   Its [gate-cache composition](PPU10_GATE_CACHE_STATIC_SOLVE.md) has a
-   [device result](PPU10_STATIC_SOLVE_ACU_20260928.md): about3% complete-call
-   improvement at both gates. Off-diagonal ownership remains unported.
-2. **Full-chunk specialization.** SM90 S19 separates interior full chunks
-   from the guarded final chunk; paired H800 full-forward times improved
-   141.521 -> 135.2965 us in the recorded weak-gate capture. PPU's
-   [full-state specialization](PPU10_FULL_CHUNK_ACU_20260928.md) is now measured:
-   about169 us complete forward,1.33–1.35xFLA, not1.5x. Solve/output still pass
-   dynamic valid into staging/masks. The new
-   [three-arm extension](PPU10_FULL_CHUNK_STAGES.md) removes those redundant
-   bounds for S%64==0 and is locally compiled/proved; device timing is pending.
-   Tail and causal contracts remain. Mixed full/tail partitioning is deferred.
-3. **Convert before changing operand layout.** Retained SM90 S69 converts
-   NewV in logical accumulator order before operand retile. On PPU, prove
-   actual pair ownership and use native packed BF16 conversion/publication
-   where possible, instead of scalar casts plus moves. Unscaled and scaled
-   NewV have distinct rounding boundaries; do not combine them. Keep
-   AIU.swzl paired with ld.swzl and account for registers/shared traffic.
-4. **Choose tiling by workload.** H800 V64 improved the low-head case but
-   V128 remained useful for larger grids. PPU already has value slicing and
-   eight-warp delivery; these are not new transfers. Its earlier V16 candidate
-   doubled main input traffic and did not deliver a meaningful win. Sweep
-   ownership/resources together, not grid size alone or the H800 winner.
+| Retained SM90 mechanism | PPU1.0 status | What remains |
+|---|---|---|
+| Scalar gate outside matrix products; residual formulation without W/U materialization | Implemented and admitted in residual path | Do not replace PPU inverse precision to imitate Hopper |
+| Prefix/relative gate coefficient reuse | Implemented gate-cache, included in full-chunk control | Reuse is CTA-local, not one global evaluation across all V slices/output |
+| Static register indexing and invariant address bases | Implemented static diagonal + paired-layout producer bases | Not a claim that every dynamic address calculation is gone |
+| Full chunks specialized, guarded tail retained | Partial: state/solve/output full-C64 candidates compiled and device-admitted | S%64!=0 still falls back for the whole call; interior-full + final-tail partitioning unported |
+| No-initial first-chunk KH/QH elimination | [Implemented as first-chunk](PPU10_FIRST_CHUNK.md); local compile/algebra/native proofs pass | Device admission and both-gate ACU pending; explicit state/tails unchanged |
+| Keep inverse intermediates with their final owner | Partial / applicability not closed | PPU diagonal is already warp-local; off-diagonal sm.temp[warp] is also warp-private. Investigate register retention at that actual seam, not a fictional cross-warp reduction |
+| Convert NewV before operand rearrangement; paired conversion | Partial / applicability not closed | PPU already casts into consumer-oriented shared planes. Native paired BF16 conversion/ownership benefit remains unproved; keep separate unscaled/scaled rounding |
+| Workload-dependent V tile and warp geometry | Existing V16/V32, 4/8-warp candidates | PPU-specific selection not integrated. Earlier V16 doubled input traffic without a meaningful win; do not copy H800's winning tile |
+| Unified shape-driven public selection | SM90 integrated; PPU optimized residual variants explicit | PPU numeric/backend selection and non-regression admission remain separate integration work |
 
-Gate-coefficient reuse is only the first, low-risk transfer. The uploaded
-PPU gate-cache capture (source3dd407f, g=-1, B1/S2048/Hk16/Hv32) has complete
-kernel sums191.18765 -> 186.11471us; FLA225.99588us. The changed state accounts
-for92.81294 -> 88.50000us, while solve52.23882us and output42.87765us remain.
-This single capture does not admit broad speed claims or a default selector.
-Against that FLA capture,1.5x requires150.66392us, another35.45079us reduction.
+## Measured anchors and limits
 
-## Do not copy
+The [static-solve + gate-cache composition](PPU10_STATIC_SOLVE_ACU_20260928.md)
+reduced complete-call time by about 3% at both gates. The
+[full-state specialization](PPU10_FULL_CHUNK_ACU_20260928.md) is about169 us
+for B1/S2048/Hk16/Hv32/K128/V128, with the same public input and state contract.
 
-- WGMMA asynchronous O2/KV overlap and per-warpgroup register redistribution:
-  the same hardware contract is not available on PPU1.0.
-- Hopper TMA or barrier instructions through compatibility emulation.
-- H800 FP16 inverse over PPU's FP32/three-product-TF32 inverse without admitting
-  a changed numerical algorithm.
-- Static instruction savings as a speed verdict: the H800 fast-exp2 and some
-  synchronization-removal experiments did not produce retained timing wins.
+The subsequent full-solve/output six-cell upload is complete, not pending:
+measured source `d7c5c663bf87902251e29f6bc59aefd18d7488c3`, package HEAD
+`8bbd3dc`, outer tar SHA256
+`924e82b0fc4503471aa41ce5ffd2de1b72893b3dfdc7cb9ed0cf925549e94d21`.
+All four deliveries passed 36x8 admission; all90 kernels and six manifests
+were reconciled. Complete-call A/Bs, g=-1 / -0.1, in microseconds:
 
-Evaluate one mechanism at a time, then compose admitted winners. Report every
-kernel in the complete forward, native instructions/resources, and unchanged
-numerical/replay gates. Do not restart H800 to validate a PPU-only transfer.
+| Candidate | Paired control -> candidate, g=-1 | Paired control -> candidate, g=-0.1 | Conclusion |
+|---|---:|---:|---|
+| full-chunk-solve |169.88353 -> 168.86882|168.91177 -> 170.18293|Mixed signs; no promotion|
+| full-chunk-output |169.45647 -> 168.71706|169.92823 -> 168.46941|Small observed gain, pending repeats|
+| full-chunk-both |169.63412 -> 169.32471|168.95294 -> 168.89471|Too small to claim robust gain|
+
+Most output-only whole-call variation was in unchanged stages. Full solve's
+static body shrank but executed instruction count grew 1.36%: two address
+reciprocal chains moved before the single-issuer mask. Static instruction
+savings are not speed evidence. No default changed as a result.
+
+## Architecture-specific: do not mechanically transplant
+
+- TMA, WGMMA asynchronous O2/KV overlap, named-barrier opcodes and warpgroup
+  register redistribution need their hardware contracts. PPU1.0 uses native
+  AIU.swzl paired with matching ld.swzl and warp MMA. Do not emulate Hopper
+  instructions just to call a port complete.
+- Hopper's FP16 inverse versus PPU's FP32/three-product TF32 inverse is a
+  numerical algorithm difference, not a missing architecture-independent port.
+- Rejected fast-exp2 or synchronization-removal experiments were not retained
+  SM90 wins and are not mandatory migration items.
+- A fused PPU kernel would be a separate scheduling experiment, not an
+  equivalent copy of the cooperative WGMMA pipeline.
+
+## Closure order
+
+Finish first-chunk device evidence; then mixed full/tail handling; then
+resolve actual inverse retention and conversion/publication applicability;
+finally integrate admitted PPU selections behind the common API. For each
+item record implemented+validated, already-equivalent, or inapplicable with
+evidence. A correctly tested slower candidate can close the investigation
+without being forced into the shipping path. Do not restart H800 for this.

@@ -110,7 +110,7 @@ def main():
     admit((1, 129, 2, 4), -.01, True, stress=True, deliveries=args.deliveries)
     # Full-C64 specialization must also exercise a nonzero carried state
     # across multiple complete chunks, not only the one-chunk64 and tails.
-    full_chunk_family = any(d == "full-chunk" or d.startswith("full-chunk-") for d in args.deliveries)
+    full_chunk_family = any(d in ("full-chunk", "first-chunk") or d.startswith("full-chunk-") for d in args.deliveries)
     if full_chunk_family:
         for gate in (-.1, -1.):
             for state in (False, True):

@@ -1,0 +1,115 @@
+{
+  "updated_at_utc": "2026-09-28 08:51:05 UTC",
+  "parent_revision": "8bbd3dc220367933add1cc5d606e0fa9e54231a0",
+  "branch": "agent/ppu10-first-chunk-20260928",
+  "status": "LOCAL_PASS_DEVICE_PENDING",
+  "goal": "SM90 portable-mechanism migration; old 1.5x goal suspended",
+  "control": "residual-full-chunk",
+  "candidate": "residual-first-chunk",
+  "eligibility": "initial_state=None, positive S divisible by64; explicit-state/tails delegate unchanged",
+  "default_routing": "UNCHANGED",
+  "arithmetic_contract": "gated-inverse-residual-bf16-v1",
+  "compiler": "hgcc 2.1.1-a5c56e",
+  "target": "PPU1.0 / compile-probed -arch=ppu_10",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "source_sha256": {
+    "csrc/gdn_chunk/gdn_wy_first_chunk_state_ppu.cu": "17d6397669a364b7c0655cbca4f1d3ca94d8ec13e02ee6db4033212ac080b360",
+    "csrc/gdn_chunk/gdn_wy_first_chunk_output_ppu.cu": "5e497777da3491de4496f5c4f378289a20ab39cc5a8b603934623cc939ae9b86",
+    "csrc/gdn_chunk/gdn_wy_first_chunk_ppu.cu": "ce824193706627f0a3610022203347ae7bd2db22873c4a4c35225415534df1b0",
+    "csrc/gdn_chunk/gdn_wy_ops.cpp": "8a18b8a12886836478d2b86e1183c00e6c22f20edebb99189f73fdf09b1b080d",
+    "include/gdn_qsa/ppu/wy_first_chunk.hpp": "8e0ea7130e6cd3ce93fcdf205f2ac1c095840be34966af874f736caae1af7888",
+    "csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu": "c0c661780827c89f74a21749c598551545fb5d0752c68ed72e399e710346138b",
+    "csrc/gdn_chunk/gdn_wy_residual_warps8_hvlayout_ppu.cu": "60908c30e209aef8ba33b74d7b089a1b85f04af07814e54ce6a5f4a9ef38cf0d",
+    "tests/residual_cpu.py": "cc8e6130819b781c24944b1df0b209e32fdb4b60a3e212fd2a14825d05f18320",
+    "dev/ppu/check_first_chunk.py": "1d4092406cf34e317d089b51e3edd2648ae03e3a789c083d32ac9408af178cde",
+    "tools/run_ppu10_first_chunk_box.sh": "acf0426bf23bcc4714afbdbb5cdae4d7e85d72323059492ada256d0dfb2f5f19",
+    "tools/pack_ppu10_first_chunk.sh": "814a6301c9deb176755392852da39e6ea30cc16476484cf5cc4712f9e93302f1"
+  },
+  "build_sha256": {
+    "libgdn_wy_ppu.so": "5f4837367f6b2f2af684617c9c734178c9042161acfa6e0f50968f20c63dee3f",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "76c5e2ff7d82fdee18047eaf24967e699c86d9e16e035e526fa54b5cac86a08b",
+    "gdn_wy_ppu.isa": "264f1fb8868460f73eb5b3584f92a420653026840381eb9872fa301abe57ceda",
+    "gdn_wy_ppu.resources": "255e043d0cca503a68023fb26bc7cf0af4c75431d14065fa0c778b9b3633348a"
+  },
+  "native": {
+    "state": {
+      "control_sites": 1085,
+      "candidate_sites": 1030,
+      "control_registers": 120,
+      "candidate_registers": 122,
+      "shared_bytes_each": 46080,
+      "stack_bytes": 0,
+      "zero_guard_mma_sites": 8,
+      "zero_guard_swzl_load_sites": 16
+    },
+    "output": {
+      "control_sites": 1405,
+      "candidate_sites": 1433,
+      "registers_each": 70,
+      "shared_bytes_each": 49408,
+      "stack_bytes": 0,
+      "zero_guard_mma_sites_per_panel": 16,
+      "zero_guard_swzl_load_sites_per_panel": 24
+    },
+    "old_instruction_operand_sequences": "40/40 IDENTICAL",
+    "old_resource_abi_records": "40/40 IDENTICAL excluding separate ELF container headers",
+    "static_math_matrix_publication_barriers": "UNCHANGED; guard changes dynamic first-chunk execution",
+    "first_snapshot": "still initialized/published/staged; no global/shared matrix traffic reduction claimed"
+  },
+  "predicted_dynamic_bf16_mma": {
+    "shape": "B1/S2048/Hk16/Hv32/K128/V128/C64",
+    "state": [
+      655360,
+      647168
+    ],
+    "output": [
+      524288,
+      516096
+    ],
+    "scope": "dimension-derived predictions, NOT device counters"
+  },
+  "checks": {
+    "hgcc_complete_build_and_extension_link": "PASS",
+    "original_library_native_audit": "15 kernels PASS",
+    "whole_library_native_negatives_rejected": 71,
+    "first_chunk_source_native_link_resource_negatives_rejected": 20,
+    "retained_full_stages_negatives_rejected": 26,
+    "retained_full_state_negatives_rejected": 14,
+    "host_ctest": {
+      "pass": 27,
+      "fail": 0
+    },
+    "python_unit_contracts": {
+      "pass": 235,
+      "skip": 0,
+      "fail": 0
+    },
+    "residual_cpu_algebra": {
+      "cases": 61,
+      "semantic_negatives": 4
+    },
+    "first_chunk_cpu_algebra": {
+      "cases": 58,
+      "semantic_negatives": 3,
+      "comparison": "RAW-BIT+independent-recurrence"
+    },
+    "actual_cute_ownership": {
+      "extent_initial_combinations": 131074,
+      "full_chunks": 524800,
+      "first_chunks": 1024,
+      "H_elements": 16384,
+      "O_elements": 8192,
+      "negatives": 4
+    },
+    "runner": "single build;36case x8 and16edge x8 admission;two paired captures;failure stops;one upload tar",
+    "runtime_import": {
+      "status": "SKIP",
+      "reason": "actual import attempt: local glibc lacks GLIBC_2.38 required by SDK libhggcrt.13.0.so"
+    },
+    "device_correctness": "NOT_RUN",
+    "performance": "NOT_RUN"
+  },
+  "artifacts": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/first-chunk",
+  "immutable_parent_build": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/full-chunk-stages/build",
+  "next": "Run tools/run_ppu10_first_chunk_box.sh; upload first-chunk.tar.gz"
+}
