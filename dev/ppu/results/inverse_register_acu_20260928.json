@@ -1,0 +1,91 @@
+{
+  "source_sha": "3227b188fe708eafe2001e30635dc973cbcf38e9",
+  "archive_sha256": "4aaaa64b3d1f3a929f316f2a75d8658b8b744a12343d23edd752e4fd72f5f05c",
+  "verdict": "MIXED_OR_SLOWER_KEEP_CONTROL",
+  "observed_signs": "BOTH_SLIGHTLY_SLOWER_NOT_SIGNIFICANCE_CLAIM",
+  "investigation": "CLOSED_IMPLEMENTED_VALIDATED_NO_OBSERVED_BENEFIT",
+  "goal": "architecture-independent SM90 migration completeness; prior 1.5x FLA goal suspended",
+  "scope": "one ACU capture per arm per gate; complete 4/4/7-kernel sums including FLA fills, not API timing",
+  "default_routing": "UNCHANGED",
+  "device": {"name": "PPU-ZW810", "cu": 72, "uuid": "019ee024-8860-091c-0000-0000007aff6d", "ce_hz": 1700000000},
+  "driver": "2.1.2-r7b50d071022",
+  "compiler": "HGCC 2.2.0-dev",
+  "ppu_smi_sdk_label": "2.0.2-d2568e060312",
+  "torch": "2.9.0", "torch_cuda": "12.9", "fla": "0.6.0",
+  "triton": "3.4.0, process-local CUDA13 version-parser backport; backend override disabled",
+  "shape": {"B": 1, "S": 2048, "Hk": 16, "Hv": 32, "K": 128, "V": 128, "C": 64},
+  "initial_state": "None", "output_final_state": true,
+  "capture_acu": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+  "capture_acu_sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+  "file_sha256": {
+    "isa.txt": "a26442e4e62a6c287ccff329b9ec7f78ab4e23cd5c5ba33e0f8ef83d6b031bd8",
+    "resources.txt": "926de6b255b7e9912c701b4b123b5b7c9dd107e48c935ce9ddc0732e14321dbe",
+    "libgdn_wy_ppu.so": "3d30584dcfcccf4943faf78bff1f581161697fe100eccb0cc80d70e3538dae7e",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "e61724018c74f6127edca5328d8239365028c45806bff8f224ff347f97d57498"
+  },
+  "admission": {
+    "registered_cells": 2, "analyzed_cells": 2, "missing_cells": 0, "complete_call_kernels": 30,
+    "outer_manifest_files": 9, "manifest_files_per_cell": 822, "source_files_per_cell": 347,
+    "retained_cases": 36, "edge_cases": 256, "repeats_each": 8,
+    "numerics": "RAW-BIT versus residual and unchanged independent 2% recurrence criterion PASS",
+    "old_native_instruction_operand_resource_controls_unchanged": 43,
+    "analysis_negatives": 8
+  },
+  "stage_order": ["prefix", "solve", "state", "output"],
+  "fla_stage_order": ["cumsum", "bf16-fill", "kkt-solve", "wu", "fp32-fill", "state", "output"],
+  "cells": [
+    {
+      "gate": -1.0, "input_fingerprint": "5b1677989c9b708f", "control_candidate_fingerprint": "ea8a22c5ccac1eb6",
+      "control_us": 169.28529, "candidate_us": 170.20471, "fla_us": 225.28706,
+      "control_stage_us": [2.36941, 44.59412, 79.43000, 42.89176],
+      "candidate_stage_us": [2.35765, 45.29706, 78.93412, 43.61588],
+      "fla_stage_us": [2.66765, 4.21882, 44.11118, 35.99294, 2.13235, 91.33765, 44.82647],
+      "unchanged_stage_variation_us": 0.21648,
+      "control_candidate_errors": [0.0063291084952652454, 0.003655239474028349],
+      "solve_active_warps_control_candidate": [19.09, 18.79],
+      "solve_memory_dependency_ratio_control_candidate": [0.63, 0.57],
+      "solve_instruction_fetch_ratio_control_candidate": [0.36, 0.38]
+    },
+    {
+      "gate": -0.1, "input_fingerprint": "e976de55fd4a2ac5", "control_candidate_fingerprint": "d00a34f833c79ca7",
+      "control_us": 168.67236, "candidate_us": 168.96294, "fla_us": 225.51236,
+      "control_stage_us": [2.34118, 44.36412, 79.40000, 42.56706],
+      "candidate_stage_us": [2.36588, 44.45941, 79.82353, 42.31412],
+      "fla_stage_us": [2.66059, 4.23000, 43.90882, 37.04059, 2.17471, 90.77412, 44.72353],
+      "unchanged_stage_variation_us": 0.19529,
+      "control_candidate_errors": [0.0048543657176196575, 0.0029321869369596243],
+      "solve_active_warps_control_candidate": [19.02, 18.93],
+      "solve_memory_dependency_ratio_control_candidate": [0.60, 0.57],
+      "solve_instruction_fetch_ratio_control_candidate": [0.36, 0.35]
+    }
+  ],
+  "solve_control_candidate": {
+    "bf16_mma": [81920, 81920], "tf32_mma": [98304, 98304],
+    "tf32_conversions": [524288, 524288], "bf16_conversions": [131072, 131072],
+    "tsm.st.b32": [249856, 200704], "tsm.ld.b32": [614400, 565248],
+    "v.shuffle.idx.b32": [0, 98304],
+    "opcode_sum": [11416576, 11449344], "pu_inst_executed_sum_distinct_metric": [11570176, 11602944],
+    "bank_conflicts": [2408448, 2211840],
+    "read_bank_conflicts": [1212416, 1163264], "write_bank_conflicts": [1196032, 1048576],
+    "shared_read_transactions": [3588096, 3489792], "shared_write_transactions": [761856, 663552],
+    "global_to_shared_bytes": [16777216, 16777216],
+    "global_load_bytes": [4456448, 4456448], "global_store_bytes": [8388608, 8388608],
+    "registers": [84, 76], "stack_bytes": [0, 0], "shared_bytes": [49664, 49664],
+    "register_limited_cta_slots": [12, 12], "shared_limited_cta_slots": [5, 5],
+    "native_sites_with_padding": [1472, 1468], "native_pc_counted_sites": [1456, 1452],
+    "eligible_warps_per_we": [0.66, 0.65], "compute_dependency_ratio": [0.43, 0.47],
+    "sync_ratio": [1.27, 1.27]
+  },
+  "solve_opcode_delta_candidate_minus_control": {
+    "s.mov.b32": 8192, "s.nop": 43008, "s.wait": -6144,
+    "tsm.ld.b32": -49152, "tsm.st.b32": -49152,
+    "v.add.i32": -12288, "v.and.b32": 4096, "v.bfe.b32": 4096,
+    "v.cmp.eq.i32": 4096, "v.csel.b32": 49152, "v.madl.i32": -16384,
+    "v.or.b32": -20480, "v.reg.dchk": 12288, "v.shll.b32": -36864,
+    "v.shuffle.idx.b32": 98304
+  },
+  "logical_scratch_removed_bytes_per_direction": 6291456,
+  "measured_shuffle_sites": 16, "executions_per_shuffle_site": 6144,
+  "remaining": ["paired conversion applicability", "PPU-specific shape/geometry selection", "unified public selection"],
+  "local_evidence": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/inverse-register/acu-analysis-20260928"
+}

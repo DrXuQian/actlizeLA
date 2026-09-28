@@ -1,6 +1,9 @@
 # PPU1.0 inverse register retention
 
-Local admission:2026-09-28. Device correctness and performance: **NOT_RUN**.
+Local admission:2026-09-28. Device follow-up: **correctness PASS; no observed
+performance benefit, keep the control**. See the
+[complete same-binary ACU verdict](PPU10_INVERSE_REGISTER_ACU_20260928.md).
+The original local evidence and preregistered decision below remain intact.
 Parent: `2bde8331b05471293dd834cf51d57ac7e21fd496`.
 Opt-in: `gdn_chunk_residual(..., delivery="inverse-register")`.
 Same-binary performance control: `full-chunk`; scalar residual remains the
@@ -64,8 +67,9 @@ rounding all fail; omitting one block fails the fixed coverage denominator.
 Source/native/linked-entry plants cover arithmetic, lifetime, aliasing,
 tail resource admission and stale dispatch. All259CPU tests and29CTest
 cases pass. Four NVIDIA-only device suites are explicitly SKIP, not PASS;
-the PPU device gate remains NOT_RUN. Whole-library native gate:76negative
-controls including old-body/resource changes, all expected red.
+the PPU device gate was NOT_RUN at that local checkpoint. Whole-library
+native gate:76negative controls including old-body/resource changes, all
+expected red.
 
 Files: `wy_inverse_register.cuh` holds the owner/gather/three-product helper;
 `gdn_wy_inverse_register_ppu.cu` holds the isolated solve and composition.
