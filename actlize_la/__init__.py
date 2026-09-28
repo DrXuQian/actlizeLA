@@ -5,6 +5,7 @@ from importlib import import_module
 # A GDN-only installation must not need the three unrelated NVIDIA extensions.
 # Import only contracts here; load the selected implementation lazily.
 _MODULES = {
+    "get_device_profile": "device",
     "load_sm90": "sm90",
     "gdn_forward": "gdn_interface",
     "backend_inventory": "backends",
@@ -35,6 +36,7 @@ def __getattr__(name):
 
 __version__ = "0.1.0"
 __all__ = [
+    "get_device_profile",
     "load_sm90",
     # GDN
     "gdn_forward",

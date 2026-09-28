@@ -7,6 +7,7 @@ Wrap this application in the actual simulator command supplied for the model;
 this script does not invent a simulator/profiler CLI or report Python timing.
 """
 import argparse
+from dataclasses import asdict
 import hashlib
 import json
 import os
@@ -18,6 +19,8 @@ import torch
 from test_ppu_gdn_backend import fixture,assert_pair,digest,MAX_RELATIVE_ERROR
 from actlize_la.reference.gdn_chunk_ref import torch_recurrent_gated_delta_rule
 from actlize_la.gdn_sm90_interface import gdn_chunk_sm90
+from actlize_la import get_device_profile
+from actlize_la.device import validate_profile_options
 
 
 def main():
@@ -37,7 +40,15 @@ def main():
     p.add_argument("--initial",action="store_true")
     p.add_argument("--output-only",action="store_true")
     p.add_argument("--device",type=int,default=0)
+    p.add_argument("--mode",choices=("device","perfmodel"),default="device",
+                   help="metadata source only; perfmodel skips device-property discovery")
+    p.add_argument("--sm-count",type=int,
+                   help="explicit model SM count (e.g. 20); only with --mode perfmodel")
     args=p.parse_args()
+    try:
+        validate_profile_options(args.mode,args.backend,args.sm_count)
+    except (ValueError,RuntimeError) as error:
+        p.error(str(error))
     if not args.extension.is_file(): p.error("extension missing")
     manifest_path=args.extension.parent/"build.json"
     if not manifest_path.is_file(): p.error("extension must retain its build.json receipt")
@@ -51,6 +62,7 @@ def main():
     if manifest.get("configuration")!=args.configuration:
         p.error("requested configuration does not match build receipt")
     if not (-1. <= args.gate <= 0.): p.error("initial admission range is natural-log g in [-1,0]")
+    profile=get_device_profile(args.device,mode=args.mode,backend=args.backend,sm_count=args.sm_count)
     args.out.mkdir(parents=True,exist_ok=True)
     torch.set_num_threads(1)
     cpu=fixture(args.batch,args.length,args.q_heads,args.v_heads,args.gate)
@@ -72,6 +84,7 @@ def main():
     initial=state.to(device) if state is not None else None
     torch.cuda.synchronize()
     print(f"[SM90 subject] backend={args.backend} source_check={args.source_check} "
+          f"mode={args.mode} profile_source={profile.source} sm_count={profile.sm_count} "
           "public_calls=1 warmup=0 device_reference=0 performance=NOT_MEASURED",flush=True)
     got=gdn_chunk_sm90(*inputs,initial_state=initial,output_final_state=not args.output_only,
                       backend=args.backend,source_check=args.source_check,configuration=args.configuration)
@@ -88,8 +101,8 @@ def main():
         else: raise AssertionError("zero-output/state negative escaped")
     if digest(tuple(t.cpu() for t in inputs))!=digest(cpu): raise AssertionError("input mutation")
     if state is not None and not torch.equal(initial.cpu(),state): raise AssertionError("initial state mutation")
-    props=torch.cuda.get_device_properties(args.device)
-    result=dict(backend=args.backend,configuration=args.configuration,source_check=args.source_check,device=props.name,
+    result=dict(backend=args.backend,configuration=args.configuration,source_check=args.source_check,device=profile.name,
+        mode=args.mode,device_profile=asdict(profile),
         shape=[args.batch,args.length,args.q_heads,args.v_heads,128],gate=args.gate,
         gate_pattern="token-head-distinct" if args.vary_gate else "constant",
         harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

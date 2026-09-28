@@ -23,12 +23,13 @@ class AutoSm90Forward:
             raise ValueError("SM90 bundle configuration mismatch")
         self._variants = dict(variants)
 
-    def select(self, q, v):
+    def select(self, q, v, *, mode="device", sm_count=None):
         """Diagnostic metadata only; does not execute or time a kernel."""
-        return selection_for(q, v)
+        return selection_for(q, v, mode=mode, sm_count=sm_count)
 
-    def __call__(self, q, k, v, g, beta, initial_state=None, output_final_state=True):
-        choice = self.select(q, v)
+    def __call__(self, q, k, v, g, beta, initial_state=None, output_final_state=True,
+                 *, mode="device", sm_count=None):
+        choice = self.select(q, v, mode=mode, sm_count=sm_count)
         return self._variants[choice.configuration](q, k, v, g, beta,
             initial_state=initial_state, output_final_state=output_final_state)
 
@@ -88,5 +89,7 @@ def default_forward():
     return _default_forward(os.getenv("ACTLIZE_LA_SM90_BUNDLE"))
 
 
-def forward(q, k, v, g, beta, initial_state=None, output_final_state=True):
-    return default_forward()(q, k, v, g, beta, initial_state, output_final_state)
+def forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
+            *, mode="device", sm_count=None):
+    return default_forward()(q, k, v, g, beta, initial_state, output_final_state,
+                             mode=mode, sm_count=sm_count)
