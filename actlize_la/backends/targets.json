@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "targets": {
+    "cuda_sm80": {
+      "family": "sm80",
+      "dependency": "third_party/cutlass",
+      "build": "setuptools",
+      "build_entry": "csrc/backends/cuda_sm80/build.py",
+      "implemented": true
+    },
+    "ppu10": {
+      "family": "ppu_aiu",
+      "dependency": "third_party/actlize",
+      "build": "cmake",
+      "build_entry": "cmake/backends/ppu_aiu.cmake",
+      "implemented": true
+    },
+    "ppu15": {
+      "family": "ppu_aiu",
+      "dependency": "third_party/actlize",
+      "build": "cmake",
+      "implemented": false,
+      "reason": "Legacy AIU dependency policy is retained; distinct PPU1.5 GDN target admission is not implemented. Do not substitute PPU1.0."
+    },
+    "cuda_sm90": {
+      "family": "sm90",
+      "dependency": "third_party/cutlass",
+      "build": "cmake",
+      "implemented": true,
+      "build_entry": "cmake/backends/sm90.cmake",
+      "device_admission": "UNVERIFIED"
+    },
+    "ppu17": {
+      "family": "sm90",
+      "dependency": "PPU_CUTLASS_ROOT (PPU CUTLASS 3.6.0, ACOMPUTE10700)",
+      "build": "cmake",
+      "implemented": true,
+      "build_entry": "cmake/backends/sm90.cmake",
+      "device_admission": "UNVERIFIED"
+    }
+  },
+  "algorithms": {
+    "original": {
+      "targets": [
+        "cuda_sm80",
+        "ppu10"
+      ],
+      "module": "gdn_chunk_interface",
+      "entry": "gdn_chunk",
+      "numerical_contract": "original-scan-reset-v1",
+      "final_state_dtype": "bf16",
+      "gate_dtypes": [
+        "bf16"
+      ],
+      "initial_state": false
+    },
+    "wy": {
+      "targets": [
+        "ppu10"
+      ],
+      "module": "gdn_wy_interface",
+      "entry": "gdn_chunk_wy",
+      "numerical_contract": "materialized-wu-bf16-v1",
+      "final_state_dtype": "fp32",
+      "gate_dtypes": [
+        "bf16",
+        "fp32"
+      ],
+      "initial_state": true
+    },
+    "residual": {
+      "targets": [
+        "ppu10"
+      ],
+      "module": "gdn_residual_interface",
+      "entry": "gdn_chunk_residual",
+      "numerical_contract": "gated-inverse-residual-bf16-v1",
+      "final_state_dtype": "fp32",
+      "gate_dtypes": [
+        "bf16",
+        "fp32"
+      ],
+      "initial_state": true
+    },
+    "fused_sm90": {
+      "targets": [
+        "cuda_sm90",
+        "ppu17"
+      ],
+      "module": "gdn_sm90_interface",
+      "entry": "gdn_chunk_sm90",
+      "numerical_contract": "cula-scalar-gdn-fused-bf16-v1",
+      "final_state_dtype": "fp32",
+      "gate_dtypes": [
+        "bf16",
+        "fp32"
+      ],
+      "initial_state": true,
+      "device_admission": "UNVERIFIED",
+      "scope": "forward BF16, D128, C64, fixed B/T, native GVA; explicit target only"
+    }
+  }
+}

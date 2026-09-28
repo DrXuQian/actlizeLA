@@ -1,0 +1,247 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "captures": 2,
+  "complete_profiled_forwards": 144,
+  "reanalysis": "EXACT_SQLITE_REEXTRACTION",
+  "runs": [
+    {
+      "candidate": "S34",
+      "capture": "fi-pipeline-fi-weak",
+      "gate": -0.1,
+      "source": "1736ecba43b2f454b79645bdb8bb70bcf32bdece",
+      "binary_sha256": "08a13fc99bf07db209027c772a5e52284fca95ed055e5b4138eae7225fe55afd",
+      "candidate_us": {
+        "median": 128.81650000000002,
+        "range": [
+          127.425,
+          129.601
+        ]
+      },
+      "control_us": {
+        "median": 120.704,
+        "range": [
+          120.129,
+          121.761
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.6405,
+          "range": [
+            129.92,
+            132.673
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 113.089,
+          "range": [
+            110.4,
+            113.633
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 139.80849999999998,
+          "range": [
+            138.976,
+            140.576
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0141596767494847,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8779077214487273,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0853306835692629,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "4aca3ed8232587d07df1b256baf1d8104decd26e846da46c6f3994edc7d6e3f0",
+        "result.json": "0a0d9bfc6359f9be69069da9be9ed87da04bb038c0c90c1bc988abee23f8492b",
+        "forward.sqlite": "3e9d94558e70e895927c8aa37fa055c9a3649629d02372e3a0cf1fe5f47db0e7",
+        "forward.nsys-rep": "4aeed3e656a0f02d6f121a35527adec852135bd4dc8edc0c145b68d6dfc167e0"
+      }
+    },
+    {
+      "candidate": "S35",
+      "capture": "fi-state-fi-weak",
+      "gate": -0.1,
+      "source": "d5fda8b4c401684f2cb47925b6e9100844aad6b2",
+      "binary_sha256": "476baaaa8e95dbf8243111cd021c178cecd838c37e38f31711bfabbda1d1fbf0",
+      "candidate_us": {
+        "median": 119.9985,
+        "range": [
+          118.847,
+          120.863
+        ]
+      },
+      "control_us": {
+        "median": 120.831,
+        "range": [
+          119.967,
+          121.375
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.974,
+          "range": [
+            129.214,
+            131.551
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.9265,
+          "range": [
+            112.479,
+            113.471
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.71800000000002,
+          "range": [
+            138.142,
+            140.831
+          ]
+        }
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0914636432955411,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9410659299907915,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.1559977833056247,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "1f64284c72e332607f1e002fe6b801c2cd7048931bb102a812a9b3e74315054d",
+        "result.json": "ae10645e9c3dbdfcc3ed068ccd1b66a1a1771cdf3978897c31600f28cdeb1310",
+        "forward.sqlite": "e9921d117215b3733c4356107f67d033ff2d5b9285abf26ace566cc8859cda11",
+        "forward.nsys-rep": "af93146681a736c7d3260da436b4e8682b96acbaa284e4dcd712c4a571624be2"
+      }
+    }
+  ],
+  "checks": {
+    "S34": {
+      "source": "1736ecba43b2f454b79645bdb8bb70bcf32bdece",
+      "binary_sha256": "08a13fc99bf07db209027c772a5e52284fca95ed055e5b4138eae7225fe55afd",
+      "build_sha256": "3445996af59cc58486032e9de703269cc829eca0e19a66d05dfd3d0daf099bfc",
+      "device_log_sha256": "a6fb3eb881177935d20639e17e3476a37dbace6da30c2bc8f738107b6931f95c",
+      "host_tests": {
+        "count": 41,
+        "status": "PASS",
+        "sha256": "0adeb58f205c94dc61abf93b6196491bce49b79008d58ac5db79255e386dbb36"
+      },
+      "numerical_cases": {
+        "status": "14/14 CPU_ORACLE_AND_PARENT_FINGERPRINTS_PASS",
+        "cases_sha256": "e4221944fe551c6e9b21b24f2c5979ecbbccb230f1920bbfe2e71f5931bd5cba",
+        "parent_cases_sha256": "5919c37369be449bb8655e0a57f6a9dca60222fbd7d77e1635c46696bc74a166"
+      },
+      "direct_stresses": [
+        {
+          "gate": -8,
+          "status": "O_AND_STATE_DIRECT_BYTE_EQUAL",
+          "hashes": {
+            "fi-pipeline-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f",
+            "relative-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f"
+          }
+        },
+        {
+          "gate": -10000,
+          "status": "O_AND_STATE_DIRECT_BYTE_EQUAL",
+          "hashes": {
+            "fi-pipeline-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312",
+            "relative-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312"
+          }
+        }
+      ]
+    },
+    "S35": {
+      "source": "d5fda8b4c401684f2cb47925b6e9100844aad6b2",
+      "binary_sha256": "476baaaa8e95dbf8243111cd021c178cecd838c37e38f31711bfabbda1d1fbf0",
+      "build_sha256": "6c4eaa17c8fac78efd0771a5e504c0fd82b265e01a1cfc617d04fd5b1ff3491c",
+      "device_log_sha256": "167195c8cab457dfa6b71ce4fb2bf648ea36154bcaf73120733ff09694613b81",
+      "host_tests": {
+        "count": 38,
+        "status": "PASS",
+        "sha256": "ce72b71f11fc0325b45223ea0971b9e1882434cf0df5f5eaf5d81a3a7334f5f9"
+      },
+      "numerical_cases": {
+        "status": "14/14 CPU_ORACLE_AND_PARENT_FINGERPRINTS_PASS",
+        "cases_sha256": "245bacb9c3042a282931a8498dea80b5d67b102287783634af2dd302bcc23e1b",
+        "parent_cases_sha256": "5919c37369be449bb8655e0a57f6a9dca60222fbd7d77e1635c46696bc74a166"
+      },
+      "direct_stresses": [
+        {
+          "gate": -8,
+          "status": "O_AND_STATE_DIRECT_BYTE_EQUAL",
+          "hashes": {
+            "fi-state-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f",
+            "relative-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f"
+          }
+        },
+        {
+          "gate": -10000,
+          "status": "O_AND_STATE_DIRECT_BYTE_EQUAL",
+          "hashes": {
+            "fi-state-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312",
+            "relative-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312"
+          }
+        }
+      ]
+    }
+  },
+  "config_sweep": "NOT_DONE_TWO_SOURCE_PROFILES_ONLY",
+  "routing": "UNCHANGED",
+  "precision": "UNCHANGED_PARENT_RAW_ADMISSION"
+}

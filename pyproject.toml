@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "actlize-la"
+version = "0.1.0"
+description = "Forward linear attention with independent CUDA SM80, Hopper SM90 and PPU backends"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "actlizeLA contributors" }]
+dependencies = ["torch"]
+
+[project.optional-dependencies]
+test = ["pytest", "numpy"]
+benchmark = ["matplotlib", "pandas"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["actlize_la*"]
+
+[tool.setuptools.package-data]
+"actlize_la.backends" = ["targets.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

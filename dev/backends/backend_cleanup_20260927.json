@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-27 09:05:19 UTC",
+  "scope": "LOCAL_CODE_CLEANUP_AND_OPT_IN_PPU10_TRANSFER_NOT_NEW_DEVICE_PERFORMANCE",
+  "artifact_root": "/workspace/gdn-backend-cleanup-20260927",
+  "h800": "SHUT_DOWN_NOT_RESTARTED",
+  "routing": "UNCHANGED",
+  "sm90": {
+    "cuda": "12.8",
+    "cutlass": "4.3.2",
+    "configurations": [
+      {
+        "configuration": "control",
+        "status": "COMPILE_LINK_IMPORT_PASS",
+        "source_anchor": "5e27868",
+        "bodies": 4,
+        "instruction_sites": 60288,
+        "native_sha256": "fec760f6f9bb2b055f5ed02df09400377782250388b9e893289dabf058afe747",
+        "resources": "IDENTICAL",
+        "negative_plants": 4,
+        "build_receipt_sha256": "7539c7ee1e61a8b83a1e841b1fbb290928e3a091addacdc8e0bfcef08e554c13",
+        "device_object_sha256": "a6438ce907b13ebbd5e8d61015caa344f3c94ccf688079204f304eb4b3b165c8",
+        "extension_sha256": "437536ecf351db6a9196c46cd7acacbf6017161862fd9a628702c372f230461e",
+        "source_tree_sha256": "4a21bcd0474592013d2f83311d07cebf245d4d895e9b0aea3b34b5a4acd8ec0f",
+        "dependency_tree_sha256": "ef10601b36d5d2e789034a1b70ca0d45031a1e4e70cddc1d7f843dbf1f50d35c"
+      },
+      {
+        "configuration": "value64",
+        "status": "COMPILE_LINK_IMPORT_PASS",
+        "source_anchor": "c490c8d",
+        "bodies": 4,
+        "instruction_sites": 26688,
+        "native_sha256": "a019ff43656dead1daf26953dec73740ef375ff833eae9d4558b9dda75fa9e04",
+        "resources": "IDENTICAL",
+        "negative_plants": 4,
+        "build_receipt_sha256": "4c2db8059bbfb0c3d23e37e82337fd6b23c8829d417bb07bdd15af47cc76918b",
+        "device_object_sha256": "e1889aa9b6f646c524f45deb02d4ea6725f76f7743759af8a7d287fc6b648358",
+        "extension_sha256": "1dfaf374a7dac15901bb96a2a1ebe4a091e76398f1e3eacfd87cc4c3ea9c2512",
+        "source_tree_sha256": "4a21bcd0474592013d2f83311d07cebf245d4d895e9b0aea3b34b5a4acd8ec0f",
+        "dependency_tree_sha256": "ef10601b36d5d2e789034a1b70ca0d45031a1e4e70cddc1d7f843dbf1f50d35c"
+      },
+      {
+        "configuration": "value64-local-inverse",
+        "status": "COMPILE_LINK_IMPORT_PASS",
+        "source_anchor": "6317ea4",
+        "bodies": 4,
+        "instruction_sites": 27208,
+        "native_sha256": "15f23d0ca2c85ea576864f86fa6b0a1818e0ba21fccce26d28ce836d93a1d342",
+        "resources": "IDENTICAL",
+        "negative_plants": 4,
+        "build_receipt_sha256": "b6ab9281ed3ea1430f6fda9677295848ecb4815400963d0d884eb30c7f4e2919",
+        "device_object_sha256": "051d2cf63323e9a5dcb2d5c81b9baee1c75629d1493305cb13cffd5c5e1b7ff1",
+        "extension_sha256": "abec3f7f355a02e8bab419cd786df632b72e695cc4476555560de5c6fe37e3e3",
+        "source_tree_sha256": "4a21bcd0474592013d2f83311d07cebf245d4d895e9b0aea3b34b5a4acd8ec0f",
+        "dependency_tree_sha256": "ef10601b36d5d2e789034a1b70ca0d45031a1e4e70cddc1d7f843dbf1f50d35c"
+      },
+      {
+        "configuration": "value128-paired",
+        "status": "COMPILE_LINK_IMPORT_PASS",
+        "source_anchor": "d481a42",
+        "bodies": 4,
+        "instruction_sites": 27328,
+        "native_sha256": "78a03947a5642672d62e11c695143dadb7a13ba1e5f58d8d76e31cd18abc829b",
+        "resources": "IDENTICAL",
+        "negative_plants": 4,
+        "build_receipt_sha256": "7f1c680e1e905cee275f4836822e9294e0e64b3dde68329302097e5768905b77",
+        "device_object_sha256": "7f641efcdebfd5898eb61792caeea37c17080b66590f91543dff5a38224417d3",
+        "extension_sha256": "c5cf518f76b1131aae5a9d4313abe393d706111a6c18e5ab0add94c20d0e3786",
+        "source_tree_sha256": "4a21bcd0474592013d2f83311d07cebf245d4d895e9b0aea3b34b5a4acd8ec0f",
+        "dependency_tree_sha256": "ef10601b36d5d2e789034a1b70ca0d45031a1e4e70cddc1d7f843dbf1f50d35c"
+      }
+    ],
+    "ppu36_source_checks": [
+      {
+        "configuration": "value64",
+        "status": "CUDA_SOURCE_CHECK_PASS_NOT_NATIVE_PPU",
+        "build_receipt_sha256": "057cb8c8490fbb1a4c1609e8976fd29686bcf466e0318a7c5eeff16ef9c033dc",
+        "device_object_sha256": "161c938e5ac780bfd650f131e1c90a006b0cbc4a08a2ce31ba2c103512c668a2",
+        "dependency_tree_sha256": "b92d9a3c31d33b82fc432885376dd5917a78a5f10e764d552573762617e82bef"
+      },
+      {
+        "configuration": "value64-local-inverse",
+        "status": "CUDA_SOURCE_CHECK_PASS_NOT_NATIVE_PPU",
+        "build_receipt_sha256": "8fcd4b7518ae53864a5fba16cec55d74fe8d1f45221b16d1eec721fbc0255123",
+        "device_object_sha256": "11e205ef3cc9a1f933bc43fcdbea1a8c84f1f3fb6f95fb2dd44e78846f976a92",
+        "dependency_tree_sha256": "b92d9a3c31d33b82fc432885376dd5917a78a5f10e764d552573762617e82bef"
+      },
+      {
+        "configuration": "value128-paired",
+        "status": "CUDA_SOURCE_CHECK_PASS_NOT_NATIVE_PPU",
+        "build_receipt_sha256": "449b6e39b8db2305d1ae826def698b649c46cced336b3b426df41581a7d533ef",
+        "device_object_sha256": "4f5c8c5861ce8a72319537024182ff5848f36840006a7daa52f6cc56f631179b",
+        "dependency_tree_sha256": "b92d9a3c31d33b82fc432885376dd5917a78a5f10e764d552573762617e82bef"
+      }
+    ]
+  },
+  "ppu10": {
+    "status": "NATIVE_HGCC_COMPILE_AND_LINK_PASS",
+    "sdk": "2.1.1-a5c56e",
+    "control": "residual-warps8-hvlayout",
+    "candidate": "residual-gate-cache",
+    "old_bodies_preserved": 36,
+    "new_body_count": 37,
+    "old_isa_sha256": "73c9f360fd4dbe401f13c036cdf8e78aba0338530afe60ea9f80df043302990b",
+    "new_isa_sha256": "2381c146a0df32c7408333138ea1910399bd926bf53108741f2c75baaa6baa26",
+    "linked_images_sha256": {
+      "libgdn_qsa_ppu.so": "5f079faa71fbefc514f4a2d3628b9e08a1eed90c9375ae2d633dab9bb9f829fc",
+      "libgdn_wy_ppu.so": "beef8aa661bb6aee220b30ef0d4f976698c626a37dca38c19d1b1d3e5ed8352e",
+      "_gdn_chunk_ppu.cpython-312-x86_64-linux-gnu.so": "5f43dfea601b4a48ccd24a7d0c5f4524b47dc812182d973d06bec0cf7c4edb62",
+      "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "c8a15a48607dae435b6e78a4f94537b2184671620817b47849f2365c64a82490"
+    },
+    "control_resources": {
+      "vregs": 122,
+      "stack_bytes": 0,
+      "shared_bytes": 45568,
+      "static_instruction_sites": 1194
+    },
+    "candidate_resources": {
+      "vregs": 124,
+      "stack_bytes": 0,
+      "shared_bytes": 46080,
+      "static_instruction_sites": 1166
+    },
+    "exp_sites": [
+      5,
+      2
+    ],
+    "logical_exp_lane_evaluations_per_cta_chunk": [
+      1280,
+      128
+    ],
+    "mma_aiu_barrier_sites": [
+      20,
+      4,
+      5
+    ],
+    "gate_cache_host": {
+      "tails": 64,
+      "writers": 12288,
+      "reads": 393216,
+      "negative_plants": 3
+    },
+    "gate_cache_source_negative_plants": 6,
+    "gate_cache_native_negative_plants": 4
+  },
+  "tests": {
+    "python": {
+      "pass_count": 171,
+      "fail_count": 0,
+      "log_sha256": "8c0409ac263eb38232fee03beaf54cc0a72d9bcbb9222e73f0856de0dfa2a2b2",
+      "log": "final-python-171-bound.log"
+    },
+    "ppu_host_ctest": {
+      "pass_count": 24,
+      "fail_count": 0,
+      "log_sha256": "677a4a3ab30798892e7577033f7493203aace6f58bc1eb0d06e09368e87c426e",
+      "log": "ppu-ctest.log"
+    },
+    "sm90_cute_host_map_log_sha256": {
+      "value_tile_map": "8f3bda1dae4ba0e9080962d4eb4dbda0b8b9a900e19062cf65a72ce5286472ff",
+      "inverse_local_map": "532f7867bc0a1160be546353095c8388ff3d31d0799fc424466fe643643d48ec",
+      "paired_tail_map": "1cc44a990616c4499b13a670d33604652f42536b49a5461b4662da9334ea5f72",
+      "relative_gate_layout": "edc0338e6be2f4723f80eecbcbec1f0561e5f28f56b56561764776a611116b18"
+    }
+  },
+  "skips": [
+    {
+      "check": "PPU1.0 local extension import",
+      "reason": "Host glibc is older than SDK runtime GLIBC_2.38 requirement"
+    },
+    {
+      "check": "PPU1.7 native compile/model/device",
+      "reason": "No PPU1.7-native SDK/model available; CUDA source check is separate"
+    }
+  ],
+  "device_numerics": "NOT_RUN",
+  "device_performance": "NOT_RUN",
+  "required_box_metric": "Sum of every kernel in each complete forward, paired control/candidate/FLA ACU captures"
+}

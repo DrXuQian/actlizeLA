@@ -1,0 +1,3364 @@
+{
+  "status": "WITHIN_USER_TARGET",
+  "scope": "composite hash-bound per-workload evidence, not a fresh integrated library benchmark",
+  "contract": {
+    "schema": 1,
+    "authority": "user: majority wins and remaining losses within 5 percent permits early H800 closure",
+    "metric": "nsys sum of every GPU kernel in each complete forward",
+    "max_median_ratio": 1.05,
+    "registered_workloads": 14,
+    "registered_scenarios": 28,
+    "registered_reference_cells": 56,
+    "requires_strict_majority_of_scenarios": true,
+    "strict_win": "candidate maximum < fastest valid reference minimum",
+    "reference_numeric_failure": "visible and excluded from speed; never a win",
+    "selector": "one variant per workload across both gates and reference families; prefer standard if within target",
+    "scope": "composite hash-bound per-workload evidence, not a fresh integrated library benchmark"
+  },
+  "complete": true,
+  "shutdown_performance_condition": true,
+  "joint_strict_winning_scenarios": 17,
+  "scenario_denominator": 28,
+  "measured_reference_cells": 55,
+  "reference_numeric_failures": 1,
+  "counts": {
+    "WIN": 45,
+    "LOSS": 8,
+    "UNRESOLVED": 2,
+    "REFERENCE_NUMERIC_FAIL": 1
+  },
+  "pending": [],
+  "breaches": [],
+  "rows": [
+    {
+      "workload": "batch2",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 120.544,
+        "range": [
+          120.033,
+          122.048
+        ],
+        "samples": [
+          122.048,
+          120.256,
+          120.32,
+          121.792,
+          120.224,
+          121.12,
+          120.192,
+          120.768,
+          120.033,
+          120.993,
+          120.065,
+          121.472
+        ]
+      },
+      "reference": {
+        "median": 116.7685,
+        "range": [
+          115.521,
+          117.472
+        ],
+        "samples": [
+          117.472,
+          116.96,
+          115.776,
+          117.216,
+          116.769,
+          115.521,
+          116.48,
+          116.865,
+          115.648,
+          116.576,
+          117.377,
+          116.768
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-batch2-g-1.0/result.json",
+      "input_sha256": "912f8d8b3733476f",
+      "evidence_sha256": "ad82197b9fa42775db49c72d090a4fabb1ea4aec422bf2798a04c3324019a482",
+      "all_modes_median_ratios": {
+        "standard": 1.0323332063013568,
+        "fastmath": 1.041924834180451
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0323332063013568,
+      "observed_upper_ratio": 1.0565005496836073,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch2",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.361,
+        "range": [
+          118.305,
+          120.353
+        ],
+        "samples": [
+          120.256,
+          119.105,
+          119.489,
+          120.353,
+          118.945,
+          119.233,
+          119.744,
+          120.321,
+          119.233,
+          119.648,
+          119.168,
+          118.305
+        ]
+      },
+      "reference": {
+        "median": 220.161,
+        "range": [
+          218.561,
+          225.249
+        ],
+        "samples": [
+          218.561,
+          220.993,
+          219.65,
+          222.369,
+          220.321,
+          225.249,
+          219.424,
+          220.257,
+          219.906,
+          219.33,
+          220.065,
+          222.401
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-batch2-g-1.0/result.json",
+      "input_sha256": "912f8d8b3733476f",
+      "evidence_sha256": "b16c5d7ce27e94ad67a48c4687077452a94bb91b9f88928680aad6942ac5afe2",
+      "all_modes_median_ratios": {
+        "standard": 0.54215324239988,
+        "fastmath": 0.5433864308392494
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.54215324239988,
+      "observed_upper_ratio": 0.550660913886741,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch2",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 121.00800000000001,
+        "range": [
+          119.744,
+          122.848
+        ],
+        "samples": [
+          121.856,
+          121.12,
+          119.744,
+          122.209,
+          120.833,
+          122.017,
+          120.16,
+          120.737,
+          120.896,
+          121.921,
+          119.936,
+          122.848
+        ]
+      },
+      "reference": {
+        "median": 116.6405,
+        "range": [
+          115.52,
+          118.881
+        ],
+        "samples": [
+          117.121,
+          116.352,
+          116.672,
+          117.537,
+          116.48,
+          116.256,
+          115.52,
+          118.881,
+          116.32,
+          116.609,
+          117.889,
+          116.737
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-batch2-g-0.1/result.json",
+      "input_sha256": "2f03f5f03da695a5",
+      "evidence_sha256": "772215fb37556dec3e8e0e172649b94efee33557da970c4a15f9f31f91e584a2",
+      "all_modes_median_ratios": {
+        "standard": 1.0374441124652245,
+        "fastmath": 1.0375812860884512
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0374441124652245,
+      "observed_upper_ratio": 1.0634349030470915,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch2",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.489,
+        "range": [
+          118.465,
+          120.609
+        ],
+        "samples": [
+          119.713,
+          119.969,
+          119.393,
+          118.945,
+          119.457,
+          119.521,
+          119.105,
+          120.609,
+          120.256,
+          119.777,
+          118.689,
+          118.465
+        ]
+      },
+      "reference": {
+        "median": 220.4495,
+        "range": [
+          218.242,
+          224.098
+        ],
+        "samples": [
+          218.242,
+          221.506,
+          218.785,
+          220.449,
+          219.586,
+          221.281,
+          220.513,
+          221.345,
+          220.45,
+          218.913,
+          219.682,
+          224.098
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-batch2-g-0.1/result.json",
+      "input_sha256": "2f03f5f03da695a5",
+      "evidence_sha256": "75902755201e9d63a89a29a45d47db9b55737e506caad7e420ff4eef6f296936",
+      "all_modes_median_ratios": {
+        "standard": 0.5420243638565749,
+        "fastmath": 0.5403527792079365
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5420243638565749,
+      "observed_upper_ratio": 0.5526388137938618,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch4",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 239.745,
+        "range": [
+          238.625,
+          241.153
+        ],
+        "samples": [
+          239.425,
+          239.105,
+          238.849,
+          238.625,
+          240.065,
+          240.065,
+          239.937,
+          240.481,
+          241.153,
+          239.553,
+          239.329,
+          240.993
+        ]
+      },
+      "reference": {
+        "median": 228.641,
+        "range": [
+          227.233,
+          230.241
+        ],
+        "samples": [
+          228.193,
+          228.929,
+          230.145,
+          227.841,
+          228.961,
+          230.241,
+          227.489,
+          229.121,
+          228.641,
+          228.097,
+          228.641,
+          227.233
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-batch4-g-1.0/result.json",
+      "input_sha256": "5a9e7e355f1a8202",
+      "evidence_sha256": "af52544c5c676d929220af84ac32b5663da866ae6379eaa521b5719af7c02467",
+      "all_modes_median_ratios": {
+        "standard": 1.048565217961783,
+        "fastmath": 1.0381383916270486
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.048565217961783,
+      "observed_upper_ratio": 1.0612587080221623,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch4",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 239.28199999999998,
+        "range": [
+          237.953,
+          240.962
+        ],
+        "samples": [
+          238.689,
+          237.953,
+          239.298,
+          239.266,
+          239.777,
+          239.201,
+          239.873,
+          240.066,
+          240.962,
+          238.914,
+          240.034,
+          239.234
+        ]
+      },
+      "reference": {
+        "median": 326.8185,
+        "range": [
+          324.386,
+          331.362
+        ],
+        "samples": [
+          326.786,
+          328.515,
+          325.859,
+          331.362,
+          328.13,
+          326.851,
+          324.386,
+          325.954,
+          326.786,
+          324.547,
+          328.961,
+          328.29
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-batch4-g-1.0/result.json",
+      "input_sha256": "5a9e7e355f1a8202",
+      "evidence_sha256": "b3e8e7a1835ce6bc5fc41ae884b229f740715d3a9b3f4861d75a7bdefe743887",
+      "all_modes_median_ratios": {
+        "standard": 0.7321556154256873,
+        "fastmath": 0.7276515864310008
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.7321556154256873,
+      "observed_upper_ratio": 0.7428249061303508,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch4",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 239.873,
+        "range": [
+          238.625,
+          242.017
+        ],
+        "samples": [
+          239.329,
+          240.225,
+          239.777,
+          239.233,
+          238.625,
+          241.345,
+          239.552,
+          239.969,
+          238.689,
+          241.313,
+          240.545,
+          242.017
+        ]
+      },
+      "reference": {
+        "median": 228.8645,
+        "range": [
+          227.809,
+          230.848
+        ],
+        "samples": [
+          228.289,
+          228.992,
+          229.184,
+          229.249,
+          228.737,
+          227.809,
+          229.185,
+          230.848,
+          228.321,
+          228.513,
+          229.057,
+          228.097
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-batch4-g-0.1/result.json",
+      "input_sha256": "9242894d5207aba9",
+      "evidence_sha256": "bd974ec0e2966b368d396acb0a103352d63cf1779de09841b0442aafc033ea2b",
+      "all_modes_median_ratios": {
+        "standard": 1.0481005136226893,
+        "fastmath": 1.0359361106681029
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0481005136226893,
+      "observed_upper_ratio": 1.0623680363813546,
+      "within_user_limit": true
+    },
+    {
+      "workload": "batch4",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 238.353,
+        "range": [
+          236.674,
+          240.385
+        ],
+        "samples": [
+          237.921,
+          239.585,
+          238.977,
+          238.465,
+          237.889,
+          239.841,
+          237.889,
+          237.922,
+          236.674,
+          239.585,
+          240.385,
+          238.241
+        ]
+      },
+      "reference": {
+        "median": 324.226,
+        "range": [
+          323.394,
+          327.521
+        ],
+        "samples": [
+          324.099,
+          325.697,
+          323.394,
+          327.521,
+          323.809,
+          324.577,
+          325.217,
+          323.65,
+          323.585,
+          324.065,
+          324.353,
+          325.409
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-batch4-g-0.1/result.json",
+      "input_sha256": "9242894d5207aba9",
+      "evidence_sha256": "5054dcd13ba97b5abff3f3269f4a56589f1f8c1d1507ddaa19679ba32c92c683",
+      "all_modes_median_ratios": {
+        "standard": 0.735144621344371,
+        "fastmath": 0.7296176124061611
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.735144621344371,
+      "observed_upper_ratio": 0.743319294730267,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads16",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 91.5855,
+        "range": [
+          90.529,
+          92.002
+        ],
+        "samples": [
+          91.138,
+          90.946,
+          91.777,
+          91.457,
+          91.041,
+          91.81,
+          91.714,
+          90.529,
+          91.778,
+          92.002,
+          91.426,
+          91.97
+        ]
+      },
+      "reference": {
+        "median": 92.7695,
+        "range": [
+          92.321,
+          95.265
+        ],
+        "samples": [
+          92.545,
+          92.513,
+          94.562,
+          92.642,
+          94.658,
+          92.897,
+          92.482,
+          92.354,
+          93.154,
+          93.379,
+          92.321,
+          95.265
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/heads16-flashinfer-g-1.0/result.json",
+      "input_sha256": "fa674aba7e8c9471",
+      "evidence_sha256": "6239a315f895a581b43369e1f18182a1536ca85fd5084ad30d03b3726994167d",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9872371846350363,
+      "observed_upper_ratio": 0.996544664810823,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads16",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 91.249,
+        "range": [
+          90.209,
+          92.705
+        ],
+        "samples": [
+          91.553,
+          91.297,
+          91.361,
+          90.434,
+          90.561,
+          92.289,
+          92.705,
+          90.561,
+          92.001,
+          90.817,
+          91.201,
+          90.209
+        ]
+      },
+      "reference": {
+        "median": 91.93700000000001,
+        "range": [
+          91.169,
+          92.961
+        ],
+        "samples": [
+          92.001,
+          91.618,
+          92.065,
+          91.169,
+          92.961,
+          92.002,
+          91.585,
+          91.489,
+          92.45,
+          91.873,
+          92.353,
+          91.681
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/heads16-flashqla-g-1.0/result.json",
+      "input_sha256": "fa674aba7e8c9471",
+      "evidence_sha256": "20f06b29b0d3c5fc053845ad1e94b4a6fdf02d5fb3c4f0261406cd0a66ddac97",
+      "status": "MEASURED",
+      "verdict": "UNRESOLVED",
+      "median_ratio": 0.9925166146382848,
+      "observed_upper_ratio": 1.0168478320481742,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads16",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 91.314,
+        "range": [
+          90.594,
+          92.353
+        ],
+        "samples": [
+          92.226,
+          91.681,
+          92.353,
+          91.682,
+          91.394,
+          91.681,
+          90.754,
+          90.594,
+          91.234,
+          91.169,
+          91.169,
+          90.594
+        ]
+      },
+      "reference": {
+        "median": 93.2015,
+        "range": [
+          92.931,
+          95.457
+        ],
+        "samples": [
+          94.369,
+          94.913,
+          94.785,
+          92.995,
+          93.121,
+          93.282,
+          92.931,
+          94.753,
+          93.026,
+          95.457,
+          92.993,
+          93.089
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/heads16-flashinfer-g-0.1/result.json",
+      "input_sha256": "cc8ffd7de45d53e4",
+      "evidence_sha256": "1ad3df8184675580744acb2b55c40ad7a414dce4bac1e84d621feaf57c54728f",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9797481800185619,
+      "observed_upper_ratio": 0.9937803316439078,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads16",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 90.817,
+        "range": [
+          90.177,
+          92.449
+        ],
+        "samples": [
+          90.945,
+          90.305,
+          90.754,
+          90.497,
+          90.657,
+          92.097,
+          92.193,
+          90.849,
+          92.449,
+          90.817,
+          90.817,
+          90.177
+        ]
+      },
+      "reference": {
+        "median": 92.225,
+        "range": [
+          91.363,
+          92.706
+        ],
+        "samples": [
+          92.513,
+          91.363,
+          92.481,
+          91.457,
+          92.225,
+          91.617,
+          92.225,
+          91.553,
+          92.482,
+          92.706,
+          92.225,
+          91.905
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/heads16-flashqla-g-0.1/result.json",
+      "input_sha256": "cc8ffd7de45d53e4",
+      "evidence_sha256": "a0d59b3017c55714924facf2dbba490227be95aedb3fb5434bf6d0b99b643695",
+      "status": "MEASURED",
+      "verdict": "UNRESOLVED",
+      "median_ratio": 0.9847329899701817,
+      "observed_upper_ratio": 1.0118866499567658,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads32-gva1",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 102.40100000000001,
+        "range": [
+          101.057,
+          103.17
+        ],
+        "samples": [
+          101.057,
+          101.825,
+          102.081,
+          103.17,
+          102.562,
+          102.433,
+          102.369,
+          102.209,
+          102.114,
+          103.106,
+          102.593,
+          103.106
+        ]
+      },
+      "reference": {
+        "median": 113.64949999999999,
+        "range": [
+          113.122,
+          114.21
+        ],
+        "samples": [
+          113.122,
+          113.954,
+          113.794,
+          114.21,
+          113.601,
+          113.825,
+          113.441,
+          113.409,
+          113.25,
+          113.346,
+          113.698,
+          113.858
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "07653ba49ef90981dc03acb7b0290153f7b52f799259988a0cf2e6990223d8a1",
+        "result.json": "ead28ce85589951f0b0ef51cd7ff5b43731bdbc443c63b5041600fa98b25fc2c",
+        "forward.sqlite": "809a6fb97a9e2167a5e059c1d31318e089b3d3aee00d422999ac56c0914d703d",
+        "forward.nsys-rep": "6a87c03ec8d4e8cb996617b4376ab663fa4ab4e5249b987a8e8d301445c3334b"
+      },
+      "input_sha256": "191f9bd81d2a5668",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9010246415514368,
+      "observed_upper_ratio": 0.9120241862767632,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads32-gva1",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 99.857,
+        "range": [
+          98.594,
+          101.538
+        ],
+        "samples": [
+          99.234,
+          100.226,
+          99.841,
+          99.33,
+          100.225,
+          98.594,
+          100.034,
+          101.538,
+          99.873,
+          99.618,
+          99.489,
+          101.281
+        ]
+      },
+      "reference": {
+        "median": 172.6905,
+        "range": [
+          170.018,
+          174.467
+        ],
+        "samples": [
+          173.155,
+          171.331,
+          173.891,
+          172.482,
+          173.443,
+          170.978,
+          172.962,
+          174.467,
+          172.642,
+          170.018,
+          172.739,
+          170.563
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "59d203179a49d7457781ed73a07f6213208d5643fc13ff6e49e03ed5124a84e9",
+        "result.json": "0d0f06084ab6980a86dff8cc078850df96c58e71bd949a839b611a4fad2a1b0e",
+        "forward.sqlite": "d2e8d172115aeec838e7627e7358a827f5b7c5e4115aedadd5f25663306f6fba",
+        "forward.nsys-rep": "356ed577ae4dc267719486b274f49465e039d6c5cfb9f82883b0de685e5ecf68"
+      },
+      "input_sha256": "191f9bd81d2a5668",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5782425784857882,
+      "observed_upper_ratio": 0.5972191179757437,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads32-gva1",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 102.81700000000001,
+        "range": [
+          101.376,
+          103.68
+        ],
+        "samples": [
+          101.376,
+          102.016,
+          103.04,
+          103.392,
+          102.785,
+          102.849,
+          103.68,
+          102.72,
+          102.208,
+          103.073,
+          102.721,
+          103.009
+        ]
+      },
+      "reference": {
+        "median": 114.257,
+        "range": [
+          113.312,
+          114.497
+        ],
+        "samples": [
+          113.344,
+          113.984,
+          114.433,
+          113.696,
+          114.304,
+          114.368,
+          114.273,
+          114.241,
+          114.497,
+          113.696,
+          113.312,
+          114.336
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "a1d8f76b3c3b559e5161a3ce7e922f3d735ccb6ac4fde2ce11512d89b5beaa27",
+        "result.json": "3e11b2b6700347d887dcf7cd9c3bb527e2d257ca1323fa2e79732326ecf368d8",
+        "forward.sqlite": "ed4623c6e7e0fae07b3848175949cadb07e031e85ce38cbb72e5759783583d98",
+        "forward.nsys-rep": "e06184095c3035ccae293270a810b3018b4ca1655f35f3a7f7477c70672fc464"
+      },
+      "input_sha256": "3986574159bafc78",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.899874843554443,
+      "observed_upper_ratio": 0.9149957639085005,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads32-gva1",
+      "gate": -0.1,
+      "family": "flashqla",
+      "status": "REFERENCE_NUMERIC_FAIL",
+      "reason": "pinned QLA output error0.021621605 > unchanged0.02; no speed verdict"
+    },
+    {
+      "workload": "heads64-gva2",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.537,
+        "range": [
+          118.72,
+          122.113
+        ],
+        "samples": [
+          120.736,
+          121.249,
+          119.553,
+          121.121,
+          118.72,
+          119.905,
+          119.201,
+          119.072,
+          119.36,
+          119.232,
+          119.521,
+          122.113
+        ]
+      },
+      "reference": {
+        "median": 115.2165,
+        "range": [
+          114.369,
+          116.737
+        ],
+        "samples": [
+          116.705,
+          114.401,
+          114.72,
+          114.689,
+          115.297,
+          116.737,
+          114.689,
+          116.609,
+          114.369,
+          115.392,
+          115.52,
+          115.136
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-heads64-gva2-g-1.0/result.json",
+      "input_sha256": "912f8d8b3733476f",
+      "evidence_sha256": "61dfb86b863c42e054fadeed074f52878a8131f31d29253b471b326343d42282",
+      "all_modes_median_ratios": {
+        "standard": 1.0374989693316496,
+        "fastmath": 1.0452712936081205
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0374989693316496,
+      "observed_upper_ratio": 1.0677106558595424,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva2",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.34450000000001,
+        "range": [
+          117.409,
+          120.545
+        ],
+        "samples": [
+          119.937,
+          119.296,
+          118.72,
+          119.393,
+          117.409,
+          119.873,
+          119.616,
+          120.545,
+          119.873,
+          118.753,
+          117.825,
+          118.721
+        ]
+      },
+      "reference": {
+        "median": 227.7455,
+        "range": [
+          224.898,
+          231.745
+        ],
+        "samples": [
+          225.345,
+          226.881,
+          225.473,
+          228.961,
+          224.898,
+          231.745,
+          227.617,
+          228.898,
+          227.874,
+          228.386,
+          226.625,
+          229.506
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-heads64-gva2-g-1.0/result.json",
+      "input_sha256": "912f8d8b3733476f",
+      "evidence_sha256": "37f014b083de94675554babc81add6bf5d13e61cc466db05e2f8709c0674c261",
+      "all_modes_median_ratios": {
+        "standard": 0.5240257216937327,
+        "fastmath": 0.522903855399997
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5240257216937327,
+      "observed_upper_ratio": 0.5359985415610633,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva2",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 118.993,
+        "range": [
+          118.112,
+          120.32
+        ],
+        "samples": [
+          120.033,
+          118.881,
+          118.177,
+          120.32,
+          119.041,
+          120.288,
+          118.945,
+          118.144,
+          118.112,
+          120.32,
+          118.561,
+          120.129
+        ]
+      },
+      "reference": {
+        "median": 114.17699999999999,
+        "range": [
+          113.441,
+          116.609
+        ],
+        "samples": [
+          114.529,
+          113.601,
+          114.273,
+          116.609,
+          114.049,
+          114.081,
+          113.569,
+          115.233,
+          113.473,
+          114.912,
+          115.68,
+          113.441
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-heads64-gva2-g-0.1/result.json",
+      "input_sha256": "2f03f5f03da695a5",
+      "evidence_sha256": "524b1590bc8102aa3148219576684f7a55b3d25084b6309d0d6509b094678390",
+      "all_modes_median_ratios": {
+        "standard": 1.0421801238428055,
+        "fastmath": 1.0421757446771243
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0421801238428055,
+      "observed_upper_ratio": 1.060639451344752,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva2",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 120.209,
+        "range": [
+          119.328,
+          120.8
+        ],
+        "samples": [
+          119.393,
+          120.481,
+          120.193,
+          119.84,
+          120.321,
+          120.385,
+          120.225,
+          120.353,
+          120.8,
+          119.328,
+          119.681,
+          119.361
+        ]
+      },
+      "reference": {
+        "median": 226.6095,
+        "range": [
+          225.121,
+          228.577
+        ],
+        "samples": [
+          225.121,
+          227.649,
+          226.402,
+          227.394,
+          226.114,
+          228.577,
+          225.537,
+          226.561,
+          226.658,
+          227.809,
+          227.745,
+          226.433
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-heads64-gva2-g-0.1/result.json",
+      "input_sha256": "2f03f5f03da695a5",
+      "evidence_sha256": "296cbb25b49e2dae0a58039e96ecb7d12e531d163cd4683b84cdfd025b864d0e",
+      "all_modes_median_ratios": {
+        "standard": 0.5304676105811981,
+        "fastmath": 0.5282060107806601
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5304676105811981,
+      "observed_upper_ratio": 0.5366003171627702,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva4",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.32900000000001,
+        "range": [
+          118.4,
+          120.736
+        ],
+        "samples": [
+          119.361,
+          120.736,
+          120.033,
+          118.817,
+          119.616,
+          118.593,
+          119.744,
+          118.4,
+          118.401,
+          119.297,
+          119.553,
+          118.529
+        ]
+      },
+      "reference": {
+        "median": 114.7525,
+        "range": [
+          113.376,
+          116.544
+        ],
+        "samples": [
+          114.944,
+          115.201,
+          114.496,
+          114.656,
+          114.368,
+          116.544,
+          114.336,
+          115.264,
+          113.376,
+          114.752,
+          115.233,
+          114.753
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-heads64-gva4-g-1.0/result.json",
+      "input_sha256": "c2705fe48e4c288d",
+      "evidence_sha256": "142a17df4d3d836b4da0d10a4c34e6d4f9d473ace8b45d1aa2821dd8ecdbbc49",
+      "all_modes_median_ratios": {
+        "standard": 1.0398814840635282,
+        "fastmath": 1.0428051676434065
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0398814840635282,
+      "observed_upper_ratio": 1.0649167372283375,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva4",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 118.001,
+        "range": [
+          117.152,
+          118.977
+        ],
+        "samples": [
+          118.593,
+          117.825,
+          118.977,
+          118.497,
+          117.889,
+          118.528,
+          117.761,
+          118.881,
+          117.473,
+          118.113,
+          117.729,
+          117.152
+        ]
+      },
+      "reference": {
+        "median": 223.377,
+        "range": [
+          221.986,
+          227.394
+        ],
+        "samples": [
+          223.233,
+          226.689,
+          225.057,
+          224.609,
+          222.049,
+          227.394,
+          223.009,
+          223.521,
+          221.986,
+          222.337,
+          222.913,
+          227.201
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-heads64-gva4-g-1.0/result.json",
+      "input_sha256": "c2705fe48e4c288d",
+      "evidence_sha256": "70dbb5a18c4327ac0713741dd163ae1d103a3c86be9adf4d19f012d231fea236",
+      "all_modes_median_ratios": {
+        "standard": 0.5282594000277557,
+        "fastmath": 0.5286891667450095
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5282594000277557,
+      "observed_upper_ratio": 0.5359662321047274,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva4",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 119.76050000000001,
+        "range": [
+          117.728,
+          120.288
+        ],
+        "samples": [
+          119.872,
+          119.649,
+          120.288,
+          119.425,
+          120.001,
+          119.968,
+          119.969,
+          119.425,
+          118.624,
+          119.905,
+          117.728,
+          118.465
+        ]
+      },
+      "reference": {
+        "median": 114.2405,
+        "range": [
+          113.025,
+          115.745
+        ],
+        "samples": [
+          115.745,
+          115.264,
+          115.137,
+          114.177,
+          114.913,
+          115.105,
+          114.304,
+          113.504,
+          113.025,
+          114.145,
+          113.728,
+          113.313
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashinfer-heads64-gva4-g-0.1/result.json",
+      "input_sha256": "b1349e78bbcbb86e",
+      "evidence_sha256": "d3d8a1ac76bba739b72fe576ef51516507236e2e38bb49bf1eb3f5a83ad8bf67",
+      "all_modes_median_ratios": {
+        "standard": 1.0483191162503667,
+        "fastmath": 1.0366945172683943
+      },
+      "status": "MEASURED",
+      "verdict": "LOSS",
+      "median_ratio": 1.0483191162503667,
+      "observed_upper_ratio": 1.0642601194426011,
+      "within_user_limit": true
+    },
+    {
+      "workload": "heads64-gva4",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value128-packed-standard",
+      "candidate": {
+        "median": 118.785,
+        "range": [
+          117.409,
+          119.649
+        ],
+        "samples": [
+          119.425,
+          118.497,
+          119.169,
+          119.073,
+          119.073,
+          119.649,
+          118.145,
+          118.689,
+          118.305,
+          118.881,
+          117.409,
+          118.465
+        ]
+      },
+      "reference": {
+        "median": 226.48149999999998,
+        "range": [
+          223.137,
+          228.866
+        ],
+        "samples": [
+          223.778,
+          226.85,
+          226.561,
+          226.402,
+          226.946,
+          227.969,
+          223.137,
+          227.874,
+          223.586,
+          225.154,
+          224.321,
+          228.866
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": "/workspace/gdn-sm90-fast-exp2-20260927/highhead-nsys/flashqla-heads64-gva4-g-0.1/result.json",
+      "input_sha256": "b1349e78bbcbb86e",
+      "evidence_sha256": "ed226e870760e8e573dd27d4940a7e5dc738970ff5c79ea462e313b8772e63b1",
+      "all_modes_median_ratios": {
+        "standard": 0.524479924408837,
+        "fastmath": 0.5239854027812426
+      },
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.524479924408837,
+      "observed_upper_ratio": 0.5362131784509069,
+      "within_user_limit": true
+    },
+    {
+      "workload": "initial-vary",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 105.2005,
+        "range": [
+          103.328,
+          106.337
+        ],
+        "samples": [
+          103.584,
+          104.897,
+          106.337,
+          103.328,
+          105.601,
+          105.569,
+          105.889,
+          104.097,
+          104.8,
+          105.504,
+          106.209,
+          104.833
+        ]
+      },
+      "reference": {
+        "median": 114.80099999999999,
+        "range": [
+          112.001,
+          115.361
+        ],
+        "samples": [
+          112.897,
+          114.817,
+          115.073,
+          112.001,
+          114.689,
+          114.369,
+          115.361,
+          114.817,
+          115.137,
+          114.785,
+          114.465,
+          115.137
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "fbe127d0bbc6c72b476f6d6765c4221792681575565336c28fb49b4f6857ab38",
+        "result.json": "310968a9b4ced4e6ea75488fc44c5ed3587fcedf1bfc5d9d2378079ab06a6cf2",
+        "forward.sqlite": "1b083d0ffc3678e28444bb94cb0811f395064b03866bebf85e6e99c40df6ccb2",
+        "forward.nsys-rep": "c2e644088b81588a1d11c189d023ba3d2e7e60553361af5a355e4fd4db41ed44"
+      },
+      "input_sha256": "069ebb177b93d370",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9163726796804907,
+      "observed_upper_ratio": 0.9494290229551522,
+      "within_user_limit": true
+    },
+    {
+      "workload": "initial-vary",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.249,
+        "range": [
+          100.256,
+          102.049
+        ],
+        "samples": [
+          101.281,
+          101.281,
+          101.217,
+          101.057,
+          102.049,
+          100.256,
+          101.025,
+          101.377,
+          101.473,
+          101.377,
+          100.832,
+          100.864
+        ]
+      },
+      "reference": {
+        "median": 165.24900000000002,
+        "range": [
+          163.84,
+          167.936
+        ],
+        "samples": [
+          167.936,
+          164.736,
+          164.865,
+          165.473,
+          164.001,
+          164.384,
+          165.602,
+          167.426,
+          165.025,
+          165.664,
+          163.84,
+          166.017
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "66a9dd17fca715873a3173e47c3260baeea4167962da0cf2ee37eeae1fe7f1c6",
+        "result.json": "55e4d56b24dad5ccf08354b419abe9e556ecd1165a82f4d96d35cd750536f8ec",
+        "forward.sqlite": "f30d0ded4f1aeb78433dabc92527f2e32b85b2f02a353936ece32449353235ee",
+        "forward.nsys-rep": "c736cd85cea90b1be4c04b0dbc3e7e7ad76e06c202e569ae61f2331fe33852c9"
+      },
+      "input_sha256": "069ebb177b93d370",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.6127056744670163,
+      "observed_upper_ratio": 0.622857666015625,
+      "within_user_limit": true
+    },
+    {
+      "workload": "initial-vary",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 105.249,
+        "range": [
+          103.393,
+          105.473
+        ],
+        "samples": [
+          104.0,
+          103.393,
+          105.377,
+          105.217,
+          105.313,
+          105.281,
+          105.473,
+          104.161,
+          104.0,
+          104.704,
+          105.441,
+          105.473
+        ]
+      },
+      "reference": {
+        "median": 114.369,
+        "range": [
+          110.497,
+          115.009
+        ],
+        "samples": [
+          113.537,
+          114.433,
+          114.688,
+          114.209,
+          114.369,
+          115.009,
+          114.593,
+          114.369,
+          110.497,
+          114.305,
+          114.497,
+          114.273
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "4cf918209f4bd89c88a4829d3e9a0e1b45e502a725034d712f41ce21799a0985",
+        "result.json": "6f98ac735a32670e6942435a9495dfcee7a057a05a5cc1c4f081eaa6d4a2a6e0",
+        "forward.sqlite": "e77a833f2d38737531e3c1ff78f8c4a50eaadda17c6390f3c1fa20481d39aa34",
+        "forward.nsys-rep": "bde90e3a9b073d959c88c77dcb4f97921b14235362d08444109c0c639824a2af"
+      },
+      "input_sha256": "0dbc008453324f7e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9202581119009522,
+      "observed_upper_ratio": 0.9545327022453098,
+      "within_user_limit": true
+    },
+    {
+      "workload": "initial-vary",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.041,
+        "range": [
+          100.321,
+          102.305
+        ],
+        "samples": [
+          100.897,
+          101.089,
+          101.377,
+          100.641,
+          102.176,
+          100.321,
+          100.417,
+          101.281,
+          102.305,
+          100.993,
+          101.281,
+          100.545
+        ]
+      },
+      "reference": {
+        "median": 169.857,
+        "range": [
+          167.808,
+          172.13
+        ],
+        "samples": [
+          169.984,
+          172.13,
+          170.369,
+          167.808,
+          168.673,
+          168.832,
+          170.369,
+          170.754,
+          169.73,
+          169.475,
+          170.692,
+          169.602
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "a2cdc5ad182fadbded777043645be4e3a7daf6b7e32b63561d736860e40ff168",
+        "result.json": "1f82854b5ca32d24c63c78a3ffa1172f69b961e4b66831ac4a1fbc8d308225a1",
+        "forward.sqlite": "84f192d2ded47a83a5631c8b4078941e5ca335c2cbcd8883c01f9456c5737930",
+        "forward.nsys-rep": "b964e1644b7d60ee433b0a57d910c1687c7837eebedefd7a97fb572e05a1cee7"
+      },
+      "input_sha256": "0dbc008453324f7e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5948592050960514,
+      "observed_upper_ratio": 0.6096550819984745,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq1024",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 53.552,
+        "range": [
+          51.392,
+          55.04
+        ],
+        "samples": [
+          54.176,
+          52.224,
+          54.399,
+          52.416,
+          54.24,
+          52.736,
+          55.04,
+          51.392,
+          54.24,
+          52.928,
+          54.88,
+          52.352
+        ]
+      },
+      "reference": {
+        "median": 58.496,
+        "range": [
+          58.176,
+          59.2
+        ],
+        "samples": [
+          59.2,
+          58.272,
+          59.104,
+          58.496,
+          58.336,
+          58.496,
+          59.136,
+          58.752,
+          58.4,
+          58.943,
+          58.176,
+          58.24
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "4b8aa32c685dfa9997b5735c0c207e75b2934f1f57e853ecd84321db777f097b",
+        "result.json": "5d499b5f934573e7031154f79473f513b0d6a0ce3bd18fc81e7453f1a5827db6",
+        "forward.sqlite": "f45385fc3bfbe328187e2c381f163a30a130343eb11810590cd18f4bf9f8ce0f",
+        "forward.nsys-rep": "20830eb32f930400cbc5bd2a342de7b96a5fd19e02add8e6eebcf21a5df244bc"
+      },
+      "input_sha256": "fa674aba7e8c9471",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9154814004376367,
+      "observed_upper_ratio": 0.946094609460946,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq1024",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 53.519999999999996,
+        "range": [
+          52.032,
+          54.783
+        ],
+        "samples": [
+          53.728,
+          52.224,
+          54.72,
+          52.799,
+          54.783,
+          53.312,
+          53.92,
+          52.288,
+          53.824,
+          53.216,
+          54.176,
+          52.032
+        ]
+      },
+      "reference": {
+        "median": 96.976,
+        "range": [
+          95.008,
+          98.656
+        ],
+        "samples": [
+          97.824,
+          97.408,
+          97.824,
+          97.28,
+          95.424,
+          95.68,
+          95.36,
+          95.008,
+          96.128,
+          98.656,
+          98.24,
+          96.672
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": {
+        "receipt.json": "e413b251aff356edef2b5d755efb0113242628be3ce8d76fd7d171c6b2e294f8",
+        "result.json": "4b7cf0aa509627d12b87e6d3c3292adbad625ccb5aec77927c5b0e26389c79f3",
+        "forward.sqlite": "b73ca0fe1e065e47a780139a2c9dfb7b736594283664389c3ae8f604797b1b49",
+        "forward.nsys-rep": "6aa5eb50e3285dc389fac8686b0a64c261ebb231f23851ff481043253f7a9edd"
+      },
+      "input_sha256": "fa674aba7e8c9471",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5518891272067316,
+      "observed_upper_ratio": 0.5766146008757158,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq1024",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 53.92,
+        "range": [
+          52.16,
+          55.008
+        ],
+        "samples": [
+          54.624,
+          52.448,
+          54.656,
+          52.96,
+          54.464,
+          53.056,
+          54.88,
+          52.16,
+          55.008,
+          53.632,
+          54.208,
+          52.736
+        ]
+      },
+      "reference": {
+        "median": 58.7035,
+        "range": [
+          58.016,
+          59.072
+        ],
+        "samples": [
+          59.072,
+          58.687,
+          58.911,
+          58.432,
+          58.399,
+          58.72,
+          58.528,
+          58.432,
+          58.016,
+          58.976,
+          58.784,
+          58.911
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "dbd6150a5693ea45d96e0cd8b38adb7a3a9f5a1b799a422bf03a9516ada4cd51",
+        "result.json": "c36f9d91334078403cf9a63bd661e6ecc2f9ca0a4c9b8d74a500a23a328bee87",
+        "forward.sqlite": "efc8a7f6a8e64bd6b2162628cce65b067faf2ece91ae54009b09b981a0bf9da3",
+        "forward.nsys-rep": "cb480f17f375255551f71498da7bc3ed83203b601af6617141e0a68df0634238"
+      },
+      "input_sha256": "cc8ffd7de45d53e4",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9185142282828112,
+      "observed_upper_ratio": 0.9481522338665197,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq1024",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 53.296,
+        "range": [
+          52.511,
+          54.944
+        ],
+        "samples": [
+          53.184,
+          52.511,
+          54.592,
+          52.671,
+          54.944,
+          53.152,
+          54.304,
+          52.927,
+          53.408,
+          53.472,
+          53.6,
+          52.735
+        ]
+      },
+      "reference": {
+        "median": 96.6075,
+        "range": [
+          95.648,
+          98.016
+        ],
+        "samples": [
+          96.928,
+          97.44,
+          96.8,
+          96.352,
+          96.063,
+          95.648,
+          95.807,
+          96.223,
+          96.415,
+          98.016,
+          97.984,
+          96.864
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": {
+        "receipt.json": "715ed8acaf345dad1695c44b05f1c508018d59fc9111f156ea867b0e04fef2ac",
+        "result.json": "c7b0e8b5b2c0bec774d15b0231977b03f5e1630da851816833b0ce3538d00718",
+        "forward.sqlite": "5969c3a8b9194546e444b19149f77a62923d85e247a0c7bd5224085f9f913bf5",
+        "forward.nsys-rep": "f4187f6d17feb93fcff62ad82a3d8dee6f1545bb0370f85cfddc32bd9ca82399"
+      },
+      "input_sha256": "cc8ffd7de45d53e4",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.551675594544937,
+      "observed_upper_ratio": 0.574439611910338,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq2048",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.393,
+        "range": [
+          100.865,
+          102.113
+        ],
+        "samples": [
+          100.865,
+          101.185,
+          101.409,
+          101.537,
+          101.185,
+          101.633,
+          102.049,
+          100.961,
+          101.345,
+          102.113,
+          101.474,
+          101.377
+        ]
+      },
+      "reference": {
+        "median": 112.6095,
+        "range": [
+          112.129,
+          113.089
+        ],
+        "samples": [
+          112.61,
+          112.609,
+          112.225,
+          112.129,
+          113.057,
+          112.61,
+          112.449,
+          112.545,
+          112.866,
+          112.385,
+          113.089,
+          112.833
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "6015edf3ea7d98e9c121747c4fa12d75121117fa320017e090b2f627be3042f2",
+        "result.json": "80dd5db1ee9cc50338ceb70a4bd5dffbc9469fa2d67b4be0eb5447062a5fec5e",
+        "forward.sqlite": "65b898fa78edee256f1413ecb556d13f2700b984a559080b6f6fc5c18a042c1a",
+        "forward.nsys-rep": "8c3bf461a92ee56314248be2704b1c3989c5eb6a69d0473a8ce6999a3ecd0d67"
+      },
+      "input_sha256": "5b1677989c9b708f",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9003947269102518,
+      "observed_upper_ratio": 0.9106743126220692,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq2048",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 100.14500000000001,
+        "range": [
+          99.297,
+          102.849
+        ],
+        "samples": [
+          100.129,
+          99.297,
+          99.905,
+          100.161,
+          101.313,
+          100.129,
+          100.161,
+          102.849,
+          101.057,
+          99.457,
+          99.329,
+          100.193
+        ]
+      },
+      "reference": {
+        "median": 164.56150000000002,
+        "range": [
+          163.041,
+          166.754
+        ],
+        "samples": [
+          163.937,
+          165.186,
+          163.041,
+          166.754,
+          165.345,
+          166.338,
+          165.73,
+          163.267,
+          163.041,
+          163.778,
+          163.299,
+          165.601
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "0d75a9963fc82f2e29d725d9ae6ef39009208e461fd83341a7d5335ed64c1953",
+        "result.json": "15070905b1460d526a131e774577bbcd174ffb3207de24bee3329d1d855e442e",
+        "forward.sqlite": "19cd4f6acbbd5999d39b63bb90c934dff5231080c08e77ef73db653c43218d01",
+        "forward.nsys-rep": "48ac513e883825650a5debc0f04f1df3f390e5f81a2ca082aa1042359fb7bbb2"
+      },
+      "input_sha256": "5b1677989c9b708f",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.6085566794177253,
+      "observed_upper_ratio": 0.630816788415184,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq2048",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.505,
+        "range": [
+          100.289,
+          102.081
+        ],
+        "samples": [
+          100.673,
+          100.289,
+          101.505,
+          102.081,
+          101.889,
+          101.505,
+          101.985,
+          100.993,
+          101.153,
+          101.825,
+          101.697,
+          100.961
+        ]
+      },
+      "reference": {
+        "median": 112.769,
+        "range": [
+          112.193,
+          113.089
+        ],
+        "samples": [
+          112.545,
+          112.993,
+          112.865,
+          112.481,
+          112.481,
+          112.513,
+          112.769,
+          113.089,
+          112.929,
+          112.193,
+          112.993,
+          112.769
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "83c6f0b1410ed950d3546b4c8618ea943e6b8bb2e2237b619092e3c75d2da784",
+        "result.json": "a467de0acd3c4ec8a65f6e248962a0c252a88ad6555a2612277812a953719475",
+        "forward.sqlite": "183ec168a3e74da5ef4b9cc59483fe2424326de38599e552a873260d8b57514f",
+        "forward.nsys-rep": "808e9ebcfe5b1edb6971a0415a6d733e02968a063d940a8975b14f159cc2981c"
+      },
+      "input_sha256": "e976de55fd4a2ac5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9001143931399586,
+      "observed_upper_ratio": 0.9098695997076467,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq2048",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 99.537,
+        "range": [
+          97.697,
+          100.961
+        ],
+        "samples": [
+          99.265,
+          97.889,
+          99.681,
+          98.849,
+          99.521,
+          99.553,
+          98.401,
+          100.961,
+          99.841,
+          99.713,
+          97.697,
+          100.417
+        ]
+      },
+      "reference": {
+        "median": 165.01,
+        "range": [
+          163.617,
+          167.267
+        ],
+        "samples": [
+          163.617,
+          164.77,
+          165.377,
+          167.267,
+          165.76,
+          164.13,
+          164.419,
+          165.602,
+          164.193,
+          165.987,
+          164.257,
+          165.25
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "c0f67749b029f9cdff3cd8894a06c49b6b6046e7853c8b743c616dec9d28f42b",
+        "result.json": "ebedcc40d16fb1b2ee72cbb39509d3090dbf79b3c5704544a43de56dc98f455a",
+        "forward.sqlite": "84cfa36245b77c56ef55a5f2df11c5874f366a08cdbced1fedf2119096fcf148",
+        "forward.nsys-rep": "dbe2d9a1e44a9b59f598c5f2a3155d50ab5041843ce7400d9ab36f9083d89c7e"
+      },
+      "input_sha256": "e976de55fd4a2ac5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.6032179867886795,
+      "observed_upper_ratio": 0.6170569072895848,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq4096",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 186.99200000000002,
+        "range": [
+          185.729,
+          187.68
+        ],
+        "samples": [
+          187.169,
+          186.016,
+          186.976,
+          186.016,
+          187.04,
+          185.92,
+          187.136,
+          187.68,
+          187.552,
+          187.008,
+          186.72,
+          185.729
+        ]
+      },
+      "reference": {
+        "median": 207.80849999999998,
+        "range": [
+          205.696,
+          213.249
+        ],
+        "samples": [
+          205.696,
+          208.512,
+          206.689,
+          208.64,
+          205.953,
+          209.184,
+          208.128,
+          209.664,
+          205.985,
+          206.72,
+          213.249,
+          207.489
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": {
+        "receipt.json": "22dc2c5947736ae5a6629f980f0f628c6e95e3c6514e4577d8c62d1c42648f5e",
+        "result.json": "dcbde8f86e5b465e0fe0e989b6d5e7d10aab74327df6d429979f9df39a2ec81c",
+        "forward.sqlite": "f4e7f1e78622d05c03f2963356b118d9cef49dea93459bee1d4c2c2198ede316",
+        "forward.nsys-rep": "735fb92028bc5e0b012ea44ed6db27c33bcdfe280d820ebb6743430a1de91cab"
+      },
+      "input_sha256": "912f8d8b3733476f",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.8998284478257629,
+      "observed_upper_ratio": 0.9124144368388302,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq4096",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 186.544,
+        "range": [
+          185.824,
+          187.328
+        ],
+        "samples": [
+          186.24,
+          186.496,
+          187.296,
+          185.952,
+          186.592,
+          187.296,
+          187.296,
+          185.888,
+          186.688,
+          186.112,
+          187.328,
+          185.824
+        ]
+      },
+      "reference": {
+        "median": 238.848,
+        "range": [
+          236.993,
+          240.512
+        ],
+        "samples": [
+          237.761,
+          239.584,
+          240.512,
+          239.36,
+          239.2,
+          239.233,
+          238.177,
+          238.273,
+          238.752,
+          238.656,
+          238.944,
+          236.993
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "0e38ad5090ff2761a18f2a826cc924aeb0dc108717dd807a5bdc1277810a7bc4",
+        "result.json": "060d0d4a54efdb44fddad7b953c3191f86efd075ac5b08f98fd2a2e636a14d6c",
+        "forward.sqlite": "f0dfb0cf3e1acca1b5391b43a49b3bb08dad22ddac2aaf73f5f33ba09be18b22",
+        "forward.nsys-rep": "8bdc539933a23336d99d840375f90d5d339414b16d31a212d5ee5824b2c6e8d8"
+      },
+      "input_sha256": "912f8d8b3733476f",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.7810155412647374,
+      "observed_upper_ratio": 0.7904368483457318,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq4096",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 187.024,
+        "range": [
+          185.951,
+          188.16
+        ],
+        "samples": [
+          187.744,
+          185.951,
+          186.944,
+          186.624,
+          188.16,
+          186.847,
+          187.552,
+          187.104,
+          187.52,
+          186.624,
+          187.456,
+          186.72
+        ]
+      },
+      "reference": {
+        "median": 209.44,
+        "range": [
+          205.728,
+          213.088
+        ],
+        "samples": [
+          213.088,
+          208.672,
+          210.336,
+          210.24,
+          205.728,
+          209.472,
+          207.744,
+          210.4,
+          208.672,
+          207.616,
+          211.04,
+          209.408
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": {
+        "receipt.json": "5a79f88e0d175ec3b0c5b3a18c7ce742ee9e7a706b989dec22bd4f5700d42e2a",
+        "result.json": "4f686b10a31684b0c3d6d608d302cb99f2239d6d221ca45d702ed5448ad6b3ab",
+        "forward.sqlite": "240545305423e64c1917889973aa3d92df5cf74530c3a5fcee4391b8a4c74b86",
+        "forward.nsys-rep": "f14ac3fda440025e57aff420157d626839878ee0f81c30a05b6708b599bfa870"
+      },
+      "input_sha256": "2f03f5f03da695a5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.8929717341482047,
+      "observed_upper_ratio": 0.914605692953803,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq4096",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 185.808,
+        "range": [
+          185.28,
+          187.456
+        ],
+        "samples": [
+          186.848,
+          185.889,
+          185.632,
+          185.728,
+          185.888,
+          186.368,
+          186.176,
+          185.504,
+          185.728,
+          185.28,
+          187.456,
+          185.409
+        ]
+      },
+      "reference": {
+        "median": 241.184,
+        "range": [
+          237.088,
+          243.2
+        ],
+        "samples": [
+          240.033,
+          237.088,
+          243.2,
+          241.6,
+          241.216,
+          239.616,
+          241.504,
+          242.016,
+          240.288,
+          239.809,
+          241.152,
+          241.6
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "596cc29793485335f90bfcf2288724e1c6abf2860c9b2e9967775680ef4f5487",
+        "result.json": "561ac7ac498f5ddfc2e7b1826bbf7311c53e2b62c53b65fb9d7f189e8778cd1a",
+        "forward.sqlite": "89ab04f3366d3fa1b416b6be843a0ceedf22d4a9f957f96824c12e39d9a03c79",
+        "forward.nsys-rep": "957534119378bd682b49840b3726752b0971608ca9e4505230e890181a131d6b"
+      },
+      "input_sha256": "2f03f5f03da695a5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.7703993631418335,
+      "observed_upper_ratio": 0.7906600080982589,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq512",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 30.272,
+        "range": [
+          26.496,
+          30.72
+        ],
+        "samples": [
+          30.464,
+          26.496,
+          30.624,
+          30.08,
+          30.272,
+          30.528,
+          30.272,
+          26.848,
+          30.72,
+          30.176,
+          30.624,
+          30.144
+        ]
+      },
+      "reference": {
+        "median": 31.872,
+        "range": [
+          31.615,
+          32.128
+        ],
+        "samples": [
+          31.872,
+          31.872,
+          32.063,
+          32.032,
+          31.744,
+          31.744,
+          31.904,
+          31.615,
+          31.968,
+          32.128,
+          31.615,
+          31.712
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "8dc204fad20430e35eee6da8855d70cae15d030759579e8be83e95a4e57e55ec",
+        "result.json": "0c458612f0435a767c98bd13e505e8bb709a7caaac0c6d5f65580ea48657456e",
+        "forward.sqlite": "78995f5e46109f3e7e6579cfb1fde78f39cd6223bbccdfea1bde4b26c8862bde",
+        "forward.nsys-rep": "96407ee839fb82f69008b2750bcf649c7d0685e7c5af595301506d6c18540fd4"
+      },
+      "input_sha256": "0052378eac2884b5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9497991967871485,
+      "observed_upper_ratio": 0.9716906531709631,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq512",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 30.415999999999997,
+        "range": [
+          26.752,
+          30.784
+        ],
+        "samples": [
+          30.496,
+          26.752,
+          30.72,
+          30.784,
+          27.327,
+          30.368,
+          30.432,
+          29.76,
+          30.72,
+          30.4,
+          30.432,
+          27.296
+        ]
+      },
+      "reference": {
+        "median": 54.864000000000004,
+        "range": [
+          54.688,
+          55.52
+        ],
+        "samples": [
+          55.52,
+          54.848,
+          54.815,
+          54.911,
+          55.392,
+          54.88,
+          55.2,
+          54.847,
+          55.008,
+          54.784,
+          54.688,
+          54.848
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": {
+        "receipt.json": "369eba061d58f2b291ff851885ffa1242cac2dc272e5e12cef63ee148321b82a",
+        "result.json": "49c0775f1567bda2715ad47be5436a68ce4b50ca64283decf306bdc29efba8b3",
+        "forward.sqlite": "4c3afef7cb1c2471860683228b8f79500ddaae8c2f2b603a4f007100859012ab",
+        "forward.nsys-rep": "6c87fd9d899758e42ad27a52d4847b4019acc07c84e7a25ff6c9e099f4311e18"
+      },
+      "input_sha256": "0052378eac2884b5",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5543890347039953,
+      "observed_upper_ratio": 0.5629022820362785,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq512",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 30.2875,
+        "range": [
+          26.463,
+          30.912
+        ],
+        "samples": [
+          30.272,
+          26.463,
+          30.592,
+          30.176,
+          30.144,
+          30.432,
+          30.463,
+          26.783,
+          30.912,
+          30.016,
+          30.816,
+          30.303
+        ]
+      },
+      "reference": {
+        "median": 31.808,
+        "range": [
+          31.68,
+          32.032
+        ],
+        "samples": [
+          31.712,
+          31.872,
+          31.68,
+          31.744,
+          32.031,
+          31.808,
+          32.032,
+          31.808,
+          31.936,
+          31.776,
+          31.68,
+          31.872
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "b8a51626d111343d07eb9fe997a3f337cf40a7ff2c7ef09b490d0d3a165e516d",
+        "result.json": "7a2d5bd4a3bccf4de2443c3b926162fbf4a5b7e5f264b5d3f9603aa5da6f4194",
+        "forward.sqlite": "414fa2566fe8545a888084304eaa4b82b123d4d3368692334710b31c8384be05",
+        "forward.nsys-rep": "384fabc993c31ccc344affc6bd818306d24698fdeeec5d76d44283260352053a"
+      },
+      "input_sha256": "95e4eb61891608e1",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9521975603621731,
+      "observed_upper_ratio": 0.9757575757575757,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq512",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 30.287999999999997,
+        "range": [
+          26.784,
+          30.944
+        ],
+        "samples": [
+          30.272,
+          26.816,
+          30.592,
+          30.464,
+          27.072,
+          30.432,
+          30.304,
+          29.568,
+          30.944,
+          30.144,
+          30.304,
+          26.784
+        ]
+      },
+      "reference": {
+        "median": 54.736000000000004,
+        "range": [
+          53.985,
+          55.136
+        ],
+        "samples": [
+          54.752,
+          54.304,
+          54.72,
+          54.752,
+          55.136,
+          54.368,
+          54.528,
+          54.752,
+          54.945,
+          54.336,
+          53.985,
+          54.752
+        ]
+      },
+      "reference_role": "flashqla-no-cp",
+      "evidence": {
+        "receipt.json": "b705e2a02309eb43427b40bf65e6513aa3a94635f10f92fff47dabe1e93cef8f",
+        "result.json": "78c2747d6322295e225590cb42bb6d71c7e00e244de0e62393ce1fe73c62a72d",
+        "forward.sqlite": "335270ed5742d88e4e769c465e1019af57fc8e21ab693014703dc1f066aa7ffd",
+        "forward.nsys-rep": "86aab21961cc5072cb346b86cf56049df06fd83e842e17437433d147807a8abb"
+      },
+      "input_sha256": "95e4eb61891608e1",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5533469745688394,
+      "observed_upper_ratio": 0.5731962582198759,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq8192",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 340.92,
+        "range": [
+          339.24,
+          345.032
+        ],
+        "samples": [
+          343.688,
+          341.672,
+          343.4,
+          345.001,
+          345.032,
+          342.409,
+          339.24,
+          339.336,
+          340.04,
+          340.04,
+          340.168,
+          339.72
+        ]
+      },
+      "reference": {
+        "median": 352.58500000000004,
+        "range": [
+          348.585,
+          355.721
+        ],
+        "samples": [
+          355.721,
+          353.48,
+          353.641,
+          355.463,
+          353.385,
+          351.785,
+          351.209,
+          353.641,
+          351.305,
+          350.408,
+          348.585,
+          349.608
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/seq8192-flashinfer-g-1.0/result.json",
+      "input_sha256": "5a9e7e355f1a8202",
+      "evidence_sha256": "0a04544f79728940ee2858f6f5b5bdf4a6190411617b93d385fbd828b428d534",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9669157791738162,
+      "observed_upper_ratio": 0.989807364057547,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq8192",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 343.9255,
+        "range": [
+          338.086,
+          345.093
+        ],
+        "samples": [
+          344.966,
+          345.093,
+          344.582,
+          344.165,
+          344.806,
+          344.678,
+          343.686,
+          343.27,
+          340.966,
+          338.086,
+          339.462,
+          338.47
+        ]
+      },
+      "reference": {
+        "median": 373.893,
+        "range": [
+          367.526,
+          376.517
+        ],
+        "samples": [
+          373.381,
+          375.816,
+          374.405,
+          374.759,
+          376.517,
+          375.431,
+          375.333,
+          373.094,
+          367.526,
+          371.145,
+          371.175,
+          372.39
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/seq8192-flashqla-g-1.0/result.json",
+      "input_sha256": "5a9e7e355f1a8202",
+      "evidence_sha256": "bdf9ac62c14a422a07bb464cde5b2360f231703662c0f12ba6f4eeb244d71236",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9198500640557593,
+      "observed_upper_ratio": 0.938962141453938,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq8192",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 344.938,
+        "range": [
+          342.826,
+          348.458
+        ],
+        "samples": [
+          344.938,
+          342.826,
+          345.515,
+          344.938,
+          348.458,
+          343.69,
+          345.258,
+          343.595,
+          345.226,
+          344.619,
+          344.49,
+          346.058
+        ]
+      },
+      "reference": {
+        "median": 354.98699999999997,
+        "range": [
+          352.107,
+          357.515
+        ],
+        "samples": [
+          352.107,
+          355.019,
+          355.53,
+          355.947,
+          355.275,
+          353.131,
+          355.178,
+          354.859,
+          353.099,
+          354.955,
+          357.515,
+          354.027
+        ]
+      },
+      "reference_role": "flashinfer-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/seq8192-flashinfer-g-0.1/result.json",
+      "input_sha256": "9242894d5207aba9",
+      "evidence_sha256": "9f9518663abba7b0db351e93f44657d3bf9e8be1fe736a20a59d0973be4635b7",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9716919211126042,
+      "observed_upper_ratio": 0.9896366729431678,
+      "within_user_limit": true
+    },
+    {
+      "workload": "seq8192",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-local-inverse-paired",
+      "candidate": {
+        "median": 344.887,
+        "range": [
+          343.719,
+          347.303
+        ],
+        "samples": [
+          344.903,
+          346.343,
+          344.871,
+          343.719,
+          344.679,
+          347.303,
+          343.943,
+          344.423,
+          345.319,
+          344.935,
+          346.151,
+          344.135
+        ]
+      },
+      "reference": {
+        "median": 382.552,
+        "range": [
+          380.391,
+          384.936
+        ],
+        "samples": [
+          384.264,
+          381.032,
+          382.311,
+          382.408,
+          380.391,
+          384.936,
+          382.025,
+          382.151,
+          382.726,
+          384.104,
+          382.696,
+          383.302
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": "/workspace/gdn-sm90-v64-inverse-tail-20260927/s55-nsys/seq8192-flashqla-g-0.1/result.json",
+      "input_sha256": "9242894d5207aba9",
+      "evidence_sha256": "6f736596f29d9c74f72dca09ef4fe67fddd630eb425db93c5236830637597b86",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9015427967962525,
+      "observed_upper_ratio": 0.913015817934704,
+      "within_user_limit": true
+    },
+    {
+      "workload": "tail2051",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.6485,
+        "range": [
+          99.969,
+          102.656
+        ],
+        "samples": [
+          102.656,
+          102.016,
+          101.313,
+          101.536,
+          101.825,
+          100.897,
+          101.568,
+          99.969,
+          101.921,
+          101.729,
+          101.856,
+          101.473
+        ]
+      },
+      "reference": {
+        "median": 112.8325,
+        "range": [
+          112.129,
+          114.496
+        ],
+        "samples": [
+          112.609,
+          112.129,
+          112.672,
+          112.609,
+          113.153,
+          112.8,
+          112.865,
+          112.448,
+          114.432,
+          112.929,
+          114.496,
+          114.081
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "76df24bd9cc5bd77186691a8c10ad100fbf9a47801c1e1621772fb6d2244af7d",
+        "result.json": "292b793cd39e950c205f0c358ed55ff99281f12b5a232dcf5b6e865f93f578ca",
+        "forward.sqlite": "e8cbd3a1bc19fd58b15130b3e24eb43a399edb0d2a16cfdfbd93980296a016f1",
+        "forward.nsys-rep": "5e551310edf7f8eec4036b7d52e043e2e682488227fdc51eea863ff3d6d6dba6"
+      },
+      "input_sha256": "1cd629bcb5c9123e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9008796224492057,
+      "observed_upper_ratio": 0.9155169492281212,
+      "within_user_limit": true
+    },
+    {
+      "workload": "tail2051",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.3765,
+        "range": [
+          99.968,
+          102.112
+        ],
+        "samples": [
+          101.377,
+          99.968,
+          101.985,
+          102.112,
+          101.728,
+          100.704,
+          100.737,
+          101.376,
+          101.889,
+          102.08,
+          101.089,
+          101.216
+        ]
+      },
+      "reference": {
+        "median": 174.465,
+        "range": [
+          171.841,
+          177.057
+        ],
+        "samples": [
+          177.057,
+          172.353,
+          175.328,
+          175.168,
+          174.048,
+          174.081,
+          174.625,
+          175.265,
+          176.13,
+          173.089,
+          174.305,
+          171.841
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "cb397b0e3c00a9dabc11c980dc4855b70dde702c555b964d20b3d1d8503a60ec",
+        "result.json": "a42d46d43dcf534daa582f1324912f994a21cb8eaded92e6aa0cc3764e581031",
+        "forward.sqlite": "9d932e5b1b8cd758fb3b1fc6ea34f1a355cba51c335f16a837ff1f3bc6a0473e",
+        "forward.nsys-rep": "cec5bcdf1bdc29586fc066561dead11f62292c8505b6a04951b4aebaf740ba3f"
+      },
+      "input_sha256": "1cd629bcb5c9123e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5810707018599719,
+      "observed_upper_ratio": 0.5942237300760587,
+      "within_user_limit": true
+    },
+    {
+      "workload": "tail2051",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.553,
+        "range": [
+          100.737,
+          103.393
+        ],
+        "samples": [
+          101.857,
+          101.441,
+          101.153,
+          102.753,
+          102.273,
+          103.393,
+          101.088,
+          100.801,
+          102.689,
+          101.665,
+          101.185,
+          100.737
+        ]
+      },
+      "reference": {
+        "median": 113.0565,
+        "range": [
+          112.289,
+          114.56
+        ],
+        "samples": [
+          113.153,
+          112.289,
+          113.12,
+          113.153,
+          112.513,
+          113.056,
+          112.545,
+          113.057,
+          113.089,
+          113.025,
+          113.056,
+          114.56
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "d152f2af76cdc020c5c6f4588a4b702eaf78e63e5e69ae02fd51d82d67d85ee9",
+        "result.json": "ad2369eee5d637c6aebfc96ba29395264fd29b26f5c508566fee93594903149b",
+        "forward.sqlite": "b0a619580fae0be93bc6875362709b2c231668638ce6f7ffbb5b7b5e1218b53e",
+        "forward.nsys-rep": "402ed210878d0e806c5b648fb71465a5ba8542c11323f58c44cab5d821bb278a"
+      },
+      "input_sha256": "61d0742cc1896874",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.8982499900492231,
+      "observed_upper_ratio": 0.9207758551594546,
+      "within_user_limit": true
+    },
+    {
+      "workload": "tail2051",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 101.6165,
+        "range": [
+          100.033,
+          102.689
+        ],
+        "samples": [
+          101.632,
+          100.033,
+          101.312,
+          100.513,
+          101.728,
+          101.856,
+          101.76,
+          101.601,
+          102.689,
+          101.729,
+          101.089,
+          100.16
+        ]
+      },
+      "reference": {
+        "median": 181.04000000000002,
+        "range": [
+          179.681,
+          183.363
+        ],
+        "samples": [
+          182.913,
+          180.512,
+          181.056,
+          183.106,
+          183.363,
+          182.945,
+          180.673,
+          179.681,
+          182.272,
+          180.065,
+          181.024,
+          180.354
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "4c42c6ef4c91400455054e5179b8d78511cc9d5b0364725ca045f5e05a081ddd",
+        "result.json": "f5dfd72bf5d653d1a2fb209ae4dc715cbebc2f934a89fa1ad09a00cdc5444053",
+        "forward.sqlite": "af190dfcd5bab1310757abf11efa7c208aaa99035c8e12c00db15547bc15c38f",
+        "forward.nsys-rep": "7aa71460710c323848c0d397774e781451ccc61c5a44975dc58b68e65f5f05aa"
+      },
+      "input_sha256": "61d0742cc1896874",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.5612930844012373,
+      "observed_upper_ratio": 0.5715072823503875,
+      "within_user_limit": true
+    },
+    {
+      "workload": "vary-fp32",
+      "gate": -1.0,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 102.5765,
+        "range": [
+          101.888,
+          103.745
+        ],
+        "samples": [
+          101.888,
+          102.529,
+          103.617,
+          103.233,
+          103.745,
+          102.465,
+          102.177,
+          102.432,
+          102.849,
+          102.624,
+          103.169,
+          102.369
+        ]
+      },
+      "reference": {
+        "median": 113.857,
+        "range": [
+          113.153,
+          114.721
+        ],
+        "samples": [
+          113.537,
+          114.721,
+          114.113,
+          114.273,
+          114.145,
+          113.921,
+          113.377,
+          113.985,
+          113.153,
+          113.441,
+          113.793,
+          113.601
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "754e6a0f5edad44fc7c8e33e2d309976f6c6f275cdeca93613f371fe28e486c9",
+        "result.json": "c141d7935703b05638b54d1ecdcbb835d3b00c79533754da64446026f64f6b72",
+        "forward.sqlite": "99ae2a2ec34d0878f9e3f2a22e5d030f1b729524cb8637f177b5d9d031eb9d98",
+        "forward.nsys-rep": "37d0ef17579422141164181ad749575cf64d767d3163a54b903464525c0c4226"
+      },
+      "input_sha256": "069ebb177b93d370",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9009239660275609,
+      "observed_upper_ratio": 0.9168559384196618,
+      "within_user_limit": true
+    },
+    {
+      "workload": "vary-fp32",
+      "gate": -1.0,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 99.2485,
+        "range": [
+          97.889,
+          100.833
+        ],
+        "samples": [
+          98.977,
+          99.168,
+          99.329,
+          99.361,
+          98.977,
+          99.585,
+          97.889,
+          100.833,
+          99.361,
+          99.393,
+          98.785,
+          99.073
+        ]
+      },
+      "reference": {
+        "median": 164.594,
+        "range": [
+          161.794,
+          166.402
+        ],
+        "samples": [
+          165.441,
+          166.402,
+          162.85,
+          166.081,
+          162.146,
+          162.881,
+          165.923,
+          162.21,
+          164.354,
+          164.834,
+          161.794,
+          165.058
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "c4fb1747751ec36d5c27f0d14b475af9e24489e53a14526e9b6cf2364732de3a",
+        "result.json": "3e2d4b2a7a25d640e10068fd2c22095c9eebc6f989276ca66e748ab0f62b7213",
+        "forward.sqlite": "89984142b4dd3e45237a6f5cd73d2f06457649cfba39574a835900a395962543",
+        "forward.nsys-rep": "5226b4321f1ff43ae1d3717c5b5e58c146e5006e47eb034096fd9bda4bc08418"
+      },
+      "input_sha256": "069ebb177b93d370",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.6029897809154647,
+      "observed_upper_ratio": 0.6232184135382028,
+      "within_user_limit": true
+    },
+    {
+      "workload": "vary-fp32",
+      "gate": -0.1,
+      "family": "flashinfer",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 102.017,
+        "range": [
+          101.217,
+          102.785
+        ],
+        "samples": [
+          102.017,
+          101.921,
+          102.017,
+          101.857,
+          102.529,
+          101.793,
+          102.017,
+          101.217,
+          102.465,
+          102.177,
+          102.785,
+          102.145
+        ]
+      },
+      "reference": {
+        "median": 113.009,
+        "range": [
+          112.577,
+          113.249
+        ],
+        "samples": [
+          112.577,
+          113.217,
+          112.705,
+          112.769,
+          112.993,
+          112.673,
+          112.865,
+          113.025,
+          113.121,
+          113.025,
+          113.025,
+          113.249
+        ]
+      },
+      "reference_role": "flashinfer-no-cp",
+      "evidence": {
+        "receipt.json": "43d975c71ab595e92c9c40018e3f0a713a2a697a14c4a26e485a272dcf3ec01a",
+        "result.json": "516fd7771c518b33ddabb0182f5514e818ff80079a78c3e25fbffb8d148adc8c",
+        "forward.sqlite": "fc616840852f01418fba110185d1077e8b624891c28f7e99c66b996b5f56b543",
+        "forward.nsys-rep": "af267385d41588b81360aa6c86aa6638c4abcdf1edbe5628b105be60d5ffc0b5"
+      },
+      "input_sha256": "0dbc008453324f7e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.9027334106133139,
+      "observed_upper_ratio": 0.9130195332972099,
+      "within_user_limit": true
+    },
+    {
+      "workload": "vary-fp32",
+      "gate": -0.1,
+      "family": "flashqla",
+      "variant": "value64-original",
+      "candidate": {
+        "median": 99.186,
+        "range": [
+          97.522,
+          101.172
+        ],
+        "samples": [
+          99.731,
+          97.522,
+          99.378,
+          98.258,
+          100.403,
+          98.994,
+          98.258,
+          101.172,
+          99.731,
+          98.61,
+          98.482,
+          100.147
+        ]
+      },
+      "reference": {
+        "median": 168.98250000000002,
+        "range": [
+          167.096,
+          169.624
+        ],
+        "samples": [
+          169.624,
+          168.021,
+          168.884,
+          169.048,
+          167.096,
+          169.556,
+          167.891,
+          169.113,
+          169.174,
+          167.38,
+          168.917,
+          169.59
+        ]
+      },
+      "reference_role": "flashqla-auto",
+      "evidence": {
+        "receipt.json": "b183534e18871f189669ddaac8af321a8096d3d0cd23a6b313c24ff6c3440414",
+        "result.json": "b486f9746bfc9ee57c7c3f7c245fa009415f825a3a9921c2bd983812a0e28b75",
+        "forward.sqlite": "541ead821968e259f6f305da31cc60381a8d6bc9fd0f26f78e8a0d0091631372",
+        "forward.nsys-rep": "af2c6aea6a5a8f2ec2668f6e0986c7b5337225618f47d256c74f1354cf6d4206"
+      },
+      "input_sha256": "0dbc008453324f7e",
+      "status": "MEASURED",
+      "verdict": "WIN",
+      "median_ratio": 0.586960188185167,
+      "observed_upper_ratio": 0.6054723033465792,
+      "within_user_limit": true
+    }
+  ]
+}

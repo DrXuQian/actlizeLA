@@ -1,0 +1,692 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "protocol": "nsys_all_kernels_per_forward_12_interleaved_calls_per_role",
+  "target": "NOT_MET",
+  "rejected_captures": [
+    "independent-fi-weak: idle guard PID143838 before capture",
+    "full-tail-fi-weak: idle guard PID150614 before capture",
+    "full-tail-fi-weak-r2: idle guard PID153467 before capture"
+  ],
+  "reanalysis": "all complete SQLite results exactly reproduced with registered analyzer under original Python3.12",
+  "runs": [
+    {
+      "capture": "factor-owner-fi-weak",
+      "gate": -0.1,
+      "candidate_source": "e799c55e2ab505f78ecf306ac8322b57678d98ce",
+      "candidate_binary_sha256": "a88a07e8c48c53a860e5cc94a936737be508e487314acbc0d197cbbf34970b08",
+      "candidate_us": {
+        "median": 142.96,
+        "range": [
+          141.536,
+          143.808
+        ]
+      },
+      "control_us": {
+        "median": 147.6165,
+        "range": [
+          146.752,
+          148.48
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 130.832,
+        "flashinfer-no-cp": 112.8005,
+        "flashinfer-auto-log-adapter": 139.50400000000002
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.915165081141578,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7890353945159485,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9758254057078904,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "f3f917ac11ed17a6f422156e4e9dc640775c4cefe48fca3ef4f87423d7d446a4",
+        "result.json": "e48095b2d577edeb2c095c3e1a8e2b930f481056dc43ca9855817fadd14b4fea",
+        "forward.sqlite": "908db7a2dd65b0ea90171f51aa75d04df858e084cad642eaacaf0b7ae48e0995",
+        "forward.nsys-rep": "46ef469037635a50c9873eaacffd16531a87ef30b8ebf3804c93638ac05c564b"
+      }
+    },
+    {
+      "capture": "factor-owner-fi-strong",
+      "gate": -1,
+      "candidate_source": "e799c55e2ab505f78ecf306ac8322b57678d98ce",
+      "candidate_binary_sha256": "a88a07e8c48c53a860e5cc94a936737be508e487314acbc0d197cbbf34970b08",
+      "candidate_us": {
+        "median": 142.88049999999998,
+        "range": [
+          140.672,
+          143.873
+        ]
+      },
+      "control_us": {
+        "median": 147.28,
+        "range": [
+          147.008,
+          148.545
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 130.48000000000002,
+        "flashinfer-no-cp": 112.88,
+        "flashinfer-auto-log-adapter": 138.81599999999997
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9132106900521767,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7900308299593017,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9715531510598017,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "f9f8ce554de6cd9a9e138d0b4b88d8ffab2f5704debe89cd1cc3101786942c53",
+        "result.json": "35b82b720c9847b80d702384580f08b473323b6370203808b43f47ab65758ffb",
+        "forward.sqlite": "e17cd6b1300b13d7e5c1ff4e4a93be2e288cbfc994100550ec35db2990e80224",
+        "forward.nsys-rep": "94381fde8ce6b42740d69af814c5d091ad79f169e97d37c852c4f0c4f670b5ee"
+      }
+    },
+    {
+      "capture": "factor-owner-qla-weak",
+      "gate": -0.1,
+      "candidate_source": "e799c55e2ab505f78ecf306ac8322b57678d98ce",
+      "candidate_binary_sha256": "a88a07e8c48c53a860e5cc94a936737be508e487314acbc0d197cbbf34970b08",
+      "candidate_us": {
+        "median": 140.60899999999998,
+        "range": [
+          139.616,
+          141.728
+        ]
+      },
+      "control_us": {
+        "median": 146.353,
+        "range": [
+          145.761,
+          148.672
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": 165.361,
+        "flashqla-no-cp": 174.72
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.1760342510081148,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.242594712998457,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "142e20a9fad00b3251d835bd1dccbf421c36e4776124f554c2ecd85fae22ec07",
+        "result.json": "55f1df82db9db0ebaebdb68e3d5143874d1f229fc55a437e599b4d8469146dbd",
+        "forward.sqlite": "2651a3a171ed22ea34d32fa37c9e6d0a1962f3f0638cedf8efac4b237faad835",
+        "forward.nsys-rep": "1dcc8c98a37ba4261ebdddbedd152543dadd87869d9a33218b249998dc493be1"
+      }
+    },
+    {
+      "capture": "factor-owner-qla-strong",
+      "gate": -1,
+      "candidate_source": "e799c55e2ab505f78ecf306ac8322b57678d98ce",
+      "candidate_binary_sha256": "a88a07e8c48c53a860e5cc94a936737be508e487314acbc0d197cbbf34970b08",
+      "candidate_us": {
+        "median": 140.2405,
+        "range": [
+          139.553,
+          141.984
+        ]
+      },
+      "control_us": {
+        "median": 146.432,
+        "range": [
+          145.633,
+          147.392
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": 163.6005,
+        "flashqla-no-cp": 175.0245
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.1665709976789873,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.248031060927478,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "7c596901b620d190fbd34f5a0e15195d64bf0a85b8b58e6734757e222087b408",
+        "result.json": "f0998fe727502e5cb261c4af5d948b190e7f8064ecd44bb91058a25f8414e6b0",
+        "forward.sqlite": "2e7b3b5527a3c582b9ac8593c14cf53e68b1a1b29c8082bb17c0385c31afc020",
+        "forward.nsys-rep": "a5d342d539dd26393d94498819f36997ae3684131ddd542e61a258a115a76f43"
+      }
+    },
+    {
+      "capture": "immediate-fi-weak",
+      "gate": -0.1,
+      "candidate_source": "107c0de49ebd0851cc9626af8d089bba58454378",
+      "candidate_binary_sha256": "e610020857b13abff6c82ee6e1a700257230b2f7af854e6e41465d128f34e358",
+      "candidate_us": {
+        "median": 148.68900000000002,
+        "range": [
+          146.913,
+          149.504
+        ]
+      },
+      "control_us": {
+        "median": 147.2805,
+        "range": [
+          146.849,
+          147.649
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 130.945,
+        "flashinfer-no-cp": 112.9925,
+        "flashinfer-auto-log-adapter": 138.753
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8806636671172714,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7599250785195946,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9331759578717993,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "05637a60faa1a8a643ccedf7b6f56bbf64e4435034a3598bc26cdf1d5ab080d9",
+        "result.json": "36a28a7cacbff874f1aac17751a8da13f16e791e8514b6e4f13e0e0011b42c27",
+        "forward.sqlite": "a30b1d600f0e90c0f45cef80d4b05a6795290d6ab22e6ac89826897f61ad2cbe",
+        "forward.nsys-rep": "3fb49d10fd032cd64846b9a20c09a4708434ae15ea29f584f17f054e834241ad"
+      }
+    },
+    {
+      "capture": "kfirst-fi-weak",
+      "gate": -0.1,
+      "candidate_source": "daabe62984bee5c8d417f898a219f5430ee03bf9",
+      "candidate_binary_sha256": "8bebc8a6cda681b43b10e33ee1b6854a553fad17f77453e25ddd613cedf614a6",
+      "candidate_us": {
+        "median": 147.98450000000003,
+        "range": [
+          147.041,
+          148.961
+        ]
+      },
+      "control_us": {
+        "median": 146.865,
+        "range": [
+          145.792,
+          148.384
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 130.224,
+        "flashinfer-no-cp": 112.816,
+        "flashinfer-auto-log-adapter": 139.361
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8799840523838643,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7623501109913537,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9417270051931113,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "904451a9113ecb27d60de8a3d1317ecb088d60704912bb68c11c0824b11c5950",
+        "result.json": "6ea3e88778e37562c65ca550e43a22ce7adca8bcb0bbd1d3f2cf10dd96a3569b",
+        "forward.sqlite": "4b824f8c78fb31468c4220c631a9b18ce51ad83e2354b56bda4c0a1607073bc3",
+        "forward.nsys-rep": "36cfcf7be6a3844879fac1aa4a7a11e85f5a5d26a5a9745ff164d2c00dad4f32"
+      }
+    },
+    {
+      "capture": "independent-fi-weak-r2",
+      "gate": -0.1,
+      "candidate_source": "642d353a6e4270a12b3c041424d06a1f5eb4f575",
+      "candidate_binary_sha256": "9c27166a169d710f2cc9d5050b58c39d2177084305cf303f863625cb3480d86a",
+      "candidate_us": {
+        "median": 142.016,
+        "range": [
+          140.257,
+          143.009
+        ]
+      },
+      "control_us": {
+        "median": 142.32100000000003,
+        "range": [
+          140.993,
+          143.616
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 131.92000000000002,
+        "flashinfer-no-cp": 114.4165,
+        "flashinfer-auto-log-adapter": 140.6885
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9289094186570529,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8056592214961695,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9906524616944571,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "1e2796d93e013508d0ee49e29f1363229865fa40a9a57b1b182d3fff911a281a",
+        "result.json": "4fca26f0841982854882fa45c84808fe219387f0339f54b670ba23679fd6d4da",
+        "forward.sqlite": "ff1e3969980170a12e21bd0bba1cd09894b8724c19176108dd366e43634556d7",
+        "forward.nsys-rep": "de77f0e891abc86e6fe1ba132fdbf885bb0337684f7474e20c08666cc13f28d0"
+      }
+    },
+    {
+      "capture": "full-tail-fi-weak-r3",
+      "gate": -0.1,
+      "candidate_source": "64691d1893400f844a195463a42bd879dc959917",
+      "candidate_binary_sha256": "e9e2355f6b5d5a7f760c3b6b64d198c9b6607ea93de5621896ae2e5da0b6f0b7",
+      "candidate_us": {
+        "median": 135.29649999999998,
+        "range": [
+          134.88,
+          136.641
+        ]
+      },
+      "control_us": {
+        "median": 141.52100000000002,
+        "range": [
+          140.576,
+          142.08
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 130.7525,
+        "flashinfer-no-cp": 113.185,
+        "flashinfer-auto-log-adapter": 139.313
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.966414504440248,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8365700517012636,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0296866511698382,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "412d1f05a5da046940afb9be7dd1ca62672b381277bb57429122829f0d027187",
+        "result.json": "285743c02dca4fc3ce4f86ddf650be835f06d003bc85a970728a8b2a3b987a5f",
+        "forward.sqlite": "f324885538eafbac6e343720835296867373843ff69268d4820e5fd27a55c555",
+        "forward.nsys-rep": "eed59569f035bcc8b9751ed3831f75aafa32cb62816125c0fe2c0a60e910ee79"
+      }
+    },
+    {
+      "capture": "full-tail-fi-strong",
+      "gate": -1,
+      "candidate_source": "64691d1893400f844a195463a42bd879dc959917",
+      "candidate_binary_sha256": "e9e2355f6b5d5a7f760c3b6b64d198c9b6607ea93de5621896ae2e5da0b6f0b7",
+      "candidate_us": {
+        "median": 134.769,
+        "range": [
+          133.952,
+          135.936
+        ]
+      },
+      "control_us": {
+        "median": 140.272,
+        "range": [
+          139.904,
+          140.737
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": 129.28,
+        "flashinfer-no-cp": 112,
+        "flashinfer-auto-log-adapter": 137.63299999999998
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9592710489801066,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8310516513441518,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0212511779415145,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "3e246a256b83e4430f7a1c4711756590ec71eb6a6cd0b8aebc5b53143ee010be",
+        "result.json": "280933a7bb8b0a00d2f8b8cb5c183f4106d3f0a2a5e547d0b68808cfaa51eacd",
+        "forward.sqlite": "939e39f71fb89f88025f3434ba883f62a6e58ef91f1ab71396c6b235d9330393",
+        "forward.nsys-rep": "cb52241ac225da6acad08ee14f25464ef2b3b7b15c4810cf5f56706e77b644c2"
+      }
+    },
+    {
+      "capture": "full-tail-qla-weak",
+      "gate": -0.1,
+      "candidate_source": "64691d1893400f844a195463a42bd879dc959917",
+      "candidate_binary_sha256": "e9e2355f6b5d5a7f760c3b6b64d198c9b6607ea93de5621896ae2e5da0b6f0b7",
+      "candidate_us": {
+        "median": 133.45600000000002,
+        "range": [
+          132.128,
+          134.496
+        ]
+      },
+      "control_us": {
+        "median": 140.5445,
+        "range": [
+          139.297,
+          141.376
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": 165.632,
+        "flashqla-no-cp": 174.449
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.2410981896655076,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.3071649082843784,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "190525007104cde4f29eedec6b54c145c6d955e9d607456dd621598f34bb2eb2",
+        "result.json": "8d3436ff6234e0c3038544879225666fcca94354d14d627d631b8c79f273b8c5",
+        "forward.sqlite": "09cdea0fde07956762bb4dd51cf45ba2cb4c657aac04c7f5d45282d7d4939839",
+        "forward.nsys-rep": "35dc7269f6ec4fa3c4f7e871cd599e5bb1014620d59b0ad688b0a7b3768da07a"
+      }
+    },
+    {
+      "capture": "full-tail-qla-strong",
+      "gate": -1,
+      "candidate_source": "64691d1893400f844a195463a42bd879dc959917",
+      "candidate_binary_sha256": "e9e2355f6b5d5a7f760c3b6b64d198c9b6607ea93de5621896ae2e5da0b6f0b7",
+      "candidate_us": {
+        "median": 133.36,
+        "range": [
+          132.449,
+          134.592
+        ]
+      },
+      "control_us": {
+        "median": 140.44799999999998,
+        "range": [
+          140,
+          141.313
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": 163.4405,
+        "flashqla-no-cp": 174.369
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.2255586382723453,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.3075059988002398,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "99b9648fb97fabede7b16cc5e63e6852c75ae14bc734e3bd172be10f72b2dc6e",
+        "result.json": "ed3c7919c2ffe2fe9891f86be98335634ddd6d77cd7e273a3483f0f23a0a8bab",
+        "forward.sqlite": "fc885694fe687be1c5772080a90520e273aa78378420acb42b2f2deb9d8c4bf2",
+        "forward.nsys-rep": "292dc79ec48ea36e9f41106a8dc40a85e9728fc43374c2dfcaf8e599a58023df"
+      }
+    }
+  ],
+  "confirmed_incumbent": {
+    "candidate": "S19",
+    "source": "64691d1",
+    "source_branch": "sm90-aux-full-tail-20260926",
+    "decision": "beats S16 and FlashQLA in both regimes; loses to fastest FlashInfer",
+    "default_routing": "UNCHANGED"
+  }
+}

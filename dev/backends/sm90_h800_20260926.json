@@ -1,0 +1,1801 @@
+{
+  "schema": 1,
+  "scope": "PHYSICAL_H800_CONTROL_NOT_NATIVE_PPU17",
+  "source_commit": "ccd6703165b8e2cc81ea0b486ef6a8f3e10cc3b2",
+  "tested_local_commit": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+  "source_tree": "132a00ae46c0fb1e6d39218cb53fe0a5e257ce25",
+  "device": "NVIDIA H800 PCIe",
+  "sms": 114,
+  "driver": "595.71.05",
+  "source_sha256": {
+    "csrc/backends/sm90/abi_layout.cuh": "08d51cfd68ebadd69ac9583440bd2af5b3ee75b0295a36f260a5466e2d97a987",
+    "csrc/backends/sm90/bindings.cpp": "a971181537c01c2e2ae7143e45ff6da70aa206106ba21f9bd8683d0185a6aef0",
+    "csrc/backends/sm90/cula/LICENSE.cuLA": "5664febbb86271af0b3f41ba7ca3bd928d17d736f8df8281c8d99e9f5234c5ac",
+    "csrc/backends/sm90/cula/kda/sm90/collective/common.hpp": "9f0983622eb68b85b4dcfca2f7503a147821600c2b83fca45aff89de3b113624",
+    "csrc/backends/sm90/cula/kda/sm90/collective/load_predicated.hpp": "784ba2f7ff325651c88ddc875413fd38c254118e5c9a9a501867e3dcc27047fa",
+    "csrc/backends/sm90/cula/kda/sm90/collective/load_tma.hpp": "b2b9d9e06486690a286ec9d391294b89bbeedb4560f31a186883604958fe044a",
+    "csrc/backends/sm90/cula/kda/sm90/collective/mainloop_kda_fwd.hpp": "c46ba4ef08935ae0a2f5eb4b5d8ea928b486093e16f7635009d7d400e9f7041c",
+    "csrc/backends/sm90/cula/kda/sm90/collective/named_barriers.hpp": "3f91a0ae02465a4686fb088c6a9781c14b0b0025a381823755761d206594aba6",
+    "csrc/backends/sm90/cula/kda/sm90/collective/store_tma.hpp": "bf7eae1a1b1afc380249aa7c40042be1984a2290eaec090fb586d4cd845c5873",
+    "csrc/backends/sm90/cula/kda/sm90/device/device_universal.hpp": "74b3111e6948df7ac3c75af2e2f2601618c74513cb08a96c50d925186c918083",
+    "csrc/backends/sm90/cula/kda/sm90/kernel/builder_kda_fwd.hpp": "53762bb8344d11021d0aa33ade914c61c8d4239c4046efce72995b0945436da6",
+    "csrc/backends/sm90/cula/kda/sm90/kernel/kernel_kda_fwd.hpp": "374e7cc47716471d4a62356e5520bba9e643c0bc2bb062e83b92081380e11409",
+    "csrc/backends/sm90/cula/kda/sm90/kernel/options.hpp": "3b1216749156047fcee7f4fb444e6caf70add86373c91800e4013aa02034f37b",
+    "csrc/backends/sm90/cula/kda/sm90/kernel/tile_scheduler.hpp": "3752df725c596e5220d6a70b146c30b07feb7688c8ebde59988d819d8b2dfe1f",
+    "csrc/backends/sm90/cula/kda/sm90/utils/common.hpp": "0546a9864369692f99d715e1847bbfbb524dd1c7192b3bbfc1e50013e49af468",
+    "csrc/backends/sm90/cula/kda/sm90/utils/debug.hpp": "01a51447b98e54dce176ff3bf47c301d36b8cc0548ca13299652e751487bec5c",
+    "csrc/backends/sm90/cula/kda/sm90/utils/math_order_barrier.hpp": "f50c7296ad53fb034297f9c218fc486cfe46e1995b73fb66651a09de96d623d8",
+    "csrc/backends/sm90/cula/kda/sm90/utils/type_traits.hpp": "13fc03a0817cd0328c1643c1a9e64833e0a8333dddbffdb61ef6d149c4446a93",
+    "csrc/backends/sm90/cula/kda/sm90/utils/unused.hpp": "95db6fcb0707e0486ec6535a6536d60b35356ace6d8d3e387a49c5ff046206bf",
+    "csrc/backends/sm90/cula/kerutils/common/common.h": "9945763de0a20e2a8cefe06c20790f7fbcd5e04e11c49b5ab745426249de3330",
+    "csrc/backends/sm90/cula/kerutils/common/cute_ext.hpp": "6b757699c6ff520167c68e74312fddbb2dbbc21ba093f6278f7393883526e9ba",
+    "csrc/backends/sm90/cula/kerutils/device/common.h": "7210f6471f8184ca9bbac73a3cbae15883fea060207b61a415962046c653a6d3",
+    "csrc/backends/sm90/cula/kerutils/device/sm80/collective_inverse.hpp": "aecadb9fac1106aa2caf521adfbbcb06f7252df2f0aed26e657e7448d08e09a1",
+    "csrc/backends/sm90/cula/kerutils/device/sm80/helpers.cuh": "6f080e81bfc23af36ad8677bcfe4a6f1bc45b9442588bf59ba6fbfc4e9a71148",
+    "csrc/backends/sm90/cula/kerutils/gdn_sm90.cuh": "806040b8022b7bc25c96210540fa6cbeab173a8e2838670651286a2033df8b4d",
+    "csrc/backends/sm90/launch.cu": "729230a3a2809b95d3cdddb72e25301c62edac6258710c2c581b8a38c1ca07c7",
+    "csrc/backends/sm90/launch.h": "bcff779350af99a954388db9fc06f13919c3f387cfe3d96707db0c46cfa40843",
+    "csrc/backends/sm90/scalar_gate.cuh": "5947a688e7d473a66d4f46ae8532ee70f1fd1b1edbb73e596a5ca3f10f97b6ae",
+    "csrc/backends/sm90/target.cuh": "6acce2b0df59d39cae1da7a4a235475dcf4a5eeaedffbdd05178800f3a91352a"
+  },
+  "numerics": {
+    "passed": 28,
+    "denominator": 28,
+    "cases": [
+      {
+        "case": "full64",
+        "shape": [
+          1,
+          64,
+          1,
+          1,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "constant",
+        "errors": [
+          0.004255314357578754,
+          0.004539920017123222
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "0956c9de2a2f02a8",
+        "output_fingerprint": "f1d6e8e68ada15d3",
+        "dependency_match": true
+      },
+      {
+        "case": "fp32-no-initial",
+        "shape": [
+          1,
+          65,
+          1,
+          2,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.0035971186589449644,
+          0.003071622457355261
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "1a1dc8a58d9b65f0",
+        "output_fingerprint": "e278084c17bdca8d",
+        "dependency_match": true
+      },
+      {
+        "case": "tail1-initial",
+        "shape": [
+          2,
+          1,
+          1,
+          2,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.004587150644510984,
+          0.0026594363152980804
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "e32d0b7b16bf62b2",
+        "output_fingerprint": "2fd76c04bc713498",
+        "dependency_match": true
+      },
+      {
+        "case": "tail31-gva",
+        "shape": [
+          2,
+          31,
+          2,
+          6,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.0064516072161495686,
+          0.002925533801317215
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "a8c66d01b2bd2e9e",
+        "output_fingerprint": "06baae689528800e",
+        "dependency_match": true
+      },
+      {
+        "case": "half32-initial",
+        "shape": [
+          1,
+          32,
+          1,
+          2,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "constant",
+        "errors": [
+          0.004166662227362394,
+          0.003227794775739312
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "069e101354cb0eb1",
+        "output_fingerprint": "136d72a9cf1b5dc7",
+        "dependency_match": true
+      },
+      {
+        "case": "tail63-distinct",
+        "shape": [
+          2,
+          63,
+          2,
+          4,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.0068965451791882515,
+          0.001869323430582881
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "37e09532ef902bf1",
+        "output_fingerprint": "357df3462a4490d7",
+        "dependency_match": true
+      },
+      {
+        "case": "tail65-initial",
+        "shape": [
+          2,
+          65,
+          1,
+          2,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.006535941734910011,
+          0.002976728370413184
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "41a9e637efeac123",
+        "output_fingerprint": "49acea99a6d461c8",
+        "dependency_match": true
+      },
+      {
+        "case": "tail127",
+        "shape": [
+          1,
+          127,
+          2,
+          4,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.0030303006060421467,
+          0.0030613080598413944
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "c8b6253288890941",
+        "output_fingerprint": "aa5f6f278f301719",
+        "dependency_match": true
+      },
+      {
+        "case": "full128-strong",
+        "shape": [
+          1,
+          128,
+          1,
+          1,
+          128
+        ],
+        "gate": -1,
+        "gate_pattern": "constant",
+        "errors": [
+          0.005649709142744541,
+          0.002094035502523184
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "016392f7f4cc6f28",
+        "output_fingerprint": "5dc7c46b85bfa0c0",
+        "dependency_match": true
+      },
+      {
+        "case": "tail129-zero-decay",
+        "shape": [
+          2,
+          129,
+          2,
+          4,
+          128
+        ],
+        "gate": 0,
+        "gate_pattern": "constant",
+        "errors": [
+          0.0044843037612736225,
+          0.002483112970367074
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "041788ee2d944a3c",
+        "output_fingerprint": "ac6af93bb9139eaf",
+        "dependency_match": true
+      },
+      {
+        "case": "tail257-wrap",
+        "shape": [
+          1,
+          257,
+          2,
+          4,
+          128
+        ],
+        "gate": -1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.003816789947450161,
+          0.0034673307090997696
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "51bf69ae27bf442a",
+        "output_fingerprint": "bd212c79585d676d",
+        "dependency_match": true
+      },
+      {
+        "case": "output-only",
+        "shape": [
+          2,
+          65,
+          1,
+          2,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "token-head-distinct",
+        "errors": [
+          0.006535941734910011
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "41a9e637efeac123",
+        "output_fingerprint": "c892044cc6e3b987",
+        "dependency_match": true
+      },
+      {
+        "case": "target-weak",
+        "shape": [
+          1,
+          2048,
+          16,
+          32,
+          128
+        ],
+        "gate": -0.1,
+        "gate_pattern": "constant",
+        "errors": [
+          0.0048543657176196575,
+          0.0027694529853761196
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "e976de55fd4a2ac5",
+        "output_fingerprint": "bdd2ce0aa6c7cb3d",
+        "dependency_match": true
+      },
+      {
+        "case": "target-strong-initial",
+        "shape": [
+          1,
+          2048,
+          16,
+          32,
+          128
+        ],
+        "gate": -1,
+        "gate_pattern": "constant",
+        "errors": [
+          0.0063291084952652454,
+          0.003574053291231394
+        ],
+        "limit": 0.02,
+        "input_fingerprint": "a613295c9e479f09",
+        "output_fingerprint": "03230be1ce72aa87",
+        "dependency_match": true
+      }
+    ],
+    "device_replay": "8 per performance arm, raw-byte fingerprint stability"
+  },
+  "memcheck": "tail65 initial FP32 gate / token-head-distinct: 0 errors",
+  "performance": [
+    {
+      "scope": "HOPPER_CONTROL_NOT_PPU17",
+      "protocol": "CUDA_GRAPH_EVENT_US_PER_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -0.1,
+      "backend": "cuda_sm90",
+      "source_check": false,
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "errors": [
+        0.0048543657176196575,
+        0.0027694529853761196
+      ],
+      "repeat": "8/8 RAW-BIT",
+      "fingerprint": "bdd2ce0aa6c7cb3d",
+      "samples_us": [
+        349.6687889099121,
+        350.46401023864746,
+        349.77920055389404,
+        353.1888008117676,
+        352.8496026992798,
+        352.891206741333,
+        352.68800258636475,
+        353.40960025787354,
+        353.09441089630127,
+        353.3168077468872,
+        352.6416063308716
+      ],
+      "median_us": 352.8496026992798,
+      "calls_per_graph": 20,
+      "observed_range_us": [
+        349.6687889099121,
+        353.40960025787354
+      ],
+      "binary_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+      "harness_sha256": "33de99f3ed65ff9cd1787a0445c126c53837283e0fe2c9c410ef69197a52d154",
+      "input_sha256": "e976de55fd4a2ac5",
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "concurrency": "NO_FOREIGN_PROCESS_OBSERVED; polling=0.2s, not scheduler exclusion",
+      "verdict": "NUMERICS_AND_TIMING_COMPLETE_NOT_COMPARATIVE_SPEED_ADMISSION",
+      "monitor": {
+        "records": [
+          {
+            "utc": "2026-09-26T03:48:12.491255+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.26, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:12.779115+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.27, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:13.092997+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.28, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:13.584363+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.28, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:13.898845+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.27, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:14.204047+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.28, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:14.479735+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.27, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:14.751819+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.26, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:15.030856+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.27, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:15.359900+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.23, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:15.678525+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.24, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:15.977088+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.20, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:16.310090+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 2, 1755, 63.70, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:16.606233+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 73.32, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:16.918215+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 83.16, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.169535+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.66, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.419262+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.67, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.610299+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 36, 1755, 89.52, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.709242+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 90.30, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.714677+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 90.30, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.827181+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 90.72, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.934945+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 91.59, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.986420+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 91.93, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:17.990912+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 91.93, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.041728+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 92.53, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.092335+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 14, 1755, 93.18, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.159707+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 93.42, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.260106+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.275581+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.398724+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.77, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.494207+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 95.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.561664+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 8, 1755, 93.43, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:18.859003+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 91.08, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:19.192394+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 89.11, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:19.545191+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.28, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:19.885529+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.18, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:20.167719+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.17, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:20.526982+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.20, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:20.797887+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.18, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:21.093932+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.19, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:21.329309+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.18, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:21.362400+00:00",
+            "pids": [
+              13082
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.17, 1007"
+          }
+        ],
+        "errors": []
+      },
+      "evidence_cell": "final-perf-cuda-weak"
+    },
+    {
+      "scope": "HOPPER_CONTROL_NOT_PPU17",
+      "protocol": "CUDA_GRAPH_EVENT_US_PER_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -0.1,
+      "backend": "ppu17",
+      "source_check": true,
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "errors": [
+        0.0048543657176196575,
+        0.0027694529853761196
+      ],
+      "repeat": "8/8 RAW-BIT",
+      "fingerprint": "bdd2ce0aa6c7cb3d",
+      "samples_us": [
+        326.1136054992676,
+        326.58400535583496,
+        326.33280754089355,
+        325.88961124420166,
+        325.66399574279785,
+        325.2608060836792,
+        326.1615991592407,
+        325.84478855133057,
+        325.98719596862793,
+        326.6160011291504,
+        325.7807970046997
+      ],
+      "median_us": 325.98719596862793,
+      "calls_per_graph": 20,
+      "observed_range_us": [
+        325.2608060836792,
+        326.6160011291504
+      ],
+      "binary_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+      "harness_sha256": "33de99f3ed65ff9cd1787a0445c126c53837283e0fe2c9c410ef69197a52d154",
+      "input_sha256": "e976de55fd4a2ac5",
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "concurrency": "NO_FOREIGN_PROCESS_OBSERVED; polling=0.2s, not scheduler exclusion",
+      "verdict": "NUMERICS_AND_TIMING_COMPLETE_NOT_COMPARATIVE_SPEED_ADMISSION",
+      "monitor": {
+        "records": [
+          {
+            "utc": "2026-09-26T03:48:26.211839+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.40, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:26.481096+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.41, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:26.752426+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.41, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:27.241584+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.43, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:27.532196+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.42, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:27.826118+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.41, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:28.095626+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.40, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:28.361810+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.40, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:28.629392+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.38, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:28.918585+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.38, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:29.213265+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.37, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:29.501366+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.38, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:29.845086+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 2, 1755, 61.00, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:30.122583+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 70.36, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:30.394175+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 79.01, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:30.688404+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.65, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:30.978032+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.47, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.244114+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 34, 1755, 90.43, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.287607+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 3, 1755, 91.15, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.321355+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 3, 1755, 91.21, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.371087+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 10, 1755, 91.69, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.438999+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 10, 1755, 92.13, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.537187+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 92.70, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.585105+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 6, 1755, 93.12, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.592277+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 6, 1755, 93.12, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.686793+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 93.48, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.736851+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.25, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.808353+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 94.75, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.836993+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 95.34, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.864650+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 6, 1755, 95.57, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:31.915386+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 6, 1755, 96.32, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:32.086715+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 96.83, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:32.382534+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 92.29, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:32.674218+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 90.43, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:32.990678+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.13, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:33.332846+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.96, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:33.653628+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.93, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:33.969335+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.93, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:34.304485+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.94, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:34.577617+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.96, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:34.888593+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.95, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:34.909332+00:00",
+            "pids": [
+              13323
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.95, 1007"
+          }
+        ],
+        "errors": []
+      },
+      "evidence_cell": "final-perf-ppu-source-weak"
+    },
+    {
+      "scope": "HOPPER_CONTROL_NOT_PPU17",
+      "protocol": "CUDA_GRAPH_EVENT_US_PER_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -1,
+      "backend": "cuda_sm90",
+      "source_check": false,
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "errors": [
+        0.0063291084952652454,
+        0.003574053291231394
+      ],
+      "repeat": "8/8 RAW-BIT",
+      "fingerprint": "9ada3fcadc21aefe",
+      "samples_us": [
+        350.2799987792969,
+        351.55038833618164,
+        350.6095886230469,
+        350.5199909210205,
+        350.2608060836792,
+        350.22079944610596,
+        350.2527952194214,
+        350.2336025238037,
+        349.86400604248047,
+        349.9903917312622,
+        350.18560886383057
+      ],
+      "median_us": 350.2527952194214,
+      "calls_per_graph": 20,
+      "observed_range_us": [
+        349.86400604248047,
+        351.55038833618164
+      ],
+      "binary_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+      "harness_sha256": "33de99f3ed65ff9cd1787a0445c126c53837283e0fe2c9c410ef69197a52d154",
+      "input_sha256": "5b1677989c9b708f",
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "concurrency": "NO_FOREIGN_PROCESS_OBSERVED; polling=0.2s, not scheduler exclusion",
+      "verdict": "NUMERICS_AND_TIMING_COMPLETE_NOT_COMPARATIVE_SPEED_ADMISSION",
+      "monitor": {
+        "records": [
+          {
+            "utc": "2026-09-26T03:48:39.820073+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.45, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:40.125792+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.44, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:40.432990+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.42, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:40.922396+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.42, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:41.195989+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.43, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:41.470854+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.43, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:41.720527+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.43, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:42.039554+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.42, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:42.313964+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.41, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:42.612239+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.41, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:42.888366+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.40, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:43.202575+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.40, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:43.519155+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 58.30, 35"
+          },
+          {
+            "utc": "2026-09-26T03:48:43.788291+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 66.80, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:44.094348+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 77.20, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:44.365962+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.67, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:44.662030+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.12, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:44.970958+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 37, 1755, 89.70, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.018106+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 37, 1755, 89.96, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.158874+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 90.55, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.231733+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 91.05, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.245158+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 91.22, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.307125+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 14, 1755, 91.51, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.402568+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 92.29, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.491357+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 93.16, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.566694+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 93.68, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.583517+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.616911+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 94.47, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.667602+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 14, 1755, 94.96, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.754359+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 14, 1755, 95.75, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.807058+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 96.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:45.834163+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 96.69, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:46.161053+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 93.64, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:46.452808+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 91.21, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:46.703943+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 88.75, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:47.000344+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.17, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:47.348777+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.11, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:47.688516+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.08, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:47.962241+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.10, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:48.272672+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.08, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:48.636930+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.09, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:48.756267+00:00",
+            "pids": [
+              13596
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.10, 1007"
+          }
+        ],
+        "errors": []
+      },
+      "evidence_cell": "final-perf-cuda-strong"
+    },
+    {
+      "scope": "HOPPER_CONTROL_NOT_PPU17",
+      "protocol": "CUDA_GRAPH_EVENT_US_PER_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -1,
+      "backend": "ppu17",
+      "source_check": true,
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "errors": [
+        0.0063291084952652454,
+        0.003574053291231394
+      ],
+      "repeat": "8/8 RAW-BIT",
+      "fingerprint": "9ada3fcadc21aefe",
+      "samples_us": [
+        325.1055955886841,
+        326.84319019317627,
+        325.8399963378906,
+        325.5919933319092,
+        325.3232002258301,
+        325.7040023803711,
+        325.6319999694824,
+        326.02078914642334,
+        325.1024007797241,
+        325.67999362945557,
+        326.31680965423584
+      ],
+      "median_us": 325.67999362945557,
+      "calls_per_graph": 20,
+      "observed_range_us": [
+        325.1024007797241,
+        326.84319019317627
+      ],
+      "binary_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+      "harness_sha256": "33de99f3ed65ff9cd1787a0445c126c53837283e0fe2c9c410ef69197a52d154",
+      "input_sha256": "5b1677989c9b708f",
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "concurrency": "NO_FOREIGN_PROCESS_OBSERVED; polling=0.2s, not scheduler exclusion",
+      "verdict": "NUMERICS_AND_TIMING_COMPLETE_NOT_COMPARATIVE_SPEED_ADMISSION",
+      "monitor": {
+        "records": [
+          {
+            "utc": "2026-09-26T03:48:53.736194+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.56, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:53.985166+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.54, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:54.260188+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.52, 0"
+          },
+          {
+            "utc": "2026-09-26T03:48:54.791322+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.59, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:55.162987+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.59, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:55.460912+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.55, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:55.715183+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.49, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:55.967572+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.44, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:56.241001+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.48, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:56.536494+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.48, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:56.788417+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 53.47, 4"
+          },
+          {
+            "utc": "2026-09-26T03:48:57.178363+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 54.56, 20"
+          },
+          {
+            "utc": "2026-09-26T03:48:57.450969+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 4, 1755, 64.32, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:57.770220+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 75.15, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.066580+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 85.28, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.363299+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.26, 515"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.679021+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 88.58, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.729169+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 89.61, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.865746+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 90.45, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.925433+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 91.32, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:58.958005+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 91.30, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.007315+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 91.79, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.056818+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 7, 1755, 92.53, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.106692+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 92.99, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.251159+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 93.88, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.264706+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 94.13, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.322395+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 94.43, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.392942+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 94.99, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.443113+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 13, 1755, 95.55, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.510692+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 10, 1755, 96.15, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.558127+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 10, 1755, 96.79, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:48:59.895184+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 93.72, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:00.144682+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 90.37, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:00.417642+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 89.01, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:00.694713+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.21, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:00.988358+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.11, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:01.330270+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.11, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:01.604012+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.12, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:01.900692+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:02.174805+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 87.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:02.439192+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.14, 1007"
+          },
+          {
+            "utc": "2026-09-26T03:49:02.457919+00:00",
+            "pids": [
+              13839
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 87.14, 1007"
+          }
+        ],
+        "errors": []
+      },
+      "evidence_cell": "final-perf-ppu-source-strong"
+    }
+  ],
+  "hardware_counters": "SKIP: ERR_NVGPUCTRPERM",
+  "ppu_native": "SKIP: installed local SDK incapable",
+  "ppu_simulation": "NOT_RUN",
+  "archives": {
+    "first": "d4c52c0b5be40c29c3d9d038822c264a4989bf8869b282ffed28edc297cf67f0",
+    "final": "6c45cc6a11fe61e04ea886b4587a4248997a5c56b01c7a83623f6a66fa0afc5d"
+  }
+}

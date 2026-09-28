@@ -1,0 +1,262 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "protocol": "nsys_all_kernels_per_forward_12_interleaved_calls_per_role",
+  "reanalysis": "EXACT_REEXTRACTION_ALL_3_CAPTURES",
+  "runs": [
+    {
+      "candidate": "S25",
+      "capture": "range-fi-weak",
+      "gate": -0.1,
+      "source": "ab11c9b9f1c70e3daca63835e7c67e50b2261051",
+      "binary_sha256": "b42dff2ec6c5ecc78dd19a182723d381ed33058a1c9d774db0a45bf5a3cefbd6",
+      "candidate_us": {
+        "median": 153.776,
+        "range": [
+          152.704,
+          154.623
+        ]
+      },
+      "control_us": {
+        "median": 120.048,
+        "range": [
+          119.616,
+          121.056
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.8,
+          "range": [
+            128.896,
+            131.84
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.96000000000001,
+          "range": [
+            112.288,
+            113.6
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 139.136,
+          "range": [
+            137.919,
+            141.536
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8505878680678389,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7345749661845802,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9047965872437831,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "88100275a1edbb0d860fe3952ec8364ec073e43c5055484ea7287c3921c000e4",
+        "result.json": "554c2a95886ede2a2a4b3b72b98f20c6425ca90779ea2b9ed42972889a1adf28",
+        "forward.sqlite": "5290c51d322bf37a85b07d6627892c7f36e9db6a725aa808a80860688085361c",
+        "forward.nsys-rep": "a1f2bfed7f4d70727be0f16c5233e34a9324e3d47e04909d8369c4a6fb6bbf4f"
+      }
+    },
+    {
+      "candidate": "S26",
+      "capture": "staged-fi-weak",
+      "gate": -0.1,
+      "source": "360bd17e98880c065ad16950271922217e4f5739",
+      "binary_sha256": "343246f246e7167f86db2a8212f89d1461de93978aa2a9c1a74beafb3e177b06",
+      "candidate_us": {
+        "median": 122.28800000000001,
+        "range": [
+          120.672,
+          122.944
+        ]
+      },
+      "control_us": {
+        "median": 120.655,
+        "range": [
+          119.903,
+          121.151
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.62400000000002,
+          "range": [
+            129.6,
+            135.616
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.672,
+          "range": [
+            110.4,
+            113.759
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 139.007,
+          "range": [
+            138.335,
+            141.344
+          ]
+        }
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0681669501504645,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9213659557765275,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.136718238911422,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "6968bd3bfc78d983ae0e5f9647bf45c60cb00a3f470cb10202206ced2d9a12b8",
+        "result.json": "e7dfea3c4973c57717ea24adf5fce38b96235a06ef63f50dd31db2926d15a972",
+        "forward.sqlite": "baf279f891bd4bb5176ab515127499a12fc844a6a8e7cd1df20f6693dd0fee94",
+        "forward.nsys-rep": "c123fdbdd087c72b48dd0372552dc176905a41f7e9d41f31946aa765891dd622"
+      }
+    },
+    {
+      "candidate": "S27",
+      "capture": "range-flat-fi-weak",
+      "gate": -0.1,
+      "source": "80b6d6f9ec3a13f4bc0f8b0fe9cec2e1fb115d05",
+      "binary_sha256": "46f09aa054f218edf4c529b3503260987fa74bebf24b0df2c2e4172417b56b3f",
+      "candidate_us": {
+        "median": 122.3995,
+        "range": [
+          119.712,
+          123.072
+        ]
+      },
+      "control_us": {
+        "median": 120.56,
+        "range": [
+          119.488,
+          121.76
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.1755,
+          "range": [
+            129.44,
+            135.552
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.96000000000001,
+          "range": [
+            111.679,
+            113.408
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 139.328,
+          "range": [
+            138.496,
+            141.28
+          ]
+        }
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.063529671281337,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9228795869264173,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.1383053035347366,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "6c9a728001fed4fab65a822512b56e8678ad6c1fa7cddb9a5d467440beacab59",
+        "result.json": "911ebb528a071cc63cce6f9bbc6b536e7b13b4db1f049fbc1ad17f24ddd7568b",
+        "forward.sqlite": "5ec599b83161ca002c64a9d57e4d97f24d8e5f6154bc79ba7af8da28ed22e222",
+        "forward.nsys-rep": "97c74bd920b61dd88790aea8dae6fb76653ffc6661359059e4c0ae56418bdfac"
+      }
+    }
+  ],
+  "captures": 3,
+  "complete_forwards": 216,
+  "incumbent": "S24 bc3c154: not replaced by any candidate",
+  "missing": "No strong-gate or QLA timing: all three failed weak parent promotion",
+  "invalid_build": "range-local/range-build: __exp2f resolves host-only; only r2 is measured",
+  "native_ppu17": "SKIP: native SDK/model unavailable; CUDA source-check is separate"
+}

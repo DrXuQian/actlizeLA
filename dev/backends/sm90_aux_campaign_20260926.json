@@ -1,0 +1,871 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "protocol": "nsys_all_kernels_per_forward_12_interleaved_calls_per_role",
+  "reanalysis": "EXACT_REEXTRACTION_ALL_11_CAPTURES",
+  "runs": [
+    {
+      "candidate": "S20",
+      "capture": "kk-first-fi-weak",
+      "gate": -0.1,
+      "source": "973c23bc16a32fcc46c4ba11278b0104c59c45a7",
+      "binary_sha256": "07121051d1415207c05b616e2b8cce1fe24e39c3546697ecfc893c1972945cc0",
+      "candidate_us": {
+        "median": 136.1445,
+        "range": [
+          134.528,
+          137.185
+        ]
+      },
+      "control_us": {
+        "median": 133.457,
+        "range": [
+          132.8,
+          134.337
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.6565,
+          "range": [
+            129.632,
+            131.905
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.8005,
+          "range": [
+            111.36,
+            113.185
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.864,
+          "range": [
+            138.208,
+            139.872
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9596898883171924,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8285351226086989,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0199750999856771,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "633b58a1dac9a1dd948cd4528b11356f06ce6f1b01be4662cc35e36bca93c574",
+        "result.json": "562a5842c2f3dcc2de196de724181b5af97156b929f6665863c685e009c23fa9",
+        "forward.sqlite": "3d9abdb3177e58e735178b6f3aa069b89db2327c9f2e1af9a80f486b0220b417",
+        "forward.nsys-rep": "afe3ffc3363bf946080aebd5e2600a23bd439f85b90a77cfb9eb79c85e1bc260"
+      }
+    },
+    {
+      "candidate": "S21",
+      "capture": "final-mask-fi-weak",
+      "gate": -0.1,
+      "source": "c5907c61a59a18c184943c29f7c2180bc2985059",
+      "binary_sha256": "9b6c55c9e0936d3c829b3c7b616df0ab96c1a525478bb734ab15090c6ef6eedd",
+      "candidate_us": {
+        "median": 129.0085,
+        "range": [
+          127.169,
+          129.441
+        ]
+      },
+      "control_us": {
+        "median": 133.5365,
+        "range": [
+          132.64,
+          135.265
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.064,
+          "range": [
+            128.8,
+            132.385
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.848,
+          "range": [
+            112.417,
+            114.144
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.9925,
+          "range": [
+            138.209,
+            139.968
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0081816314428893,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8747330602247139,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0773902494796854,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "cbd4552a7dc93e0d05d0a116eea853ef58ba6de5ff3b4791ba8f82acf6104b5c",
+        "result.json": "9c1e1249db07f912a6f69f4e501b7b769bdac484e3d318bdb0ec81b216a8b2f5",
+        "forward.sqlite": "3b034e149cb64c67c5bf63e62bf9db7026d6b39a2846d2eea2c38bf70f170317",
+        "forward.nsys-rep": "7a836420daededeed1b411b14a9d655a43a868477993aa63c30704ac0ab9e4a5"
+      }
+    },
+    {
+      "candidate": "S21",
+      "capture": "final-mask-fi-strong",
+      "gate": -1.0,
+      "source": "c5907c61a59a18c184943c29f7c2180bc2985059",
+      "binary_sha256": "9b6c55c9e0936d3c829b3c7b616df0ab96c1a525478bb734ab15090c6ef6eedd",
+      "candidate_us": {
+        "median": 128.945,
+        "range": [
+          128.256,
+          129.92
+        ]
+      },
+      "control_us": {
+        "median": 133.6005,
+        "range": [
+          133.185,
+          133.888
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 129.856,
+          "range": [
+            128.832,
+            130.88
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.8805,
+          "range": [
+            112.0,
+            113.121
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.928,
+          "range": [
+            137.697,
+            140.481
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.007065027724999,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8754158749854589,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0774206056845943,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "a9deb92c92d9ccbb773cca5eaf371ac605f5f9765d83372fc0fa00b77ac66956",
+        "result.json": "462ff429d8c51c6ade75644be5d8937d70bcf5fbec3da4e6940852ccc6f7985e",
+        "forward.sqlite": "41bd1a8c43167fee6c05c2d2b134492b9278a7301e68da6201db95ce6814be4a",
+        "forward.nsys-rep": "c3a1c06f43387237a0fdd3f417dcb8b34bef15ddfed101f7999bc7d45bbd4a32"
+      }
+    },
+    {
+      "candidate": "S21",
+      "capture": "final-mask-qla-weak",
+      "gate": -0.1,
+      "source": "c5907c61a59a18c184943c29f7c2180bc2985059",
+      "binary_sha256": "9b6c55c9e0936d3c829b3c7b616df0ab96c1a525478bb734ab15090c6ef6eedd",
+      "candidate_us": {
+        "median": 125.84100000000001,
+        "range": [
+          124.673,
+          127.777
+        ]
+      },
+      "control_us": {
+        "median": 132.529,
+        "range": [
+          131.873,
+          133.377
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": {
+          "median": 165.2505,
+          "range": [
+            164.225,
+            166.658
+          ]
+        },
+        "flashqla-no-cp": {
+          "median": 174.7535,
+          "range": [
+            173.442,
+            175.681
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.3131689989748967,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.388684927805723,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "1441371ab962589c626ff82166a0c150c1275d7a3832a6b7d3be28dff2b9b1e3",
+        "result.json": "6abd9a69dda87beec37c547abb5e0a32e11233ab586ea6b4b4e260263a928a16",
+        "forward.sqlite": "ccbdc427af40841c24b5f305fb1dffaa4db65e4d5e1ab10f2aca77a45c2dfb90",
+        "forward.nsys-rep": "33055edfc2b68d674527c33023e6cc228d01a72194214ea9d4eaf5e5f36360a6"
+      }
+    },
+    {
+      "candidate": "S21",
+      "capture": "final-mask-qla-strong",
+      "gate": -1.0,
+      "source": "c5907c61a59a18c184943c29f7c2180bc2985059",
+      "binary_sha256": "9b6c55c9e0936d3c829b3c7b616df0ab96c1a525478bb734ab15090c6ef6eedd",
+      "candidate_us": {
+        "median": 125.697,
+        "range": [
+          125.281,
+          128.257
+        ]
+      },
+      "control_us": {
+        "median": 132.481,
+        "range": [
+          131.488,
+          133.473
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": {
+          "median": 162.7215,
+          "range": [
+            160.161,
+            165.121
+          ]
+        },
+        "flashqla-no-cp": {
+          "median": 174.321,
+          "range": [
+            172.993,
+            175.906
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.2945535692975965,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.3868350079954175,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "f81bdd366166f4373f71b64a0fcdc2c9f082a983328ef3496129acf71ff6666d",
+        "result.json": "5d899791a587462e3c323c6c38e29c76a00648c65b97aec8b427e9337602270f",
+        "forward.sqlite": "e5bfdeb59a64b769b9e9c6071da5bbd146304e3af98206960214c1869feaf50c",
+        "forward.nsys-rep": "12bc86a938762ac2c1e28177a6935ba56b3a51b00f83e55514f541b7fa7cb538"
+      }
+    },
+    {
+      "candidate": "S22",
+      "capture": "inplace-fi-weak-r3",
+      "gate": -0.1,
+      "source": "db16d806676979805d48f578b5aa1e0b1f697631",
+      "binary_sha256": "8ca6dcf9dca0c9e281ed9698d490fead726269122d0dad6cc17376c44d718140",
+      "candidate_us": {
+        "median": 139.5525,
+        "range": [
+          138.273,
+          140.641
+        ]
+      },
+      "control_us": {
+        "median": 135.4085,
+        "range": [
+          134.209,
+          136.129
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 131.93650000000002,
+          "range": [
+            130.592,
+            132.321
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 114.513,
+          "range": [
+            113.792,
+            115.104
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 140.9135,
+          "range": [
+            139.744,
+            141.761
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9454255566901346,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8205729026710378,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0097526020673222,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "2bfec4a2b15197825cec9b7a4a95287e3d6720a5a9ad846d8052d6ca7dcf8f0f",
+        "result.json": "515b76c6845aac0f51b5391434beb8d3f392463ca0e78a971168a1e7a4fe4ac0",
+        "forward.sqlite": "eafb1efcc087e1890650bbba76d61ef85bc94089c9e86e44b235a325301737e3",
+        "forward.nsys-rep": "7ba6985efdcd003532babf95bc644659f95ac3b171f36433540537bf1844c368"
+      }
+    },
+    {
+      "candidate": "S23",
+      "capture": "mask-inplace-fi-weak",
+      "gate": -0.1,
+      "source": "c872433d8bf25983924f1eeb40229ec1245c77aa",
+      "binary_sha256": "e333df785844c8b8a674d6eaa0188313ea18e6465cf2a316abf284c51be16e45",
+      "candidate_us": {
+        "median": 135.29649999999998,
+        "range": [
+          134.465,
+          136.449
+        ]
+      },
+      "control_us": {
+        "median": 126.768,
+        "range": [
+          125.857,
+          127.425
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 129.664,
+          "range": [
+            129.089,
+            134.208
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.352,
+          "range": [
+            111.36,
+            112.704
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.6245,
+          "range": [
+            137.632,
+            140.48
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9583692113247572,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.830413203593589,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0245978277339032,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "dffde97b1c9e9ffda894d0ec6f72caccb4183603af44a6f8a4b68fd1dbe0cfbc",
+        "result.json": "bca63d761da9651a9b2a714dd755b4cb1097334e5b4bbc415a1b5024ee9b0c1a",
+        "forward.sqlite": "204886c76bba236f75fdad59c4f2e92c8fff7fdf78281010fc0319b5497f0b1c",
+        "forward.nsys-rep": "b5894c0cbda11f89cac08580cedcab5fdcb02af7ec4f2d4576430eff192f09a6"
+      }
+    },
+    {
+      "candidate": "S24",
+      "capture": "relative-fi-weak",
+      "gate": -0.1,
+      "source": "bc3c154abb7f5526be1592b092a155be506e7cd1",
+      "binary_sha256": "43d62a8cabcf072b0e19b787d0c5ac9fd6aff2855ab1fcc5c96c7b73decbbb3c",
+      "candidate_us": {
+        "median": 123.681,
+        "range": [
+          121.729,
+          125.248
+        ]
+      },
+      "control_us": {
+        "median": 128.64100000000002,
+        "range": [
+          127.745,
+          129.345
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 131.409,
+          "range": [
+            130.113,
+            133.346
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 114.33699999999999,
+          "range": [
+            112.385,
+            115.297
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 140.6245,
+          "range": [
+            138.24,
+            142.049
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0624833240352196,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9244508048932333,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.1369935560029432,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "25b0788034ab5b0d58fb53ac5e7eda5f82c58e06ce376211d573560c561cfacf",
+        "result.json": "53f5ccb1226c4aaf8c2e9c566110f5692df68a8a0e8b269aa5736c1d607848af",
+        "forward.sqlite": "e0dd5043619dbcde8947955f5fa3c38379b2ae7fb5f3f78cca33b74069224b85",
+        "forward.nsys-rep": "28442294bf74f0ef84250304c7e510f8de2a47fd71157b4ebe82e0b775f80625"
+      }
+    },
+    {
+      "candidate": "S24",
+      "capture": "relative-fi-strong",
+      "gate": -1.0,
+      "source": "bc3c154abb7f5526be1592b092a155be506e7cd1",
+      "binary_sha256": "43d62a8cabcf072b0e19b787d0c5ac9fd6aff2855ab1fcc5c96c7b73decbbb3c",
+      "candidate_us": {
+        "median": 121.281,
+        "range": [
+          118.593,
+          122.848
+        ]
+      },
+      "control_us": {
+        "median": 126.721,
+        "range": [
+          126.273,
+          127.553
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 129.5045,
+          "range": [
+            127.968,
+            130.24
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.1765,
+          "range": [
+            111.488,
+            112.737
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 137.69650000000001,
+          "range": [
+            136.993,
+            138.881
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0678053446129236,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9249305332244951,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.135350961815948,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "3101ee1db233e6bf8363ecf9e16becb9382cae214b339e630c0aa8e6ea1812f8",
+        "result.json": "65d9993b2eed846deb715c0b75fc894f3cb18dda2ff67645abf19e82b0c29c72",
+        "forward.sqlite": "6f2aa62686173a3032de996c990ec050e209503cc4a994861d73d9c13749d4c4",
+        "forward.nsys-rep": "2404ed0f9398b5bd92d14a5525af8d7fa2f04a5f00ceb2d042b2df6ae74ad8d2"
+      }
+    },
+    {
+      "candidate": "S24",
+      "capture": "relative-qla-weak",
+      "gate": -0.1,
+      "source": "bc3c154abb7f5526be1592b092a155be506e7cd1",
+      "binary_sha256": "43d62a8cabcf072b0e19b787d0c5ac9fd6aff2855ab1fcc5c96c7b73decbbb3c",
+      "candidate_us": {
+        "median": 119.169,
+        "range": [
+          118.656,
+          121.313
+        ]
+      },
+      "control_us": {
+        "median": 126.209,
+        "range": [
+          125.569,
+          126.785
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": {
+          "median": 165.05700000000002,
+          "range": [
+            164.258,
+            166.625
+          ]
+        },
+        "flashqla-no-cp": {
+          "median": 174.46550000000002,
+          "range": [
+            173.282,
+            176.225
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.3850665861088036,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.4640174877694705,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "5a7d4ed942d1c359d7591f000d418625755f3c2ee4c3689632725c85c45ad2a3",
+        "result.json": "c965996b5e303368118ee61bfb293996b363caea86324439ef85a96382705ee8",
+        "forward.sqlite": "55a7ad9a7a1f0b4e4382f92fe25e8d1248a8aa103fd181186524b7ff97069b0b",
+        "forward.nsys-rep": "c0765f5d1b9d76e17f1316fb5eb97d9b83b946bb38ec6e61f28f8140513f677f"
+      }
+    },
+    {
+      "candidate": "S24",
+      "capture": "relative-qla-strong",
+      "gate": -1.0,
+      "source": "bc3c154abb7f5526be1592b092a155be506e7cd1",
+      "binary_sha256": "43d62a8cabcf072b0e19b787d0c5ac9fd6aff2855ab1fcc5c96c7b73decbbb3c",
+      "candidate_us": {
+        "median": 120.09649999999999,
+        "range": [
+          118.784,
+          122.081
+        ]
+      },
+      "control_us": {
+        "median": 126.57650000000001,
+        "range": [
+          125.984,
+          127.361
+        ]
+      },
+      "references_us": {
+        "flashqla-auto": {
+          "median": 163.137,
+          "range": [
+            161.856,
+            165.283
+          ]
+        },
+        "flashqla-no-cp": {
+          "median": 174.8015,
+          "range": [
+            173.793,
+            177.089
+          ]
+        }
+      },
+      "verdict_vs_control": "CANDIDATE-WINS",
+      "candidate_vs_references": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.3583826339651863,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.4555086950910312,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 60,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "803d4f39aec96b8d6b3b9041b0f35ab1ce239a188f0fd8b12f032bdcace1413b",
+        "result.json": "4c7ca30233d23537e9f0607efc5e1042c77bc55b0c7967fea81de4c3e705dacf",
+        "forward.sqlite": "37f9b12219f2f36672c802a0d7ec3aa8bd719d5c20cdc72dfa7bdf4e326868e8",
+        "forward.nsys-rep": "74d4c5801e1743a59f39a2e3cb357ef53ce2d2f0baf3ea6992bca45e12f94f79"
+      }
+    }
+  ],
+  "captures": 11,
+  "complete_forwards": 744,
+  "excluded": [
+    "inplace-fi-weak: foreign PID175958 before capture",
+    "inplace-fi-weak-r2: foreign PID176303 before capture"
+  ],
+  "invalid_build": "relative-local: source changed during compile; relative-local-r2 replaces it"
+}

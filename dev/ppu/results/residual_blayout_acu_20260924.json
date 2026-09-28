@@ -1,0 +1,502 @@
+{
+  "archive_sha256": "580e0df3c019f7a8c9bcd7f6e31b320918ac063190dbacccf42c06d41d567330",
+  "source": "3c7da093fe34606a7a3e51bed20aae261048ebc8",
+  "binaries": {
+    "/workspace/gdn-residual-delivery-3c7da09-20260924T085540Z-2214336/build/_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "3bb5d765b984795c231717adc7aae84841679c60aa24822cf6b0725772b833b4",
+    "/workspace/gdn-residual-delivery-3c7da09-20260924T085540Z-2214336/build/libgdn_wy_ppu.so": "bad6466a28860b42be159e5c0ff14f30f84175b7e7cb5341f1b125ab5b5f4994"
+  },
+  "validation": {
+    "files": 607,
+    "hashes": 606,
+    "source_files": 131,
+    "kernel_inventories": [
+      4,
+      4,
+      7
+    ],
+    "native_opcode_sums": "15/15 closed",
+    "numeric_admission": "30 residual + 30 B-layout cases x 8; old 16 WY + 32 delivery admissions; both gates",
+    "timed_gate": -1
+  },
+  "device": {
+    "name": "PPU-ZW810",
+    "cu": 72,
+    "total_memory": 103079215104,
+    "properties": "_CudaDeviceProperties(name='PPU-ZW810', major=8, minor=0, total_memory=98304MB, multi_processor_count=72, uuid=019ee024-8860-091c-0000-0000007aff6d, pci_bus_id=8, pci_device_id=0, pci_domain_id=0, L2_cache_size=64MB)",
+    "uuid": "019ee024-8860-091c-0000-0000007aff6d",
+    "visible": "0"
+  },
+  "shape": {
+    "B": 1,
+    "S": 2048,
+    "Hk": 16,
+    "Hv": 32,
+    "K": 128,
+    "V": 128
+  },
+  "capture_acu": {
+    "path": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+    "sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+    "sdk_bundled": false
+  },
+  "timing_scope": "ACU sum of all kernel durations, including required fills; NOT API latency",
+  "decision": "NO_MEASURED_BENEFIT; NOT_PROMOTED; ROUTING_UNCHANGED",
+  "arms": {
+    "control": {
+      "complete_kernel_us": 230.67824,
+      "kernels": [
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "64,1,1",
+          "us": 2.45353,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "128,1,1",
+          "us": 52.40706,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::residual::gdn_wy_residual_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+          "grid": "128,1,1",
+          "block": "128,1,1",
+          "us": 130.48412,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::aiu::gdn_wy_aiu_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+          "grid": "1024,1,1",
+          "block": "256,1,1",
+          "us": 45.33353,
+          "hz": 1700000000
+        }
+      ],
+      "state_raw_metrics": {
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+          "unit": "unitless",
+          "value": "6930432"
+        },
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+          "unit": "unitless",
+          "value": "2883584"
+        },
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+          "unit": "unitless",
+          "value": "4046848"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+          "unit": "byte",
+          "value": "117440512"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+          "unit": "byte",
+          "value": "17825792"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+          "unit": "byte",
+          "value": "102760448"
+        },
+        "sass__inst_executed_shared_loads": {
+          "unit": "inst",
+          "value": "1429504"
+        },
+        "sass__inst_executed_shared_stores": {
+          "unit": "inst",
+          "value": "1343488"
+        },
+        "pu__inst_executed.sum": {
+          "unit": "inst",
+          "value": "14746240"
+        },
+        "cu__warps_active.avg.per_cycle_active": {
+          "unit": "warp/cycle",
+          "value": "7.10"
+        },
+        "pu__we_warps_eligible.avg.per_cycle_active": {
+          "unit": "warp/cycle",
+          "value": "0.25"
+        },
+        "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "1.19"
+        },
+        "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.74"
+        },
+        "pu__we_average_warps_issue_stalled_vmem_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.29"
+        },
+        "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.51"
+        },
+        "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.21"
+        },
+        "dram__bytes_read.sum": {
+          "unit": "byte",
+          "value": "84300672"
+        }
+      },
+      "state_opcode_counts": {
+        "s.mov.b32": 230912,
+        "v.mov.b32": 1113600,
+        "v.cmp.ne.i32": 512,
+        "s.wait": 1537536,
+        "v.mov.alllane.b32": 512,
+        "s.cmp.eq.u32": 512,
+        "s.cbr.az": 369664,
+        "smem.ksd.prefetch.kp0": 128,
+        "smem.ld.b32x2": 2560,
+        "s.shra.i32": 2560,
+        "s.shrl.b32": 13312,
+        "s.add.i32": 94720,
+        "s.abs.i32": 2560,
+        "s.and.b32": 45568,
+        "v.tid.init": 512,
+        "v.and.b32": 7680,
+        "v.bfe.b32": 8704,
+        "v.shrl.b32": 13824,
+        "v.cnvt.f32.u32.rtte": 1536,
+        "s.xor.b32": 17920,
+        "s.cmp.gt.i32": 1536,
+        "v.rcp.f32": 1536,
+        "v.or.b32": 48640,
+        "v.mov.v2s": 674816,
+        "v.cnvt.u32.f32.rtz": 1536,
+        "s.mull.i32": 6656,
+        "s.mulh.u32": 3072,
+        "s.cmp.ge.u32": 3072,
+        "s.csel.b32": 7680,
+        "s.cmp.eq.i32": 1536,
+        "s.shll.b32": 52736,
+        "s.cmp.eq.i64": 1024,
+        "s.cnvt.i64.i32": 3072,
+        "v.lop3.b32": 47616,
+        "s.shll.b64": 6656,
+        "s.cbr.nz": 2560,
+        "v.madw.u64.u32": 5632,
+        "v.shll.b64": 4096,
+        "v.madw.i64.i32": 114688,
+        "v.add.co.u32": 118784,
+        "v.add.ci.u32": 118784,
+        "v.reg.dchk": 294912,
+        "vmem.ld.b32": 8192,
+        "smem.ld.b32": 512,
+        "s.cmp.lt.i32": 16896,
+        "v.shll.b32": 486400,
+        "v.madl.i32": 67584,
+        "tsm.st.b32": 32768,
+        "v.add.i32": 4608,
+        "s.add.i64": 57856,
+        "s.nop": 66048,
+        "vmem.fence.blk": 49664,
+        "s.blksyn.defer": 66048,
+        "tsm.ld.b32x4": 102400,
+        "vmem.st.b32x4": 102400,
+        "s.exit": 512,
+        "v.xor.b32": 2048,
+        "v.cnvt.u64.u32": 1536,
+        "v.cmp.lt.u32": 2560,
+        "smem.ld.b32x4": 1024,
+        "s.mulw.i64.i32": 1024,
+        "s.mulw.u64.u32": 1536,
+        "v.cmp.eq.i32": 512,
+        "s.or.b32": 373248,
+        "s.cbr": 16896,
+        "v.fma.f32.rtte": 704512,
+        "v.max.f32": 147456,
+        "v.min.f32": 147456,
+        "v.fma.f32.rtn": 147456,
+        "v.add.f32": 212992,
+        "tsm.ld.swzl.b32x4.s0.t1.trans1": 524288,
+        "v.exp2.f32": 147456,
+        "v.mul.f32": 1196032,
+        "v.mma.f32.bf16.m16n16k16": 655360,
+        "s.min.i32": 16384,
+        "s.lop.emsk": 385024,
+        "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 16384,
+        "v.cmp.gt.u32": 8192,
+        "vmem.ld.b16": 8192,
+        "v.cnvt.bf16.f32.rtte": 1310720,
+        "tsm.st.b16": 1310720,
+        "vmem.acp.commit.grp": 32768,
+        "tsm.ld.swzl.b32x4.s0.t1.trans0": 393216,
+        "tsm.ld.b32": 147456,
+        "v.cmp.gt.i32": 65536,
+        "tsm.ld.b16": 262144,
+        "s.lop.b32": 131072,
+        "v.csel.b32": 262144
+      },
+      "state_resources": {
+        "registers_per_thread": 242,
+        "shared_bytes": 45568,
+        "grid": 128,
+        "threads": 128,
+        "stack_bytes": 0
+      },
+      "state_native_opcode_sum": 14680704
+    },
+    "candidate": {
+      "complete_kernel_us": 232.22,
+      "kernels": [
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "64,1,1",
+          "us": 2.45176,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "128,1,1",
+          "us": 52.42647,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::residual_blayout::gdn_wy_residual_blayout_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+          "grid": "128,1,1",
+          "block": "128,1,1",
+          "us": 130.33353,
+          "hz": 1700000000
+        },
+        {
+          "name": "gdn_qsa::wy::aiu::gdn_wy_aiu_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+          "grid": "1024,1,1",
+          "block": "256,1,1",
+          "us": 47.00824,
+          "hz": 1700000000
+        }
+      ],
+      "state_raw_metrics": {
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+          "unit": "unitless",
+          "value": "5357568"
+        },
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+          "unit": "unitless",
+          "value": "2359296"
+        },
+        "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+          "unit": "unitless",
+          "value": "2998272"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+          "unit": "byte",
+          "value": "117440512"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+          "unit": "byte",
+          "value": "17825792"
+        },
+        "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+          "unit": "byte",
+          "value": "102760448"
+        },
+        "sass__inst_executed_shared_loads": {
+          "unit": "inst",
+          "value": "1429504"
+        },
+        "sass__inst_executed_shared_stores": {
+          "unit": "inst",
+          "value": "1343488"
+        },
+        "pu__inst_executed.sum": {
+          "unit": "inst",
+          "value": "14715008"
+        },
+        "cu__warps_active.avg.per_cycle_active": {
+          "unit": "warp/cycle",
+          "value": "7.09"
+        },
+        "pu__we_warps_eligible.avg.per_cycle_active": {
+          "unit": "warp/cycle",
+          "value": "0.25"
+        },
+        "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "1.02"
+        },
+        "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.69"
+        },
+        "pu__we_average_warps_issue_stalled_vmem_dependency_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.31"
+        },
+        "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.53"
+        },
+        "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+          "unit": "inst",
+          "value": "0.24"
+        },
+        "dram__bytes_read.sum": {
+          "unit": "byte",
+          "value": "84301056"
+        }
+      },
+      "state_opcode_counts": {
+        "v.mov.b32": 1112576,
+        "s.mov.b32": 216576,
+        "v.cmp.ne.i32": 512,
+        "s.wait": 1570304,
+        "v.mov.alllane.b32": 512,
+        "s.cmp.eq.u32": 512,
+        "s.cbr.az": 369664,
+        "smem.ksd.prefetch.kp0": 128,
+        "smem.ld.b32x2": 2560,
+        "s.shra.i32": 2560,
+        "s.shrl.b32": 13312,
+        "s.add.i32": 94720,
+        "s.and.b32": 45568,
+        "s.abs.i32": 2560,
+        "v.tid.init": 512,
+        "v.and.b32": 8192,
+        "v.bfe.b32": 8704,
+        "v.shrl.b32": 13824,
+        "v.cnvt.f32.u32.rtte": 1536,
+        "s.xor.b32": 17920,
+        "v.or.b32": 48128,
+        "v.rcp.f32": 1536,
+        "v.mov.v2s": 642048,
+        "v.cnvt.u32.f32.rtz": 1536,
+        "s.mull.i32": 6656,
+        "s.mulh.u32": 3072,
+        "s.cmp.ge.u32": 3072,
+        "s.csel.b32": 7680,
+        "s.cmp.gt.i32": 1536,
+        "s.cmp.eq.i32": 1536,
+        "s.shll.b32": 52736,
+        "s.cmp.eq.i64": 1024,
+        "s.cnvt.i64.i32": 3072,
+        "v.lop3.b32": 51712,
+        "s.shll.b64": 6656,
+        "s.cbr.nz": 2560,
+        "v.madw.u64.u32": 5632,
+        "v.shll.b64": 4096,
+        "v.madw.i64.i32": 114688,
+        "v.add.co.u32": 118784,
+        "v.add.ci.u32": 118784,
+        "v.reg.dchk": 294912,
+        "vmem.ld.b32": 8192,
+        "smem.ld.b32": 512,
+        "s.cmp.lt.i32": 16896,
+        "v.shll.b32": 491520,
+        "v.madl.i32": 58368,
+        "tsm.st.b32": 32768,
+        "v.add.i32": 4608,
+        "s.add.i64": 57856,
+        "s.nop": 66048,
+        "vmem.fence.blk": 49664,
+        "s.blksyn.defer": 66048,
+        "tsm.ld.b32x4": 102400,
+        "vmem.st.b32x4": 102400,
+        "s.exit": 512,
+        "v.xor.b32": 2048,
+        "smem.ld.b32x4": 1024,
+        "v.cnvt.u64.u32": 2048,
+        "v.cmp.lt.u32": 2560,
+        "s.mulw.i64.i32": 1024,
+        "s.mulw.u64.u32": 1536,
+        "v.cmp.eq.i32": 512,
+        "s.or.b32": 373248,
+        "s.cbr": 16896,
+        "v.fma.f32.rtte": 704512,
+        "v.max.f32": 147456,
+        "v.min.f32": 147456,
+        "v.fma.f32.rtn": 147456,
+        "v.add.f32": 212992,
+        "tsm.ld.swzl.b32x4.s0.t1.trans0": 524288,
+        "tsm.ld.swzl.b32x4.s0.t1.trans1": 393216,
+        "v.exp2.f32": 147456,
+        "v.mul.f32": 1196032,
+        "v.mma.f32.bf16.m16n16k16": 655360,
+        "s.min.i32": 16384,
+        "s.lop.emsk": 385024,
+        "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 16384,
+        "v.cmp.gt.u32": 8192,
+        "vmem.ld.b16": 8192,
+        "v.cnvt.bf16.f32.rtte": 1310720,
+        "tsm.st.b16": 1310720,
+        "vmem.acp.commit.grp": 32768,
+        "v.cmp.gt.i32": 65536,
+        "tsm.ld.b32": 147456,
+        "tsm.ld.b16": 262144,
+        "s.lop.b32": 114688,
+        "v.csel.b32": 262144
+      },
+      "state_resources": {
+        "registers_per_thread": 242,
+        "shared_bytes": 45568,
+        "grid": 128,
+        "threads": 128,
+        "stack_bytes": 0
+      },
+      "state_native_opcode_sum": 14649472
+    },
+    "fla": {
+      "complete_kernel_us": 224.24999,
+      "kernels": [
+        {
+          "name": "chunk_local_cumsum_scalar_kernel",
+          "grid": "32,32,1",
+          "block": "32,1,1",
+          "us": 2.76588,
+          "hz": 1700000000
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+          "grid": "4096,1,1",
+          "block": "128,1,1",
+          "us": 4.29059,
+          "hz": 1700000000
+        },
+        {
+          "name": "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
+          "grid": "32,32,1",
+          "block": "32,1,1",
+          "us": 43.97471,
+          "hz": 1700000000
+        },
+        {
+          "name": "recompute_w_u_fwd_kernel",
+          "grid": "32,32,1",
+          "block": "256,1,1",
+          "us": 36.07529,
+          "hz": 1700000000
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<float>, std::array<char*, 1ul>)",
+          "grid": "512,1,1",
+          "block": "128,1,1",
+          "us": 2.28235,
+          "hz": 1700000000
+        },
+        {
+          "name": "chunk_gated_delta_rule_fwd_kernel_h_blockdim64",
+          "grid": "128,1,1",
+          "block": "128,1,1",
+          "us": 91.18529,
+          "hz": 1700000000
+        },
+        {
+          "name": "chunk_fwd_kernel_o",
+          "grid": "1,32,32",
+          "block": "256,1,1",
+          "us": 43.67588,
+          "hz": 1700000000
+        }
+      ]
+    }
+  }
+}

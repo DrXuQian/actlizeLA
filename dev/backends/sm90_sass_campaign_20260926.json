@@ -1,0 +1,4450 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "protocol": "nsys_all_GPU_kernels_per_forward_12_interleaved_calls_each",
+  "two_library_goal": "NOT_ACHIEVED",
+  "raw_samples": "preserved in original hash-bound result.json and nsys reports, not duplicated here",
+  "rejected_capture": "inverse-fi-strong: idle guard saw PID75882 before capture; successful retry separately named",
+  "compile_only": {
+    "S4": "not device admitted",
+    "S8": "targeted F2F remained; hypothesis rejected"
+  },
+  "runs": [
+    {
+      "id": "S10",
+      "capture": "alpha-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 179.5845,
+            "range": [
+              178.4,
+              180.48
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.224,
+            "range": [
+              331.2,
+              336.64
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.288,
+            "range": [
+              129.28,
+              132.16
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 38.367999999999995,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.8,
+            "range": [
+              110.624,
+              113.12
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.344,
+            "range": [
+              137.984,
+              141.024
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 455.952,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 180.38400000000001,
+            "range": [
+              179.072,
+              181.376
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "4d1ea9aa57ae1db2aa7b94496a142d2a498129d6aa3ddec741bb507399143f42",
+            "repository_revision": "7071ec467bb818346d9aea51a3848801dfdc3001",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "01236d27b83619a873e075a036da25862e426f03ba003c5e71ffd65293c934b2"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 0.9955677887174027,
+        "verdict": "UNRESOLVED",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.7222813553308497,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.6253326237360297,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7724853645556146,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 88,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/alpha-fi-weak/forward.sqlite": "0d2b2c662a706bdcf9cefacd32b26cfa3f463340336420215ce40d95a52c9c98",
+        "/workspace/gdn-sm90-win-20260926/alpha-fi-weak/receipt.json": "f54ebfe54be0ea53805a7409004bab949ca617a49047e178afaa03a008d0fc92",
+        "/workspace/gdn-sm90-win-20260926/alpha-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "f01657b9809033d4a8fcd7fd57c343008fe2ffe655d3bee667694a53ba1fb40e",
+      "receipt_sha256": "f54ebfe54be0ea53805a7409004bab949ca617a49047e178afaa03a008d0fc92"
+    },
+    {
+      "id": "S1",
+      "capture": "aux-fi-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 355.0375,
+            "range": [
+              354.141,
+              356.605
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.366,
+            "range": [
+              330.718,
+              338.11
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 129.80700000000002,
+            "range": [
+              128.799,
+              131.231
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 37.872,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.84700000000001,
+            "range": [
+              111.711,
+              113.087
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.55900000000003,
+            "range": [
+              136.895,
+              139.456
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 448.333,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 211.3425,
+            "range": [
+              208.607,
+              214.175
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "31f381de9d117e84",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "d3a32ae96bf37b5c95e1705f23701e696f0c2f88169309dc8eeae71c6f437280",
+            "repository_revision": "1732692aeeaaf8983d74ef520771f4af814914aa",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "6f010151692d6bfde832f9e9004ea3f8c07c739d60afa59247dfd2629c2b16ab"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.679915303358293,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {},
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 94,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/aux-fi-strong/forward.sqlite": "5bf78397f8a5fb9f2581f3958ca41723b35c573387b1ab3ef4161f5eaf125d7c",
+        "/workspace/gdn-sm90-win-20260926/aux-fi-strong/receipt.json": "70a899d713a1b4a58266f0c2683cf5bcb6b4b6c793989e1a340a5014f6f9e91e",
+        "/workspace/gdn-sm90-win-20260926/aux-source/tools/analyze_sm90_nsys.py": "9c8787c403905229e427d3eee95fcf7bf954837fbf3d860c664cf625c799ed47"
+      },
+      "result_sha256": "de4cbd27bb84965bfa7d48958ba3032bf83238ad03a2a6814ec983803f97f317",
+      "receipt_sha256": "70a899d713a1b4a58266f0c2683cf5bcb6b4b6c793989e1a340a5014f6f9e91e"
+    },
+    {
+      "id": "S1",
+      "capture": "aux-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 355.1495,
+            "range": [
+              354.11,
+              356.126
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 333.7415,
+            "range": [
+              331.741,
+              335.933
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.527,
+            "range": [
+              129.247,
+              131.935
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 29.056,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.479,
+            "range": [
+              111.744,
+              113.023
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.94299999999998,
+            "range": [
+              138.526,
+              140.446
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 451.99699999999996,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 210.7825,
+            "range": [
+              208.735,
+              212.926
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "b260367d813416ca",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "d3a32ae96bf37b5c95e1705f23701e696f0c2f88169309dc8eeae71c6f437280",
+            "repository_revision": "1732692aeeaaf8983d74ef520771f4af814914aa",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "6f010151692d6bfde832f9e9004ea3f8c07c739d60afa59247dfd2629c2b16ab"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.6849098003866545,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {},
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 87,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/aux-fi-weak/forward.sqlite": "b7a011088f1cb4215c9fb0f60f7df19dc23aa491a2a527eedeea0945f4b8c2e1",
+        "/workspace/gdn-sm90-win-20260926/aux-fi-weak/receipt.json": "b3656ff8b1416656bdfe045267b8530216aaf253f5c330585b157b43e3263220",
+        "/workspace/gdn-sm90-win-20260926/aux-source/tools/analyze_sm90_nsys.py": "9c8787c403905229e427d3eee95fcf7bf954837fbf3d860c664cf625c799ed47"
+      },
+      "result_sha256": "040bab4f44246bf2038e0d6392262895c5f2a0c909a1d0c3699ccb113b97f2b4",
+      "receipt_sha256": "b3656ff8b1416656bdfe045267b8530216aaf253f5c330585b157b43e3263220"
+    },
+    {
+      "id": "S7",
+      "capture": "gates-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 180.27249999999998,
+            "range": [
+              179.488,
+              182.24
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 335.488,
+            "range": [
+              333.313,
+              336.48
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.6245,
+            "range": [
+              129.344,
+              132.672
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 32.576,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.96000000000001,
+            "range": [
+              112.609,
+              113.632
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.86450000000002,
+            "range": [
+              137.888,
+              141.408
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 449.8405,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 184.27249999999998,
+            "range": [
+              183.328,
+              186.336
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "dfd542e9e627d354e83a03ce42afd03b207c8c5b3cceeb2287940a2ac6600875",
+            "repository_revision": "11925d07ae68a391e0df2549203d1cc37ea2f553",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8d8878d56f6ea5e4d2b6cfa0979765d75e324c763b247ef167267b2f2cfae895"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 0.9782930171349496,
+        "verdict": "CONTROL-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.7088659458139441,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.6130051961090235,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.753582330515948,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 89,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/gates-fi-weak/forward.sqlite": "c88d37437d60b7d3af8fc2debac06bf423cbcd978038bf7383f18a952177936c",
+        "/workspace/gdn-sm90-win-20260926/gates-fi-weak/receipt.json": "2d46fba32fc710d26b6f13eedf685ce0d4bb5fa57be5821e39943ceb61c2d0a2",
+        "/workspace/gdn-sm90-win-20260926/gates-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "0039e37c1415b6a614f2b2ab057a38f9beab1a13bc291d7735967f40d8c2d2e8",
+      "receipt_sha256": "2d46fba32fc710d26b6f13eedf685ce0d4bb5fa57be5821e39943ceb61c2d0a2"
+    },
+    {
+      "id": "S3",
+      "capture": "inverse-fi-strong-r2",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 357.716,
+            "range": [
+              357.156,
+              359.3
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.7235,
+            "range": [
+              332.26,
+              338.34
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 129.8895,
+            "range": [
+              128.898,
+              131.714
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 37.04,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.737,
+            "range": [
+              112.354,
+              113.153
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.86599999999999,
+            "range": [
+              138.274,
+              140.289
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 464.1495,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 191.98649999999998,
+            "range": [
+              190.402,
+              194.403
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "f985d6530e59f79a54ef7790372a85f3a1789b70f79321b2f375c13e8a0cf3ef",
+            "repository_revision": "1f22ac097e7c1ffcbb23b56f7ac79ef1aadf7bf9",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "4857f3a724855e857d78f3dbf90c0c89d93e37d942e431f4c57f611895891d58"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.8632351753899365,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.6765553828003532,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.5872131634255534,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7233112744906542,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 90,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/inverse-fi-strong-r2/forward.sqlite": "8299ee69c9cba1aec61f6434bb77a2667dde2a80376d5d7826d9d93ce4fa891d",
+        "/workspace/gdn-sm90-win-20260926/inverse-fi-strong-r2/receipt.json": "637df3b572674ee9cbd4d590f7f564352a51bf7d38abed9dae7c953154895dd3",
+        "/workspace/gdn-sm90-win-20260926/inverse-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "a02fd85f2134fa31fc88799f497b813bcc38ffe96cfd64072169aab5db173f54",
+      "receipt_sha256": "637df3b572674ee9cbd4d590f7f564352a51bf7d38abed9dae7c953154895dd3"
+    },
+    {
+      "id": "S3",
+      "capture": "inverse-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 357.7265,
+            "range": [
+              356.703,
+              358.494
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 335.903,
+            "range": [
+              331.006,
+              337.439
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.1115,
+            "range": [
+              129.216,
+              133.664
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 40.576,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.7675,
+            "range": [
+              110.112,
+              113.76
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.9355,
+            "range": [
+              138.559,
+              144.704
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 487.6465,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 191.2635,
+            "range": [
+              188.799,
+              193.408
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "f985d6530e59f79a54ef7790372a85f3a1789b70f79321b2f375c13e8a0cf3ef",
+            "repository_revision": "1f22ac097e7c1ffcbb23b56f7ac79ef1aadf7bf9",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "4857f3a724855e857d78f3dbf90c0c89d93e37d942e431f4c57f611895891d58"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.8703333359475278,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.6802735493180874,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.5895923686432591,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.731637243906966,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 94,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/inverse-fi-weak/forward.sqlite": "d38b41349c99f75c42240756cd717c270ffb177f522cd496450efb297c78532f",
+        "/workspace/gdn-sm90-win-20260926/inverse-fi-weak/receipt.json": "a6cc338e8ce9daffc3d1f7c3ba5b9d3208eba9892729171811f54b359bc5b5ff",
+        "/workspace/gdn-sm90-win-20260926/inverse-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "f4d3409419c05f123719549e884f5834afe3349fc987472da47c74fcb9a7e67f",
+      "receipt_sha256": "a6cc338e8ce9daffc3d1f7c3ba5b9d3208eba9892729171811f54b359bc5b5ff"
+    },
+    {
+      "id": "S11",
+      "capture": "meta-fi-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 180.5125,
+            "range": [
+              179.745,
+              182.176
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 336.3365,
+            "range": [
+              331.744,
+              338.08
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.304,
+            "range": [
+              129.184,
+              131.776
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 34.992000000000004,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 113.24799999999999,
+            "range": [
+              112.224,
+              113.728
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.48000000000002,
+            "range": [
+              137.92,
+              139.264
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 465.0725,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 148.48,
+            "range": [
+              147.168,
+              149.92
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.2157361260775863,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8775862068965518,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7627155172413793,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9326508620689657,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 86,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/meta-fi-strong/forward.sqlite": "080343a775c6b681beed66cd1d381f0bad0646244dc688969195ef6ad5a1204b",
+        "/workspace/gdn-sm90-win-20260926/meta-fi-strong/receipt.json": "de832bf5c1cc415f2da427ffb6d4bde1bb8dc6dfa9b722e3c37fd1e8ed10bb5c",
+        "/workspace/gdn-sm90-win-20260926/meta-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "ed71c42f4ac795064f3678da5591727a003cceee18fc1334f2238cc9676996b1",
+      "receipt_sha256": "de832bf5c1cc415f2da427ffb6d4bde1bb8dc6dfa9b722e3c37fd1e8ed10bb5c"
+    },
+    {
+      "id": "S11",
+      "capture": "meta-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 180.35199999999998,
+            "range": [
+              179.424,
+              183.008
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.017,
+            "range": [
+              330.208,
+              340.384
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 131.5525,
+            "range": [
+              129.728,
+              133.281
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 35.296,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 113.44,
+            "range": [
+              112.384,
+              115.072
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 140.4,
+            "range": [
+              138.817,
+              141.792
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 446.54449999999997,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 148.736,
+            "range": [
+              146.688,
+              150.88
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.212564543889845,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8844697988382101,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7626936316695353,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9439543889845096,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 88,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/meta-fi-weak/forward.sqlite": "2e524ec17058a2286d2464a90023d750b38cf0bdbee8c340b0ec88d989aa1e60",
+        "/workspace/gdn-sm90-win-20260926/meta-fi-weak/receipt.json": "1b5e8b18ae7e3922b65c76336c104a7d43023931d3f527609c67e09916d64751",
+        "/workspace/gdn-sm90-win-20260926/meta-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "e5eb7743eed7837fae13a4b6bd073d4a968a9f0d2b1994b0d53a694798d31c11",
+      "receipt_sha256": "1b5e8b18ae7e3922b65c76336c104a7d43023931d3f527609c67e09916d64751"
+    },
+    {
+      "id": "S11",
+      "capture": "meta-qla-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 178.048,
+            "range": [
+              177.505,
+              179.52
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 330.40049999999997,
+            "range": [
+              329.088,
+              334.272
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashqla-auto": {
+          "kernel_sum_us": {
+            "median": 163.20049999999998,
+            "range": [
+              160.448,
+              166.4
+            ]
+          },
+          "gpu_memory_median_us": 7.168,
+          "gpu_gaps_median_us": 986.6405,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035609332844614983
+            ],
+            "fingerprint": "738f4c4052bb6dbc",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashqla-no-cp": {
+          "kernel_sum_us": {
+            "median": 174.52800000000002,
+            "range": [
+              173.024,
+              177.057
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 226.43200000000002,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035609332844614983
+            ],
+            "fingerprint": "c0218426e72645db",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 145.424,
+            "range": [
+              144.865,
+              147.2
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.2243371107932666,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.1222391077126195,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.2001320277258225,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "6a3c5e08bf8d03b369570e8f4890037e9649ef8a5c3506c87ac9dabb394d9bcf",
+      "monitor_samples": 78,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/meta-qla-strong/forward.sqlite": "e9b75cd5cdf4f079a81291f35cb307a74c0f92179045a7d24d726e9dba366ee0",
+        "/workspace/gdn-sm90-win-20260926/meta-qla-strong/receipt.json": "c46b05349d4c3602f065a8f8ab9ddb1d3a97e67c3f55ce9a317ef9e08353a14b",
+        "/workspace/gdn-sm90-win-20260926/meta-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "63fef1d55865aee9b9723081d6cd4162eb9cf7b5396d16589ffd4bfa81dcf8e7",
+      "receipt_sha256": "c46b05349d4c3602f065a8f8ab9ddb1d3a97e67c3f55ce9a317ef9e08353a14b"
+    },
+    {
+      "id": "S11",
+      "capture": "meta-qla-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 178.416,
+            "range": [
+              177.793,
+              180.608
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 331.536,
+            "range": [
+              329.248,
+              333.44
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashqla-auto": {
+          "kernel_sum_us": {
+            "median": 165.072,
+            "range": [
+              163.136,
+              167.297
+            ]
+          },
+          "gpu_memory_median_us": 7.184,
+          "gpu_gaps_median_us": 949.824,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.014563096687197685,
+              0.011505436152219772
+            ],
+            "fingerprint": "ac1c8147703fc946",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashqla-no-cp": {
+          "kernel_sum_us": {
+            "median": 174.608,
+            "range": [
+              172.352,
+              176.224
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 222.56,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.014563096687197685,
+              0.011505436152219772
+            ],
+            "fingerprint": "93e95fc220b75893",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 145.536,
+            "range": [
+              145.024,
+              147.04
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.2259234828496042,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashqla-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-auto",
+          "reference_over_candidate": 1.1342348284960422,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashqla-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashqla-no-cp",
+          "reference_over_candidate": 1.1997581354441513,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "6a3c5e08bf8d03b369570e8f4890037e9649ef8a5c3506c87ac9dabb394d9bcf",
+      "monitor_samples": 80,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/meta-qla-weak/forward.sqlite": "b59449832e98dbfd2857db247a9d3cbc69d9b689ebb04bb7676a4d5ba9947b55",
+        "/workspace/gdn-sm90-win-20260926/meta-qla-weak/receipt.json": "a15e26828f03a91245f250dedbc6116ab7bfbc2001f8ce13d7ec939b6e1aeded",
+        "/workspace/gdn-sm90-win-20260926/meta-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "2ab76ea2f944d1809c8eec949e653eccbf9b4b4aa26e36742b60ef212b779736",
+      "receipt_sha256": "a15e26828f03a91245f250dedbc6116ab7bfbc2001f8ce13d7ec939b6e1aeded"
+    },
+    {
+      "id": "S9",
+      "capture": "newv-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 182.24,
+            "range": [
+              180.929,
+              183.2
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "dfd542e9e627d354e83a03ce42afd03b207c8c5b3cceeb2287940a2ac6600875",
+            "repository_revision": "11925d07ae68a391e0df2549203d1cc37ea2f553",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8d8878d56f6ea5e4d2b6cfa0979765d75e324c763b247ef167267b2f2cfae895"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 336.2725,
+            "range": [
+              332,
+              337.024
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.5125,
+            "range": [
+              129.536,
+              132.256
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 35.7765,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.656,
+            "range": [
+              111.776,
+              113.152
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.42399999999998,
+            "range": [
+              137.696,
+              140.064
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 451.6485,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 182.92849999999999,
+            "range": [
+              181.952,
+              184.704
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "37e722894376d07ca2534b422720f0b6fd6cac5281571e2f249969678c04e158",
+            "repository_revision": "ee4862fb1aa06e180eb1c1aafc53150e5d98c2f6",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "94b3b0cc141e79753f2bfe7cc5d4d4c56ed8148763708270a04acb86464de70f"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 0.9962362343757262,
+        "verdict": "UNRESOLVED",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.7134618170487376,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.615847175262466,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7621775721115079,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 90,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/newv-fi-weak/forward.sqlite": "6babae4a2ff64a276f1c9a90110af8dc2f8c15fe40c3a3565f36aa396ca6dfea",
+        "/workspace/gdn-sm90-win-20260926/newv-fi-weak/receipt.json": "1d4b3b17401c9a647ac83073807024622c5cb2065b4984c7ab8a379a5753e23c",
+        "/workspace/gdn-sm90-win-20260926/newv-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "179dc487f6e5b1825b8f7a1dc2c9383f18456eac10b5fff702c05bbc6eda74ad",
+      "receipt_sha256": "1d4b3b17401c9a647ac83073807024622c5cb2065b4984c7ab8a379a5753e23c"
+    },
+    {
+      "id": "S5",
+      "capture": "order-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 190.9445,
+            "range": [
+              189.569,
+              192.993
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "f985d6530e59f79a54ef7790372a85f3a1789b70f79321b2f375c13e8a0cf3ef",
+            "repository_revision": "1f22ac097e7c1ffcbb23b56f7ac79ef1aadf7bf9",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "4857f3a724855e857d78f3dbf90c0c89d93e37d942e431f4c57f611895891d58"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 336.09749999999997,
+            "range": [
+              332.769,
+              341.442
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 131.712,
+            "range": [
+              130.337,
+              132.545
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 30.32,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 113.6165,
+            "range": [
+              113.088,
+              114.273
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.7285,
+            "range": [
+              138.881,
+              140.289
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 441.5695,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 190.17700000000002,
+            "range": [
+              188.449,
+              193.729
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "b51578eacffb0f6186fa23264c24409843256689f9b36a12ba25055817ef5adf",
+            "repository_revision": "222dc900f3f8ae57b54331dfbded73baad468f11",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.0040357140979193,
+        "verdict": "UNRESOLVED",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.6925758635376517,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.597425030366448,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7347287001056909,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 86,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/order-fi-weak/forward.sqlite": "d114623167bb63eafdbb3a4769c68ef38dd9e8277cff0ae63b0ee8c6f2d2d759",
+        "/workspace/gdn-sm90-win-20260926/order-fi-weak/receipt.json": "4f00eb65642213a103e0da6ad64c40ba0594783f0d10bdb134d242ac58862b66",
+        "/workspace/gdn-sm90-win-20260926/order-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "cf6dab7ebc0b6c08d500d4ae585c7f687534a3abb62b79e71ebcac96fa96429f",
+      "receipt_sha256": "4f00eb65642213a103e0da6ad64c40ba0594783f0d10bdb134d242ac58862b66"
+    },
+    {
+      "id": "R1",
+      "capture": "r1-fi-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 356.8605,
+            "range": [
+              354.333,
+              358.716
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.3645,
+            "range": [
+              331.772,
+              338.492
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 129.53449999999998,
+            "range": [
+              128.735,
+              131.008
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 33.2795,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.799,
+            "range": [
+              111.679,
+              113.439
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.6385,
+            "range": [
+              137.278,
+              140.607
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 440.7315,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 401.4035,
+            "range": [
+              394.491,
+              406.524
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "e1e6dac7bd1ce162b05f8f6127e1ce487ba149425f86402f997134ff73fedc3a",
+            "repository_revision": "939d1047c28b84dd8de2c6d51513f6ebe7b75a54",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "0acf8e995297c9726f6cf70322746e90cdf645b528265cef639f30894a5c2069"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 0.8890318594631088,
+        "verdict": "CONTROL-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {},
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 89,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/r1-fi-strong/forward.sqlite": "481df341f4ffd19bd4718395d4eca41a813719e021c0133fe02eb7edaf91a2bc",
+        "/workspace/gdn-sm90-win-20260926/r1-fi-strong/receipt.json": "a108b96824351e82fab8523339e0249e50ec58526e07e40008655424e348a1f0",
+        "/workspace/gdn-sm90-win-20260926/aux-source/tools/analyze_sm90_nsys.py": "9c8787c403905229e427d3eee95fcf7bf954837fbf3d860c664cf625c799ed47"
+      },
+      "result_sha256": "75c8ba507cace3399e83502d143eeb66149119e58e8c3b65561ee075c7ce95d0",
+      "receipt_sha256": "a108b96824351e82fab8523339e0249e50ec58526e07e40008655424e348a1f0"
+    },
+    {
+      "id": "R1",
+      "capture": "r1-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 357.43600000000004,
+            "range": [
+              356.699,
+              359.388
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.8275,
+            "range": [
+              332.828,
+              337.436
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.6395,
+            "range": [
+              129.47,
+              133.341
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 30.608,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 113.11850000000001,
+            "range": [
+              112.286,
+              113.471
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.534,
+            "range": [
+              138.015,
+              141.118
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 470.6985,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 401.563,
+            "range": [
+              399.067,
+              405.275
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "e1e6dac7bd1ce162b05f8f6127e1ce487ba149425f86402f997134ff73fedc3a",
+            "repository_revision": "939d1047c28b84dd8de2c6d51513f6ebe7b75a54",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "0acf8e995297c9726f6cf70322746e90cdf645b528265cef639f30894a5c2069"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 0.8901118877984278,
+        "verdict": "CONTROL-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {},
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 95,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/r1-fi-weak/forward.sqlite": "dbf29b4ddbf9446dfbbdc778162783483998a5c04a0b371098b550eaa4eaecc3",
+        "/workspace/gdn-sm90-win-20260926/r1-fi-weak/receipt.json": "5f8294116899a3ecfd0be24f8ce601a78565e9076c8f8d1e39b5974722cff126",
+        "/workspace/gdn-sm90-win-20260926/aux-source/tools/analyze_sm90_nsys.py": "9c8787c403905229e427d3eee95fcf7bf954837fbf3d860c664cf625c799ed47"
+      },
+      "result_sha256": "087e5cf82f28b8c2c9a16e524bc3b3c68a8c9c981f3e1c437297ca62effbbf59",
+      "receipt_sha256": "5f8294116899a3ecfd0be24f8ce601a78565e9076c8f8d1e39b5974722cff126"
+    },
+    {
+      "id": "S6",
+      "capture": "release-fi-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 189.6005,
+            "range": [
+              188.608,
+              190.656
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "b51578eacffb0f6186fa23264c24409843256689f9b36a12ba25055817ef5adf",
+            "repository_revision": "222dc900f3f8ae57b54331dfbded73baad468f11",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.3365,
+            "range": [
+              329.952,
+              337.441
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 129.888,
+            "range": [
+              129.056,
+              131.488
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 32.831999999999994,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.736,
+            "range": [
+              110.049,
+              113.088
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.816,
+            "range": [
+              137.472,
+              140.289
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 442.15999999999997,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 181.5045,
+            "range": [
+              180.321,
+              183.969
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.044604954698093,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.715618621025925,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.6211195865667243,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7648074841119642,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 88,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/release-fi-strong/forward.sqlite": "c8007fef6f519a54a23b22aaa2d45235198b5393305f3eb72433bbc9ea2d5eb2",
+        "/workspace/gdn-sm90-win-20260926/release-fi-strong/receipt.json": "e1e70414368193c632d8f203480c9b2bf9b8de013e5c885d539a7b8fdb57ffd3",
+        "/workspace/gdn-sm90-win-20260926/release-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "418e6e358bb4ebb97cf1e8b270a1ed3d790e263ae0627c90899daf7eec048274",
+      "receipt_sha256": "e1e70414368193c632d8f203480c9b2bf9b8de013e5c885d539a7b8fdb57ffd3"
+    },
+    {
+      "id": "S6",
+      "capture": "release-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 188.5285,
+            "range": [
+              186.784,
+              190.208
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "b51578eacffb0f6186fa23264c24409843256689f9b36a12ba25055817ef5adf",
+            "repository_revision": "222dc900f3f8ae57b54331dfbded73baad468f11",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 333.7765,
+            "range": [
+              331.712,
+              336.961
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.768,
+            "range": [
+              129.537,
+              132.192
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 38.7205,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.9285,
+            "range": [
+              111.808,
+              113.536
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.5925,
+            "range": [
+              137.984,
+              139.84
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 463.089,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 181.2805,
+            "range": [
+              179.68,
+              183.008
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "418ebfba69ba4360a543edc1d9fc809c313928decf9aab33dfedb7234e64ab60",
+            "repository_revision": "58712cc26ea2c9119d974c3cf27f49fdeef236ec",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "fdab0f0567a777cbe3424873a2b72f3f20ea49d48c78bec1b9b8ae61ac6eb73f"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.0399822374717635,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.7213572336792982,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.6229489658291985,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7645196256629919,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 87,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/release-fi-weak/forward.sqlite": "ed27d8d69eaebd390cd7576cf6263ecb9a4e63dbe90f5de33be2269472f3f307",
+        "/workspace/gdn-sm90-win-20260926/release-fi-weak/receipt.json": "86cda37fdf6e452673e1bfe19ecbb4e13ddc67ffa7f37b182d292d6fc2ffc022",
+        "/workspace/gdn-sm90-win-20260926/release-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "e8d4babe8d34c14dff2cf2ce065a2977c022d224fac70e281cb13eef4345cc91",
+      "receipt_sha256": "86cda37fdf6e452673e1bfe19ecbb4e13ddc67ffa7f37b182d292d6fc2ffc022"
+    },
+    {
+      "id": "S2",
+      "capture": "state-fi-strong",
+      "gate": -1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "5b1677989c9b708f",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 357.79,
+            "range": [
+              356.734,
+              358.622
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 335.4545,
+            "range": [
+              331.743,
+              338.079
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.003574053291231394
+            ],
+            "fingerprint": "9ada3fcadc21aefe",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.143,
+            "range": [
+              128.479,
+              134.015
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 35.936,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a9f8e30b920dc479",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.864,
+            "range": [
+              111.584,
+              113.12
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "a18356b23ab721a4",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.38299999999998,
+            "range": [
+              137.856,
+              140.896
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 464.57349999999997,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "9b5f168f7d73dba2",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 195.519,
+            "range": [
+              193.952,
+              198.496
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0063291084952652454,
+              0.0035608401522040367
+            ],
+            "fingerprint": "0b06a8b88db6ef14",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86c0f15ac3e8e8efa4d045af4fe794d269d1622b3b943ee7948bf9077b903d12",
+            "repository_revision": "b609e0340939fc088a3997e7c90be0a58297362f",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "c9bab1cb04bc9f234ca94bf65395d3a77a0a4ae241bb50b2bc89c00a61c76963"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.829950030431825,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.6656284044005953,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.5772533615658836,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7077726461366924,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 100,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/state-fi-strong/forward.sqlite": "7daf35969aa2e383cbf8b1cb782a29eabc94542bc6dbaa12cc8ee7d4c1c4d92d",
+        "/workspace/gdn-sm90-win-20260926/state-fi-strong/receipt.json": "f6c7fab625344dea8e933e3980e91b1205e48534dcb0d972153adbdd40b31890",
+        "/workspace/gdn-sm90-win-20260926/inverse-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "3f12d776784d8c80b72c3471d73abe18d0d281d7b4a9ac533e5c36e037090bef",
+      "receipt_sha256": "f6c7fab625344dea8e933e3980e91b1205e48534dcb0d972153adbdd40b31890"
+    },
+    {
+      "id": "S2",
+      "capture": "state-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 357.63,
+            "range": [
+              356.958,
+              359.262
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.43,
+            "range": [
+              332.03,
+              337.022
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.527,
+            "range": [
+              129.535,
+              132.512
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 41.024,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.86349999999999,
+            "range": [
+              111.328,
+              113.536
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.935,
+            "range": [
+              138.111,
+              142.144
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 472.99,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 196.399,
+            "range": [
+              194.943,
+              198.111
+            ]
+          },
+          "gpu_memory_median_us": 0,
+          "gpu_gaps_median_us": 0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "86c0f15ac3e8e8efa4d045af4fe794d269d1622b3b943ee7948bf9077b903d12",
+            "repository_revision": "b609e0340939fc088a3997e7c90be0a58297362f",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "c9bab1cb04bc9f234ca94bf65395d3a77a0a4ae241bb50b2bc89c00a61c76963"
+          }
+        }
+      },
+      "versus_parent": {
+        "control": "ours-cuda",
+        "control_over_candidate": 1.820935951812382,
+        "verdict": "CANDIDATE-WINS",
+        "criterion": "disjoint-observed-kernel-sum-ranges"
+      },
+      "versus_current_family": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.6646011435903441,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.5746643312847824,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.7125036278188789,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 92,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/state-fi-weak/forward.sqlite": "1f9e33a7e063174419b7ebb4e78ba54d26ea76c1941c620545b813bb80aaef2f",
+        "/workspace/gdn-sm90-win-20260926/state-fi-weak/receipt.json": "e0521cd36f28f71464ecdd47ee25dc9573418ac9d233c10c328037278266f9bf",
+        "/workspace/gdn-sm90-win-20260926/inverse-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "0d2b309cca7aa12dbaf3d39e67894fb4685b85e610ab04a0532716de80e0faf2",
+      "receipt_sha256": "e0521cd36f28f71464ecdd47ee25dc9573418ac9d233c10c328037278266f9bf"
+    },
+    {
+      "id": "S12",
+      "capture": "meta-gates-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 146.416,
+            "range": [
+              145.92,
+              147.392
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 334.48,
+            "range": [
+              332.512,
+              335.648
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 130.448,
+            "range": [
+              129.536,
+              132.32
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 35.728,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 112.912,
+            "range": [
+              112.128,
+              113.504
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 138.94400000000002,
+            "range": [
+              137.984,
+              139.936
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 446.927,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 148.464,
+            "range": [
+              147.104,
+              149.664
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "62dd8df7e5571502d3b95e30e9ced6266183b738cd920576bfe6d5db65dd460e",
+            "repository_revision": "1e295b2839d037fb97fef4dbe008a60c7a69752a",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "f81f147b2fa63592b75af9cba682e9db2f00e6fb5cb0325e4b13675b5e6639a2"
+          }
+        }
+      },
+      "comparisons": {
+        "ours-ppu-source-check": {
+          "control": "ours-cuda",
+          "control_over_candidate": 0.4377421669457067,
+          "verdict": "CONTROL-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.1224089292285047,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.296726654385716,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.0537770612620911,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "ours-candidate": {
+          "control": "ours-cuda",
+          "control_over_candidate": 0.9862054100657398,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8786507166720552,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.7605345403599526,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9358767108524627,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 87,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/meta-gates-fi-weak/forward.sqlite": "4739c0938dda905ae05fed75f61d9957f9a27fdcb2f2e49a65218a69c7a3a0ab",
+        "/workspace/gdn-sm90-win-20260926/meta-gates-fi-weak/receipt.json": "f762880d45132dbdf77cb3d23e9e0722a74399138f7f398279c298d067e3c0e8",
+        "/workspace/gdn-sm90-win-20260926/meta-gates-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "282b533660600c1e881f5d0a5c0c9cb22e7125d948f1231eeeb63b9738a65ed2",
+      "receipt_sha256": "f762880d45132dbdf77cb3d23e9e0722a74399138f7f398279c298d067e3c0e8"
+    },
+    {
+      "id": "S13",
+      "capture": "protocol-fi-weak",
+      "gate": -0.1,
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "input_sha256": "e976de55fd4a2ac5",
+      "roles": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 147.98399999999998,
+            "range": [
+              146.624,
+              148.896
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "403c7849cd724880c1bd1aa38eb82fe79d097bf8fe565ae95d4d9e841f9b3696",
+            "repository_revision": "457267e16d9f7b2640db60abd56baef830da3d0d",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "8cd056d31765a9c94ecec66e0ad19bb6dfb207750f967fa7dd08f5669fd87bfc"
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 336.88,
+            "range": [
+              332.608,
+              340.96
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.0027694529853761196
+            ],
+            "fingerprint": "bdd2ce0aa6c7cb3d",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9",
+            "repository_revision": "33b6b9ce39034c8a00cb95c54da897dd715948e2",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DGDN_SM90_PPU17=1",
+              "-DACOMPUTE_VERSION=10700",
+              "-DGDN_SM90_SOURCE_CHECK=1"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "48484143e34ebfe8a841dc04d0c7da66c4e2d3950cfa110269d78c00a245d924",
+            "source_map_canonical_sha256": "cab465d3fd35c79c3ae6da4c5995b6ae7321ceea8822fcdadbd80323b7bc9cba"
+          }
+        },
+        "flashinfer-auto": {
+          "kernel_sum_us": {
+            "median": 131.344,
+            "range": [
+              129.984,
+              133.504
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 35.936,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "b80bf920eb661bcb",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-no-cp": {
+          "kernel_sum_us": {
+            "median": 113.47200000000001,
+            "range": [
+              112.416,
+              113.952
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "3a7a1fe996ec0c9a",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "flashinfer-auto-log-adapter": {
+          "kernel_sum_us": {
+            "median": 139.68,
+            "range": [
+              138.976,
+              140.576
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 478.752,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003810191061347723
+            ],
+            "fingerprint": "e0ddf0ebdcd421d9",
+            "repeat": "8/8 RAW-BIT"
+          }
+        },
+        "ours-candidate": {
+          "kernel_sum_us": {
+            "median": 146.832,
+            "range": [
+              145.312,
+              148.032
+            ]
+          },
+          "gpu_memory_median_us": 0.0,
+          "gpu_gaps_median_us": 0.0,
+          "calls": 12,
+          "admission": {
+            "errors": [
+              0.0048543657176196575,
+              0.003361937589943409
+            ],
+            "fingerprint": "462cc9ef1e8a85d4",
+            "repeat": "8/8 RAW-BIT"
+          },
+          "build": {
+            "extension_sha256": "0f1d5d84230cb90ba736c5065f9712958d580259e270baa1322fec1153e11932",
+            "repository_revision": "a322fded38e75e743a9b382197a0e2e031b45172",
+            "flags": [
+              "-std=c++17",
+              "-O3",
+              "--expt-relaxed-constexpr",
+              "--extended-lambda",
+              "-gencode=arch=compute_90a,code=sm_90a",
+              "-lineinfo",
+              "-Xcompiler=-fPIC",
+              "-DNDEBUG"
+            ],
+            "compiler_sha256": "59e4e55f9a38b78c590df1e28a69dad91052958f18a03868ca4a547c043fbba7",
+            "dependency_version_sha256": "6b65f8aa05e19cfed770446ab1a5afb3ca1dafdf32d44d84ec01502451dfcc96",
+            "source_map_canonical_sha256": "0cca0c80d6022f5ed4f2249d622be1c7177eddece4206a8a75af3eed89dc90c0"
+          }
+        }
+      },
+      "comparisons": {
+        "ours-ppu-source-check": {
+          "control": "ours-cuda",
+          "control_over_candidate": 0.43927808121586315,
+          "verdict": "CONTROL-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.126690218053356,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.3041455160744497,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.0594501718213056,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "ours-candidate": {
+          "control": "ours-cuda",
+          "control_over_candidate": 1.0078457012095454,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.8945189059605535,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.772801569140242,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 0.9512912716574045,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "device": "NVIDIA H800 PCIe",
+      "source_map_canonical_sha256": "19a806a7a8c6a126a1eac57bae0520be620c1452704ecebcbf977c63d6600570",
+      "monitor_samples": 93,
+      "evidence": {
+        "/workspace/gdn-sm90-win-20260926/protocol-fi-weak/forward.sqlite": "dcd39a8c0ae348c2ba37d1da27e37a637216d474243c8c1ba265a07b54cb58bb",
+        "/workspace/gdn-sm90-win-20260926/protocol-fi-weak/receipt.json": "3d37d8740fbd3d810d6b468ec03384bc1de7e76c4eaf6fb89f3f3c31f16d1187",
+        "/workspace/gdn-sm90-win-20260926/protocol-source/tools/analyze_sm90_nsys.py": "40555f4b59221a774d98a874ec839fc27dcb506c5fe5ac5538868ee6646d3c86"
+      },
+      "result_sha256": "09da596e5c59ad95539a9e18518ce6a3423acde06dd8f54edcbd67f440fc68af",
+      "receipt_sha256": "3d37d8740fbd3d810d6b468ec03384bc1de7e76c4eaf6fb89f3f3c31f16d1187"
+    }
+  ],
+  "archive": {
+    "path": "/workspace/gdn-sm90-win-20260926/remote-evidence-final.tar.gz",
+    "sha256": "79cd3c8e9bc87a2b75731da88a5b3bb82b229d1869575f50aeb8a7cffeccbaa4",
+    "contents": "all remote campaign sources, builds, numerical cases, raw nsys/sqlite/JIT images and receipts; rejected attempts retained and excluded from runs"
+  },
+  "capture_count": 20,
+  "forward_count": 1416
+}

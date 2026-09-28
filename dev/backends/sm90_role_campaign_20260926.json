@@ -1,0 +1,446 @@
+{
+  "scope": "H800_SM90_NOT_NATIVE_PPU17",
+  "captures": 3,
+  "complete_profiled_forwards": 216,
+  "runs": [
+    {
+      "candidate": "D28",
+      "capture": "trace-fi-weak",
+      "gate": -0.1,
+      "source": "bd6f6a6d406520840fb0ca70eac39d2e7a17c6b3",
+      "binary_sha256": "7b918d0f4faf662fbb7cf016c1065baeffa0ea6c8f8d092206246721dedbab45",
+      "candidate_us": {
+        "median": 130.6395,
+        "range": [
+          129.119,
+          132.0
+        ]
+      },
+      "control_us": {
+        "median": 120.7675,
+        "range": [
+          120.128,
+          121.728
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.5435,
+          "range": [
+            129.376,
+            131.968
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.8315,
+          "range": [
+            112.127,
+            113.408
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.928,
+          "range": [
+            137.76,
+            140.895
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.99926515334183,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8636859449094646,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0634455888150214,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "130278246eb06b3bf940248442980dca5288345f950a9c51e9f70674c44d7397",
+        "result.json": "85901e43804892bc951e2121b510655bf17982f7bb544efb2b1329a77d2a6282",
+        "forward.sqlite": "b4e7f2bf74b9fee1a18605b2fc480f86426e4a151ae81ccceb290912ad94743c",
+        "forward.nsys-rep": "b12f4fda9bdd6c7ee076bffbe88296d2055401d25b1b9a1203855929abf87fea"
+      },
+      "use": "PROBE_PERTURBATION_ONLY",
+      "probe_overhead_fraction": 0.0817438466474838
+    },
+    {
+      "candidate": "D28",
+      "capture": "trace-fi-strong",
+      "gate": -1.0,
+      "source": "bd6f6a6d406520840fb0ca70eac39d2e7a17c6b3",
+      "binary_sha256": "7b918d0f4faf662fbb7cf016c1065baeffa0ea6c8f8d092206246721dedbab45",
+      "candidate_us": {
+        "median": 129.872,
+        "range": [
+          128.32,
+          130.752
+        ]
+      },
+      "control_us": {
+        "median": 120.208,
+        "range": [
+          119.584,
+          120.577
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 129.2645,
+          "range": [
+            128.576,
+            129.76
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.065,
+          "range": [
+            111.648,
+            112.512
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 137.6005,
+          "range": [
+            136.833,
+            139.712
+          ]
+        }
+      },
+      "verdict_vs_control": "CONTROL-WINS",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 0.9953223173586299,
+          "verdict": "UNRESOLVED",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.8628880744117283,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.0595085930762598,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0063291084952652454,
+          0.0035608401522040367
+        ],
+        "fingerprint": "0b06a8b88db6ef14",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "afec55f8cd7a17fcbdcf53490c0ef80ffc303fb364feb9d03cacf0992c81db9d",
+        "result.json": "91eabfce921ded401f0ae8d3b64a1ba6814d17488f7cb13e5ce4ee6f61b32acf",
+        "forward.sqlite": "ed69167049a9bd26abcef7c9ba2c5a31f342040621fe407d620a024da9003223",
+        "forward.nsys-rep": "f85eea7a0aa0f99436f14b25d6cc0777d8726ca23656b3bfd015cd1a7b3bbc85"
+      },
+      "use": "PROBE_PERTURBATION_ONLY",
+      "probe_overhead_fraction": 0.08039398376148021
+    },
+    {
+      "candidate": "S29",
+      "capture": "warp-coords-fi-weak",
+      "gate": -0.1,
+      "source": "c342ff970d4ff69148830730dbc8388e9ae991aa",
+      "binary_sha256": "904b5fafff3e6b5bfa2e1889e4af54b300e1fdd5bd98a26c9bd37f62df1ab3ee",
+      "candidate_us": {
+        "median": 122.0485,
+        "range": [
+          120.608,
+          122.881
+        ]
+      },
+      "control_us": {
+        "median": 120.464,
+        "range": [
+          119.36,
+          122.208
+        ]
+      },
+      "references_us": {
+        "flashinfer-auto": {
+          "median": 130.3845,
+          "range": [
+            129.12,
+            134.72
+          ]
+        },
+        "flashinfer-no-cp": {
+          "median": 112.72,
+          "range": [
+            111.744,
+            113.504
+          ]
+        },
+        "flashinfer-auto-log-adapter": {
+          "median": 138.8165,
+          "range": [
+            137.568,
+            140.256
+          ]
+        }
+      },
+      "verdict_vs_control": "UNRESOLVED",
+      "candidate_vs_references": {
+        "flashinfer-auto": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto",
+          "reference_over_candidate": 1.0683007165184333,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-no-cp": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-no-cp",
+          "reference_over_candidate": 0.9235672703884111,
+          "verdict": "REFERENCE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "flashinfer-auto-log-adapter": {
+          "candidate": "ours-candidate",
+          "reference": "flashinfer-auto-log-adapter",
+          "reference_over_candidate": 1.1373880055879424,
+          "verdict": "CANDIDATE-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "complete_forwards": 72,
+      "admission": {
+        "errors": [
+          0.0048543657176196575,
+          0.003361937589943409
+        ],
+        "fingerprint": "462cc9ef1e8a85d4",
+        "repeat": "8/8 RAW-BIT"
+      },
+      "record_sha256": {
+        "receipt.json": "3f79b3f95357910f6bca8b214f5679ee3193366911714ee5ad25cc9231f4d879",
+        "result.json": "62758743ee491fccdc18b2ed34b540ae910c40f4d18e0c0d0b24a576b04a7aa8",
+        "forward.sqlite": "6f20b51497d3e4e8e40e952f569c247a7b6f88664db0bd64f3afea14537a743a",
+        "forward.nsys-rep": "f7fdee9d314aaccfc8966f976d8c9c4b59c3170613a5983016c2080decfccad9"
+      },
+      "use": "SPEED_SCREENING"
+    }
+  ],
+  "builds": {
+    "trace-build-r2": {
+      "source": "bd6f6a6d406520840fb0ca70eac39d2e7a17c6b3",
+      "binary_sha256": "7b918d0f4faf662fbb7cf016c1065baeffa0ea6c8f8d092206246721dedbab45",
+      "build_sha256": "5f576939c32638999d62730233191f1ec4663e7d6a24b24e8a840d83777b05a1",
+      "device_log_sha256": "ecc9cac37952e8640379686076e52e01ca167ef387c3d4ce0d590ad366826214"
+    },
+    "warp-coords-build": {
+      "source": "c342ff970d4ff69148830730dbc8388e9ae991aa",
+      "binary_sha256": "904b5fafff3e6b5bfa2e1889e4af54b300e1fdd5bd98a26c9bd37f62df1ab3ee",
+      "build_sha256": "b571e64dc288bdba91e279adb810006f47f24dc7634b725e1b088f568e043e83",
+      "device_log_sha256": "353b7c16d412e0aee9c7a211fc2d8f8a120ed878c3bee56d3063b8fea8b793f4"
+    },
+    "aux-reg-build": {
+      "source": "effb61883a6997917fc7db9ae94d9b3451e39c61",
+      "binary_sha256": "5a383c89efb2ec8cbf935dffe9c47d016455c2cfd13f20a72aecb844ace657db",
+      "build_sha256": "f1b75475204c9438d995fde635fd59936aa34e656c0d01807f4807cf7f1ac134",
+      "device_log_sha256": "472dabf468861db2bfeb08e83b723789ad3e95467fb12841eb29215d1bebcc16"
+    }
+  },
+  "numerical_cases": {
+    "trace": {
+      "status": "14/14 CPU_ORACLE_AND_PARENT_FINGERPRINTS_PASS",
+      "cases_sha256": "a7ca6b48cc1cd9c79bcaac991cbf486b8d891f51c5db287b6ec88b008a425f00",
+      "parent_cases_sha256": "5919c37369be449bb8655e0a57f6a9dca60222fbd7d77e1635c46696bc74a166"
+    },
+    "warp-coords": {
+      "status": "14/14 CPU_ORACLE_AND_PARENT_FINGERPRINTS_PASS",
+      "cases_sha256": "0a5182946ff78ee4dd8e6243c811e7b1875778cfc56fb0b98d53e41ad6c09dcf",
+      "parent_cases_sha256": "5919c37369be449bb8655e0a57f6a9dca60222fbd7d77e1635c46696bc74a166"
+    }
+  },
+  "direct_stresses": [
+    {
+      "gate": -8,
+      "status": "DIRECT_BYTE_O_AND_STATE_PASS",
+      "hashes": {
+        "warp-coords-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f",
+        "relative-stress8/captured.pt": "bb8f9e1fc9a855979e341a5b8bf8f370c5a2bbbcebe68ca7591acbe66333b79f"
+      }
+    },
+    {
+      "gate": -10000,
+      "status": "DIRECT_BYTE_O_AND_STATE_PASS",
+      "hashes": {
+        "warp-coords-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312",
+        "relative-stress10000/captured.pt": "1b74132dcbfdb4637675a428edaa5a4bf3c4baf0c93975b3c8022a2b82992312"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "gate": -0.1,
+      "calls": 8,
+      "stamps_per_call": 35840,
+      "raw_reanalysis": "EXACT",
+      "roles": {
+        "0": {
+          "median_of_per_call_interval_medians_us": {
+            "K-wait": 2.912,
+            "KK-issue+Q-wait": 6.36,
+            "QK-issue+both-retire": 9.824,
+            "alpha-beta-wait": 3.768,
+            "scalar+slot-acquire": 25.68,
+            "shared-publish+sync": 2.248,
+            "inverse+sync": 58.304,
+            "cast+commit+release": 7.432
+          },
+          "median_of_per_call_span_medians_us": 119.128,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        },
+        "1": {
+          "median_of_per_call_interval_medians_us": {
+            "alpha-Q-wait": 3.88,
+            "O1+Q-release": 15.552,
+            "K-wait+SK": 10.408000000000001,
+            "V-wait": 1.472,
+            "residual": 12.528,
+            "inverse-beta-wait": 17.048000000000002,
+            "newV+release": 7.0,
+            "delta-cast+QK-wait": 11.552,
+            "O2+release": 5.216,
+            "output-slot+store": 9.736,
+            "alpha-last-wait": 1.536,
+            "decay+update+release": 21.112000000000002
+          },
+          "median_of_per_call_span_medians_us": 120.456,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        },
+        "2": {
+          "median_of_per_call_interval_medians_us": {
+            "alpha-Q-wait": 3.496,
+            "O1+Q-release": 15.2,
+            "K-wait+SK": 10.464,
+            "V-wait": 1.472,
+            "residual": 10.648,
+            "inverse-beta-wait": 13.111999999999998,
+            "newV+release": 12.272,
+            "delta-cast+QK-wait": 11.824,
+            "O2+release": 4.992,
+            "output-slot+store": 9.616,
+            "alpha-last-wait": 1.92,
+            "decay+update+release": 22.672
+          },
+          "median_of_per_call_span_medians_us": 120.64,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        }
+      },
+      "scope": "INSTRUMENTED_INCLUSIVE_INTERVALS_NOT_ADDITIVE_ACROSS_ROLES",
+      "hashes": {
+        "result.json": "8c315ff9cd1be74ef4625dd21a6c758cb42a1829dc2d8cd0f615a524bc343f9a",
+        "timestamps.pt": "542c7c5ef4014e9fdfb2429e81072240ba215b8404a3e33c0fd67e5500fe0ea1"
+      }
+    },
+    {
+      "gate": -1.0,
+      "calls": 8,
+      "stamps_per_call": 35840,
+      "raw_reanalysis": "EXACT",
+      "roles": {
+        "0": {
+          "median_of_per_call_interval_medians_us": {
+            "K-wait": 2.888,
+            "KK-issue+Q-wait": 6.352,
+            "QK-issue+both-retire": 9.792,
+            "alpha-beta-wait": 3.792,
+            "scalar+slot-acquire": 25.776000000000003,
+            "shared-publish+sync": 2.24,
+            "inverse+sync": 58.296,
+            "cast+commit+release": 7.408
+          },
+          "median_of_per_call_span_medians_us": 119.088,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        },
+        "1": {
+          "median_of_per_call_interval_medians_us": {
+            "alpha-Q-wait": 4.264,
+            "O1+Q-release": 15.584,
+            "K-wait+SK": 10.24,
+            "V-wait": 1.432,
+            "residual": 12.464,
+            "inverse-beta-wait": 16.968000000000004,
+            "newV+release": 6.984,
+            "delta-cast+QK-wait": 11.52,
+            "O2+release": 5.208,
+            "output-slot+store": 9.672,
+            "alpha-last-wait": 1.512,
+            "decay+update+release": 21.176000000000002
+          },
+          "median_of_per_call_span_medians_us": 120.416,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        },
+        "2": {
+          "median_of_per_call_interval_medians_us": {
+            "alpha-Q-wait": 3.912,
+            "O1+Q-release": 15.152,
+            "K-wait+SK": 10.456,
+            "V-wait": 1.448,
+            "residual": 10.472000000000001,
+            "inverse-beta-wait": 13.016,
+            "newV+release": 12.232,
+            "delta-cast+QK-wait": 11.832,
+            "O2+release": 4.992,
+            "output-slot+store": 9.616,
+            "alpha-last-wait": 1.936,
+            "decay+update+release": 22.663999999999998
+          },
+          "median_of_per_call_span_medians_us": 120.576,
+          "median_of_per_call_chunk_cadence_us": 3.712
+        }
+      },
+      "scope": "INSTRUMENTED_INCLUSIVE_INTERVALS_NOT_ADDITIVE_ACROSS_ROLES",
+      "hashes": {
+        "result.json": "f0b80e4b8601d774e9bcfc6bbb88683cd471e0209455614e5ca0565cbbce67bd",
+        "timestamps.pt": "b96a7d98ca2ceeaaa0e2c5c90e66146327015a588eb90b61504f884f9240d179"
+      }
+    }
+  ],
+  "rejected": {
+    "candidate": "S30",
+    "reason": "NATIVE_PROTOCOL_GATE_FAIL_C7512_ALL4",
+    "device_numerics": "NOT_RUN",
+    "performance": "NOT_RUN"
+  },
+  "decision": "RETAIN_S24_NO_NEW_PROMOTION_TARGET_NOT_MET"
+}

@@ -1,0 +1,2155 @@
+{
+  "schema": 1,
+  "scope": "PHYSICAL_H800_NOT_PPU17_NATIVE",
+  "date_utc": "2026-09-26",
+  "preregistration_commit": "7aa9a01",
+  "production_changed": false,
+  "upstream": {
+    "cula_commit": "79be249e61453808e18e5cef7702b363239e7d8d",
+    "cutlass_commit": "73c59c055c0fec87792470dbf33325158113db5e",
+    "cutlass_version": "4.4.1",
+    "fla_commit": "3a9ce1c83a13994d824dbb3421e2989d330bb38b",
+    "C7512_specializations": 4,
+    "compiled_specializations": 4,
+    "build_log_sha256": "a795b663234aae5d7da37fb94d95c3371250cc7b0933d206c7c362e65b2d9a55",
+    "resources_sha256": "d399ceccc5e59a1a7816e74041a5af3c2c2f4ff044c67830648e7add4aa78abf"
+  },
+  "experiments": {
+    "weak-r1": {
+      "scope": "H800_CONTROL_NOT_NATIVE_PPU17",
+      "protocol": "NSYS_KERNEL_SUM_PER_SYNCHRONIZED_NVTX_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -0.1,
+      "input_sha256": "e976de55fd4a2ac5",
+      "cula_gate_sha256": "e4bfcf378e1e0a09",
+      "reference_sha256": "117dd6a46e951ce0",
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "cula_binary": {
+        "path": "/workspace/gdn-sm90-cula-nsys-20260926/cuLA/cula/_cudac_sm90.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "86d6553d9ca71de2fa30d9ce271b16817c9ed1fb0e3047ec67f2c7ac94cf19c9"
+      },
+      "cula_entry_sha256": "873745fe2dbea1c22d56c5614e6ec93ae4ba846cc1f00dedb83a5c925d854ab0",
+      "admission": {
+        "ours-cuda": {
+          "errors": [
+            0.0048543657176196575,
+            0.0027694529853761196
+          ],
+          "fingerprint": "bdd2ce0aa6c7cb3d",
+          "repeat": "8/8 RAW-BIT"
+        },
+        "ours-ppu-source-check": {
+          "errors": [
+            0.0048543657176196575,
+            0.0027694529853761196
+          ],
+          "fingerprint": "bdd2ce0aa6c7cb3d",
+          "repeat": "8/8 RAW-BIT"
+        },
+        "cula": {
+          "errors": [
+            0.0048543657176196575,
+            0.0027694529853761196
+          ],
+          "fingerprint": "bdd2ce0aa6c7cb3d",
+          "repeat": "8/8 RAW-BIT"
+        }
+      },
+      "harness_sha256": "619610d4eb9a5cd8ef07d091552dde934bf1cb8d6f86429da468700ebce44874",
+      "utc": "2026-09-26T04:49:18.688880+00:00",
+      "binary_sha256": {
+        "ours-cuda": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+        "ours-ppu-source-check": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9"
+      },
+      "summary": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 354.801,
+            "range": [
+              353.44,
+              356.672
+            ],
+            "samples": [
+              353.44,
+              354.657,
+              356.672,
+              355.52,
+              354.496,
+              354.753,
+              354.849,
+              355.36,
+              354.112,
+              355.232,
+              356.576,
+              354.528
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 354.801,
+            "range": [
+              353.44,
+              356.672
+            ],
+            "samples": [
+              353.44,
+              354.657,
+              356.672,
+              355.52,
+              354.496,
+              354.753,
+              354.849,
+              355.36,
+              354.112,
+              355.232,
+              356.576,
+              354.528
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 354.801,
+            "range": [
+              353.44,
+              356.672
+            ],
+            "samples": [
+              353.44,
+              354.657,
+              356.672,
+              355.52,
+              354.496,
+              354.753,
+              354.849,
+              355.36,
+              354.112,
+              355.232,
+              356.576,
+              354.528
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "1": 12
+          },
+          "symbols": {
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 354.801,
+              "total_us": 4260.195000000001
+            }
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 332.704,
+            "range": [
+              329.856,
+              334.688
+            ],
+            "samples": [
+              332.129,
+              332.512,
+              332.896,
+              334.688,
+              329.856,
+              333.952,
+              331.456,
+              333.345,
+              330.496,
+              333.569,
+              332.128,
+              334.432
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 332.704,
+            "range": [
+              329.856,
+              334.688
+            ],
+            "samples": [
+              332.129,
+              332.512,
+              332.896,
+              334.688,
+              329.856,
+              333.952,
+              331.456,
+              333.345,
+              330.496,
+              333.569,
+              332.128,
+              334.432
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 332.704,
+            "range": [
+              329.856,
+              334.688
+            ],
+            "samples": [
+              332.129,
+              332.512,
+              332.896,
+              334.688,
+              329.856,
+              333.952,
+              331.456,
+              333.345,
+              330.496,
+              333.569,
+              332.128,
+              334.432
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "1": 12
+          },
+          "symbols": {
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 332.704,
+              "total_us": 3991.459
+            }
+          }
+        },
+        "cula": {
+          "kernel_sum_us": {
+            "median": 447.24850000000004,
+            "range": [
+              445.792,
+              450.304
+            ],
+            "samples": [
+              450.304,
+              448.704,
+              446.849,
+              447.361,
+              446.465,
+              447.104,
+              449.473,
+              447.136,
+              445.792,
+              447.744,
+              448.416,
+              446.464
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 422.928,
+            "range": [
+              421.504,
+              425.344
+            ],
+            "samples": [
+              425.344,
+              423.52,
+              422.305,
+              423.105,
+              422.177,
+              423.104,
+              423.553,
+              422.56,
+              421.504,
+              422.752,
+              423.488,
+              422.4
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 509.472,
+            "range": [
+              484.001,
+              650.048
+            ],
+            "samples": [
+              577.408,
+              492.64,
+              488.353,
+              493.953,
+              484.001,
+              650.048,
+              634.689,
+              508.832,
+              499.904,
+              510.112,
+              618.529,
+              620.768
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 62.032,
+            "range": [
+              37.536,
+              202.944
+            ],
+            "samples": [
+              127.104,
+              43.936,
+              41.504,
+              46.592,
+              37.536,
+              202.944,
+              185.216,
+              61.696,
+              54.112,
+              62.368,
+              170.113,
+              174.304
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "3": 12
+          },
+          "symbols": {
+            "chunk_local_cumsum_vector_kernel": {
+              "count": 12,
+              "median_us": 22.96,
+              "total_us": 276.8
+            },
+            "void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<float>, std::array<char *, (unsigned long)1>>(int, T2, T3)": {
+              "count": 12,
+              "median_us": 1.536,
+              "total_us": 19.200000000000003
+            },
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)0, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)7, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)6, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)9, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)0, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)7, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)6, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)9, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 422.928,
+              "total_us": 5075.812
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "ours-cuda": {
+          "cula_over_ours": 1.2605615542233535,
+          "verdict": "OURS-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "ours-ppu-source-check": {
+          "cula_over_ours": 1.34428350726171,
+          "verdict": "OURS-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "accounting": "ALL_CAPTURED_KERNELS_AND_MEMORY_ASSIGNED_EXACTLY_ONCE",
+      "device_watch": {
+        "records": [
+          {
+            "utc": "2026-09-26T04:49:18.852398+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:19.194683+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:19.515950+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.87, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:20.159354+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:20.553335+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:20.902859+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:21.290018+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:21.712301+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:22.237445+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:22.579181+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:22.970713+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:23.299728+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:23.605456+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:23.936683+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:24.300453+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:24.708691+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:25.101749+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:25.400697+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:25.698648+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:26.079613+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:26.399813+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:26.795508+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:27.143726+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:27.464799+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:27.791212+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:28.093671+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:28.487999+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:28.879815+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.87, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:29.251710+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:29.596438+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:29.979640+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:30.281394+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:30.667564+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:30.968394+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.91, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:31.384358+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:31.709692+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:32.096439+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:32.424393+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:32.748875+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.82, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:33.072266+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.81, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:33.373460+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:33.712148+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:34.100480+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.93, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:34.468672+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.93, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:34.775788+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:35.149935+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.91, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:35.500820+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.91, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:35.821041+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:36.165165+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:36.468390+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:36.768449+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:37.108876+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:37.408925+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:37.748058+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:38.052387+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:38.423090+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:38.705950+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.84, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:39.005374+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:39.305654+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:39.653149+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.87, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:40.029253+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:40.344133+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.87, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:40.646556+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.87, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:40.946041+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:41.227040+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:41.572041+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.81, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:41.914718+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.78, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:42.219522+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.80, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:42.501506+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.80, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:42.800855+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.78, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:43.130607+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:43.481700+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:43.764689+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.86, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:44.132014+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.82, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:44.452979+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.78, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:44.799925+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.83, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:45.164007+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.84, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:45.507093+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.85, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:45.811230+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.84, 4"
+          },
+          {
+            "utc": "2026-09-26T04:49:46.198211+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 63.70, 559"
+          },
+          {
+            "utc": "2026-09-26T04:49:46.537790+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 75.03, 559"
+          },
+          {
+            "utc": "2026-09-26T04:49:46.862130+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 85.07, 559"
+          },
+          {
+            "utc": "2026-09-26T04:49:47.209469+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.28, 559"
+          },
+          {
+            "utc": "2026-09-26T04:49:47.578105+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.28, 561"
+          },
+          {
+            "utc": "2026-09-26T04:49:47.927485+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.31, 561"
+          },
+          {
+            "utc": "2026-09-26T04:49:48.270663+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.31, 561"
+          },
+          {
+            "utc": "2026-09-26T04:49:48.628227+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.26, 671"
+          },
+          {
+            "utc": "2026-09-26T04:49:48.973733+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.24, 671"
+          },
+          {
+            "utc": "2026-09-26T04:49:49.332672+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.13, 671"
+          },
+          {
+            "utc": "2026-09-26T04:49:49.701064+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 89.91, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:50.117245+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 29, 1755, 110.36, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:50.459827+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 117.43, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:50.857176+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 113.55, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:51.240914+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 114.76, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:51.562441+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 122.64, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:51.864417+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 113.47, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:52.177999+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 100.71, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:52.473809+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.82, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:52.625683+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.76, 927"
+          },
+          {
+            "utc": "2026-09-26T04:49:56.482396+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.44, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:56.826231+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.47, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:57.173763+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.53, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:57.494892+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.57, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:57.866005+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.58, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:58.205278+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.59, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:58.593055+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.61, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:58.890757+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.59, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:59.192165+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.61, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:59.534242+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.62, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:49:59.878512+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.62, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:00.203260+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.61, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:00.500908+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.58, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:00.802101+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.59, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:01.056156+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.57, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:01.123766+00:00",
+            "pids": [
+              26212
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.57, 1299"
+          }
+        ],
+        "errors": []
+      },
+      "call_order": [
+        "GDN_FORWARD|ours-cuda|000",
+        "GDN_FORWARD|ours-ppu-source-check|000",
+        "GDN_FORWARD|cula|000",
+        "GDN_FORWARD|ours-cuda|001",
+        "GDN_FORWARD|cula|001",
+        "GDN_FORWARD|ours-ppu-source-check|001",
+        "GDN_FORWARD|cula|002",
+        "GDN_FORWARD|ours-cuda|002",
+        "GDN_FORWARD|ours-ppu-source-check|002",
+        "GDN_FORWARD|cula|003",
+        "GDN_FORWARD|ours-ppu-source-check|003",
+        "GDN_FORWARD|ours-cuda|003",
+        "GDN_FORWARD|ours-ppu-source-check|004",
+        "GDN_FORWARD|cula|004",
+        "GDN_FORWARD|ours-cuda|004",
+        "GDN_FORWARD|ours-ppu-source-check|005",
+        "GDN_FORWARD|ours-cuda|005",
+        "GDN_FORWARD|cula|005",
+        "GDN_FORWARD|ours-cuda|006",
+        "GDN_FORWARD|ours-ppu-source-check|006",
+        "GDN_FORWARD|cula|006",
+        "GDN_FORWARD|ours-cuda|007",
+        "GDN_FORWARD|cula|007",
+        "GDN_FORWARD|ours-ppu-source-check|007",
+        "GDN_FORWARD|cula|008",
+        "GDN_FORWARD|ours-cuda|008",
+        "GDN_FORWARD|ours-ppu-source-check|008",
+        "GDN_FORWARD|cula|009",
+        "GDN_FORWARD|ours-ppu-source-check|009",
+        "GDN_FORWARD|ours-cuda|009",
+        "GDN_FORWARD|ours-ppu-source-check|010",
+        "GDN_FORWARD|cula|010",
+        "GDN_FORWARD|ours-cuda|010",
+        "GDN_FORWARD|ours-ppu-source-check|011",
+        "GDN_FORWARD|ours-cuda|011",
+        "GDN_FORWARD|cula|011"
+      ],
+      "artifacts": {
+        "forward.nsys-rep": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/weak-r1/forward.nsys-rep",
+          "sha256": "518de746360e89221ead9c1026cfe76cacc9b66d39a9666562b3b7bc2ceba801"
+        },
+        "forward.sqlite": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/weak-r1/forward.sqlite",
+          "sha256": "66c2c23d761bc93f116af27dba353c8fe7ab74a51071cbd3ffc47b19a07895b1"
+        },
+        "receipt.json": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/weak-r1/receipt.json",
+          "sha256": "254317035cd438acc85bc97e6750ff1c4b2bca1755dc7357614b9e28f0e17b42"
+        },
+        "summary.json": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/weak-r1/summary.json",
+          "sha256": "a922c9c545e4abab4d4939eeb98e403b5e24aead6ad942259caf445ab8cb9d0a"
+        },
+        "run.log": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/weak-r1/run.log",
+          "sha256": "04bde31c48d320cf4f0d1b5cf74aff88aa54c455a748fa47acd6a64038113776"
+        }
+      }
+    },
+    "strong-r1": {
+      "scope": "H800_CONTROL_NOT_NATIVE_PPU17",
+      "protocol": "NSYS_KERNEL_SUM_PER_SYNCHRONIZED_NVTX_FORWARD",
+      "shape": [
+        1,
+        2048,
+        16,
+        32,
+        128
+      ],
+      "gate": -1.0,
+      "input_sha256": "5b1677989c9b708f",
+      "cula_gate_sha256": "88d43c244acf243c",
+      "reference_sha256": "2bb4ede29258a7f6",
+      "device": "NVIDIA H800 PCIe",
+      "sms": 114,
+      "torch": "2.8.0+cu128",
+      "cuda": "12.8",
+      "cula_binary": {
+        "path": "/workspace/gdn-sm90-cula-nsys-20260926/cuLA/cula/_cudac_sm90.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "86d6553d9ca71de2fa30d9ce271b16817c9ed1fb0e3047ec67f2c7ac94cf19c9"
+      },
+      "cula_entry_sha256": "873745fe2dbea1c22d56c5614e6ec93ae4ba846cc1f00dedb83a5c925d854ab0",
+      "admission": {
+        "ours-cuda": {
+          "errors": [
+            0.0063291084952652454,
+            0.003574053291231394
+          ],
+          "fingerprint": "9ada3fcadc21aefe",
+          "repeat": "8/8 RAW-BIT"
+        },
+        "ours-ppu-source-check": {
+          "errors": [
+            0.0063291084952652454,
+            0.003574053291231394
+          ],
+          "fingerprint": "9ada3fcadc21aefe",
+          "repeat": "8/8 RAW-BIT"
+        },
+        "cula": {
+          "errors": [
+            0.0063291084952652454,
+            0.003574053291231394
+          ],
+          "fingerprint": "9ada3fcadc21aefe",
+          "repeat": "8/8 RAW-BIT"
+        }
+      },
+      "harness_sha256": "619610d4eb9a5cd8ef07d091552dde934bf1cb8d6f86429da468700ebce44874",
+      "utc": "2026-09-26T04:50:41.319446+00:00",
+      "binary_sha256": {
+        "ours-cuda": "86d2cd4ddbcf08809d0d5a24495fecf318f7031a602a4e4e6d9ab9cec179c124",
+        "ours-ppu-source-check": "091228dbdaf666de20edbba7ebc02d2504d9f14b6e356eb7bd8c02a7a8eadee9"
+      },
+      "summary": {
+        "ours-cuda": {
+          "kernel_sum_us": {
+            "median": 354.86400000000003,
+            "range": [
+              353.408,
+              356.096
+            ],
+            "samples": [
+              354.432,
+              354.688,
+              354.976,
+              356.096,
+              355.648,
+              355.776,
+              354.752,
+              353.76,
+              355.392,
+              354.017,
+              355.68,
+              353.408
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 354.86400000000003,
+            "range": [
+              353.408,
+              356.096
+            ],
+            "samples": [
+              354.432,
+              354.688,
+              354.976,
+              356.096,
+              355.648,
+              355.776,
+              354.752,
+              353.76,
+              355.392,
+              354.017,
+              355.68,
+              353.408
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 354.86400000000003,
+            "range": [
+              353.408,
+              356.096
+            ],
+            "samples": [
+              354.432,
+              354.688,
+              354.976,
+              356.096,
+              355.648,
+              355.776,
+              354.752,
+              353.76,
+              355.392,
+              354.017,
+              355.68,
+              353.408
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "1": 12
+          },
+          "symbols": {
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 354.86400000000003,
+              "total_us": 4258.624999999999
+            }
+          }
+        },
+        "ours-ppu-source-check": {
+          "kernel_sum_us": {
+            "median": 333.312,
+            "range": [
+              330.048,
+              337.824
+            ],
+            "samples": [
+              333.312,
+              331.488,
+              333.632,
+              334.497,
+              331.712,
+              335.297,
+              332.256,
+              337.824,
+              330.048,
+              333.632,
+              333.312,
+              332.928
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 333.312,
+            "range": [
+              330.048,
+              337.824
+            ],
+            "samples": [
+              333.312,
+              331.488,
+              333.632,
+              334.497,
+              331.712,
+              335.297,
+              332.256,
+              337.824,
+              330.048,
+              333.632,
+              333.312,
+              332.928
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 333.312,
+            "range": [
+              330.048,
+              337.824
+            ],
+            "samples": [
+              333.312,
+              331.488,
+              333.632,
+              334.497,
+              331.712,
+              335.297,
+              332.256,
+              337.824,
+              330.048,
+              333.632,
+              333.312,
+              332.928
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "1": 12
+          },
+          "symbols": {
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)11, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 333.312,
+              "total_us": 3999.9379999999996
+            }
+          }
+        },
+        "cula": {
+          "kernel_sum_us": {
+            "median": 447.376,
+            "range": [
+              445.952,
+              448.288
+            ],
+            "samples": [
+              447.552,
+              445.952,
+              448.288,
+              447.264,
+              446.656,
+              447.744,
+              448.16,
+              447.36,
+              447.009,
+              446.592,
+              447.584,
+              447.392
+            ]
+          },
+          "fused_kernel_us": {
+            "median": 422.496,
+            "range": [
+              421.248,
+              423.04
+            ],
+            "samples": [
+              422.432,
+              421.248,
+              422.944,
+              423.04,
+              422.4,
+              422.848,
+              421.92,
+              421.888,
+              422.689,
+              422.528,
+              422.656,
+              422.464
+            ]
+          },
+          "memory_sum_us": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ],
+            "samples": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "gpu_span_us": {
+            "median": 621.7439999999999,
+            "range": [
+              500.832,
+              745.568
+            ],
+            "samples": [
+              690.528,
+              745.568,
+              742.016,
+              624.896,
+              618.592,
+              505.792,
+              657.057,
+              503.84,
+              503.969,
+              500.832,
+              627.008,
+              614.336
+            ]
+          },
+          "gpu_gaps_us": {
+            "median": 174.784,
+            "range": [
+              54.24,
+              299.616
+            ],
+            "samples": [
+              242.976,
+              299.616,
+              293.728,
+              177.632,
+              171.936,
+              58.048,
+              208.897,
+              56.48,
+              56.96,
+              54.24,
+              179.424,
+              166.944
+            ]
+          },
+          "calls": 12,
+          "kernel_count_per_call": {
+            "3": 12
+          },
+          "symbols": {
+            "chunk_local_cumsum_vector_kernel": {
+              "count": 12,
+              "median_us": 23.216,
+              "total_us": 278.33599999999996
+            },
+            "void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<float>, std::array<char *, (unsigned long)1>>(int, T2, T3)": {
+              "count": 12,
+              "median_us": 1.584,
+              "total_us": 20.16
+            },
+            "void cutlass::device_kernel<kda::sm90::kernel::FlatKernelTmaWarpSpecializedKdaFwd<kda::sm90::collective::FlatMainloopTmaWarpSpecializedKdaFwd<cutlass::bfloat16_t, float, float, cute::tuple<cute::C<(int)64>, cute::C<(int)64>, cute::C<(int)128>>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, cute::tuple<long, cute::C<(int)1>, int>, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)0, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)7, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)6, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)9, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>>>, kda::sm90::kernel::IndividualTileScheduler, std::tuple<kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)0, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)7, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)6, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)8, cute::C<(bool)0>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)9, cute::C<(bool)1>>, kda::sm90::kernel::Option<(kda::sm90::kernel::Tag)10, cutlass::bfloat16_t>>>>(T1::Params)": {
+              "count": 12,
+              "median_us": 422.496,
+              "total_us": 5069.057
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "ours-cuda": {
+          "cula_over_ours": 1.2606970557734791,
+          "verdict": "OURS-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        },
+        "ours-ppu-source-check": {
+          "cula_over_ours": 1.342213901689708,
+          "verdict": "OURS-WINS",
+          "criterion": "disjoint-observed-kernel-sum-ranges"
+        }
+      },
+      "accounting": "ALL_CAPTURED_KERNELS_AND_MEMORY_ASSIGNED_EXACTLY_ONCE",
+      "device_watch": {
+        "records": [
+          {
+            "utc": "2026-09-26T04:50:41.515635+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.93, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:41.886313+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.94, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:42.209810+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.95, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:42.884437+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:43.213403+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:43.591305+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:43.935066+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.94, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:44.360719+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.98, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:44.744046+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:45.117524+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.97, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:45.489246+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.99, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:45.812893+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.97, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:46.195838+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.96, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:46.528554+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.90, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:46.927511+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:47.255050+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.89, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:47.627098+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:47.971514+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.91, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:48.358840+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.92, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:48.738720+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.94, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:49.068827+00:00",
+            "pids": [],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 345, 52.88, 4"
+          },
+          {
+            "utc": "2026-09-26T04:50:49.420790+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 57.34, 475"
+          },
+          {
+            "utc": "2026-09-26T04:50:49.767553+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 69.42, 559"
+          },
+          {
+            "utc": "2026-09-26T04:50:50.137019+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 80.93, 559"
+          },
+          {
+            "utc": "2026-09-26T04:50:50.475083+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.30, 559"
+          },
+          {
+            "utc": "2026-09-26T04:50:50.794808+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.29, 561"
+          },
+          {
+            "utc": "2026-09-26T04:50:51.158410+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.31, 561"
+          },
+          {
+            "utc": "2026-09-26T04:50:51.454267+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.30, 561"
+          },
+          {
+            "utc": "2026-09-26T04:50:51.770105+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.36, 561"
+          },
+          {
+            "utc": "2026-09-26T04:50:52.064422+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.32, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:52.404503+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.35, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:52.682313+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.44, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:53.000256+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.44, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:53.338359+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.60, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:53.484272+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.54, 671"
+          },
+          {
+            "utc": "2026-09-26T04:50:57.318940+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.19, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:57.642545+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.24, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:57.989937+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.39, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:58.313986+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.45, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:58.638413+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.45, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:58.961819+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.39, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:59.306491+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.38, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:50:59.692564+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.43, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:00.014746+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.44, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:00.316203+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.50, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:00.618065+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.46, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:00.961404+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.50, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:01.263420+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 1, 1755, 86.50, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:01.542267+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.47, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:01.906559+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.46, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:02.124805+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.47, 1299"
+          },
+          {
+            "utc": "2026-09-26T04:51:02.217451+00:00",
+            "pids": [
+              28479
+            ],
+            "telemetry_fields": "uuid,utilization.gpu,clocks.sm,power.draw,memory.used",
+            "telemetry": "GPU-1d5fdef3-4899-79d9-19e6-c9c815b2a59c, 0, 1755, 86.46, 1299"
+          }
+        ],
+        "errors": []
+      },
+      "call_order": [
+        "GDN_FORWARD|ours-cuda|000",
+        "GDN_FORWARD|ours-ppu-source-check|000",
+        "GDN_FORWARD|cula|000",
+        "GDN_FORWARD|ours-cuda|001",
+        "GDN_FORWARD|cula|001",
+        "GDN_FORWARD|ours-ppu-source-check|001",
+        "GDN_FORWARD|cula|002",
+        "GDN_FORWARD|ours-cuda|002",
+        "GDN_FORWARD|ours-ppu-source-check|002",
+        "GDN_FORWARD|cula|003",
+        "GDN_FORWARD|ours-ppu-source-check|003",
+        "GDN_FORWARD|ours-cuda|003",
+        "GDN_FORWARD|ours-ppu-source-check|004",
+        "GDN_FORWARD|cula|004",
+        "GDN_FORWARD|ours-cuda|004",
+        "GDN_FORWARD|ours-ppu-source-check|005",
+        "GDN_FORWARD|ours-cuda|005",
+        "GDN_FORWARD|cula|005",
+        "GDN_FORWARD|ours-cuda|006",
+        "GDN_FORWARD|ours-ppu-source-check|006",
+        "GDN_FORWARD|cula|006",
+        "GDN_FORWARD|ours-cuda|007",
+        "GDN_FORWARD|cula|007",
+        "GDN_FORWARD|ours-ppu-source-check|007",
+        "GDN_FORWARD|cula|008",
+        "GDN_FORWARD|ours-cuda|008",
+        "GDN_FORWARD|ours-ppu-source-check|008",
+        "GDN_FORWARD|cula|009",
+        "GDN_FORWARD|ours-ppu-source-check|009",
+        "GDN_FORWARD|ours-cuda|009",
+        "GDN_FORWARD|ours-ppu-source-check|010",
+        "GDN_FORWARD|cula|010",
+        "GDN_FORWARD|ours-cuda|010",
+        "GDN_FORWARD|ours-ppu-source-check|011",
+        "GDN_FORWARD|ours-cuda|011",
+        "GDN_FORWARD|cula|011"
+      ],
+      "artifacts": {
+        "forward.nsys-rep": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/strong-r1/forward.nsys-rep",
+          "sha256": "69e8c722a6e8cd1a428b8dc1a596a4a0ebd50a08a57326b38ff031cacb6c6aa8"
+        },
+        "forward.sqlite": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/strong-r1/forward.sqlite",
+          "sha256": "0e683d3953e958569a692d9b76bfea7ed01d317553bdcdf534f6aad0aaed644c"
+        },
+        "receipt.json": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/strong-r1/receipt.json",
+          "sha256": "ddfdeb69bb4914ffac4b6754263b0828b5238f408e4c1df5cdcfd7413c03a777"
+        },
+        "summary.json": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/strong-r1/summary.json",
+          "sha256": "8941e76cddb295196d78941a2f46e679ab906f2e149ce71f3b0d405e0807bab2"
+        },
+        "run.log": {
+          "local_path": "/workspace/gdn-sm90-cula-nsys-artifacts-20260926/strong-r1/run.log",
+          "sha256": "c30508d1da1f08134eb4122fd129e96e77e7a8292775b46c4d133394cfec671f"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "source": "920e21cf4a44f76fa762e22518943cf6a6cc09a8",
+  "scope": "static production address/ownership+native counts; no kernel changes",
+  "captures": {
+    "warps8": {
+      "archive_sha256": "b86b02f9ec67ffcc666f42945ff7e298a074f0b0651c7c588b93ed7b731cf612",
+      "source": "dfe76c3d745586bd008ddfca52edcd2f0500f8b0"
+    },
+    "blayout": {
+      "archive_sha256": "580e0df3c019f7a8c9bcd7f6e31b320918ac063190dbacccf42c06d41d567330",
+      "source": "3c7da093fe34606a7a3e51bed20aae261048ebc8"
+    },
+    "v16": {
+      "archive_sha256": "4e66b340028d2a91abd5e671ed4b7a4d7a09aabc2388041ec11120c8cb5fd92d",
+      "source": "5a3ebc94d78c93045141f3bf785d48b2e175e90f"
+    }
+  },
+  "source_native_inventory": [
+    {
+      "role": "control",
+      "inventory": {
+        "tsm.ld.swzl.b32x4.s0.t1.trans1": 524288,
+        "tsm.ld.swzl.b32x4.s0.t1.trans0": 393216,
+        "tsm.st.b16": 1310720,
+        "tsm.ld.b16": 262144,
+        "tsm.st.b32": 32768,
+        "tsm.ld.b32": 147456,
+        "tsm.ld.b32x4": 102400
+      },
+      "trans_sources": {
+        "H-trans": 131072,
+        "R-trans": 65536,
+        "scaled-trans": 65536,
+        "K-trans": 262144
+      },
+      "stores": {
+        "H-store": 524288,
+        "R-store": 262144,
+        "Vnew-store": 262144,
+        "scaled-store": 262144,
+        "final-FP32-store-once": 16384
+      }
+    },
+    {
+      "role": "candidate",
+      "inventory": {
+        "tsm.ld.swzl.b32x4.s0.t1.trans1": 786432,
+        "tsm.ld.swzl.b32x4.s0.t1.trans0": 393216,
+        "tsm.st.b16": 1310720,
+        "tsm.ld.b16": 262144,
+        "tsm.st.b32": 32768,
+        "tsm.ld.b32": 163840,
+        "tsm.ld.b32x4": 102400
+      },
+      "trans_sources": {
+        "H-trans": 262144,
+        "R-trans": 131072,
+        "scaled-trans": 131072,
+        "K-trans": 262144
+      },
+      "stores": {
+        "H-store": 524288,
+        "R-store": 262144,
+        "Vnew-store": 262144,
+        "scaled-store": 262144,
+        "final-FP32-store-once": 16384
+      }
+    }
+  ],
+  "empirical_accounting": [
+    {
+      "capture": "warps8",
+      "role": "control",
+      "read": 2883584,
+      "write": 4046848,
+      "accounting_read": 2883584,
+      "accounting_write": 4046848,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    },
+    {
+      "capture": "warps8",
+      "role": "candidate",
+      "read": 3932160,
+      "write": 4046848,
+      "accounting_read": 3932160,
+      "accounting_write": 4046848,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    },
+    {
+      "capture": "blayout",
+      "role": "control",
+      "read": 2883584,
+      "write": 4046848,
+      "accounting_read": 2883584,
+      "accounting_write": 4046848,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    },
+    {
+      "capture": "blayout",
+      "role": "candidate",
+      "read": 2359296,
+      "write": 2998272,
+      "accounting_read": 2359296,
+      "accounting_write": 2998272,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    },
+    {
+      "capture": "v16",
+      "role": "control",
+      "read": 2883584,
+      "write": 4046848,
+      "accounting_read": 2883584,
+      "accounting_write": 4046848,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    },
+    {
+      "capture": "v16",
+      "role": "candidate",
+      "read": 3932160,
+      "write": 3981312,
+      "accounting_read": 3932160,
+      "accounting_write": 3981312,
+      "status": "EMPIRICAL_ACCOUNTING_CLOSED_NOT_PER_PC_BANK_PROOF"
+    }
+  ],
+  "hardware_bank_model": "UNPROVED: native TSM request grouping and ACU event definition not present in per-PC API",
+  "negative_controls": [
+    "stale-four-warp-store-base",
+    "dropped-trans-tagged-values",
+    "omitted-K-trans-family",
+    "dropped-counter-contribution",
+    "naive-word-bank-model-is-not-predictive"
+  ]
+}
+

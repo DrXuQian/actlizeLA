@@ -1,0 +1,117 @@
+{
+  "repository": "https://github.com/inclusionAI/cuLA",
+  "revision": "79be249e61453808e18e5cef7702b363239e7d8d",
+  "license": "Apache-2.0 plus notices retained per file",
+  "files": [
+    {
+      "destination": "csrc/backends/sm90/cula/LICENSE.cuLA",
+      "source": "LICENSE",
+      "upstream_sha256": "5664febbb86271af0b3f41ba7ca3bd928d17d736f8df8281c8d99e9f5234c5ac"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/common.hpp",
+      "source": "csrc/kda/sm90/collective/common.hpp",
+      "upstream_sha256": "9f0983622eb68b85b4dcfca2f7503a147821600c2b83fca45aff89de3b113624"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/load_predicated.hpp",
+      "source": "csrc/kda/sm90/collective/load_predicated.hpp",
+      "upstream_sha256": "784ba2f7ff325651c88ddc875413fd38c254118e5c9a9a501867e3dcc27047fa"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/load_tma.hpp",
+      "source": "csrc/kda/sm90/collective/load_tma.hpp",
+      "upstream_sha256": "b2b9d9e06486690a286ec9d391294b89bbeedb4560f31a186883604958fe044a"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/mainloop_kda_fwd.hpp",
+      "source": "csrc/kda/sm90/collective/mainloop_kda_fwd.hpp",
+      "upstream_sha256": "c28b5749730f34d0d56a3de6c667ecbba48c990ea5c6e5938d43be2b42bcff2a"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/named_barriers.hpp",
+      "source": "csrc/kda/sm90/collective/named_barriers.hpp",
+      "upstream_sha256": "3f91a0ae02465a4686fb088c6a9781c14b0b0025a381823755761d206594aba6"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/collective/store_tma.hpp",
+      "source": "csrc/kda/sm90/collective/store_tma.hpp",
+      "upstream_sha256": "e3f2f803736f214990b16d1103e531077aa4efc01550ff81ff691baa530e55d5"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/device/device_universal.hpp",
+      "source": "csrc/kda/sm90/device/device_universal.hpp",
+      "upstream_sha256": "74b3111e6948df7ac3c75af2e2f2601618c74513cb08a96c50d925186c918083"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/kernel/builder_kda_fwd.hpp",
+      "source": "csrc/kda/sm90/kernel/builder_kda_fwd.hpp",
+      "upstream_sha256": "53762bb8344d11021d0aa33ade914c61c8d4239c4046efce72995b0945436da6"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/kernel/kernel_kda_fwd.hpp",
+      "source": "csrc/kda/sm90/kernel/kernel_kda_fwd.hpp",
+      "upstream_sha256": "f4b7306b8955af13785584e5b5b5355fb21697ccc22c1573ab0733c665ec0c23"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/kernel/options.hpp",
+      "source": "csrc/kda/sm90/kernel/options.hpp",
+      "upstream_sha256": "7c7564ed4d8b4aebc02aa4a54c40e8e43dd2d6496f92a5c59169ef59fcff82ac"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/kernel/tile_scheduler.hpp",
+      "source": "csrc/kda/sm90/kernel/tile_scheduler.hpp",
+      "upstream_sha256": "f6d3920efbfc6b785db466ae6eac6eeb595e27c4d15a10b06e43ab11c63bc5d8"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/utils/common.hpp",
+      "source": "csrc/kda/sm90/utils/common.hpp",
+      "upstream_sha256": "0546a9864369692f99d715e1847bbfbb524dd1c7192b3bbfc1e50013e49af468"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/utils/debug.hpp",
+      "source": "csrc/kda/sm90/utils/debug.hpp",
+      "upstream_sha256": "01a51447b98e54dce176ff3bf47c301d36b8cc0548ca13299652e751487bec5c"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/utils/math_order_barrier.hpp",
+      "source": "csrc/kda/sm90/utils/math_order_barrier.hpp",
+      "upstream_sha256": "f50c7296ad53fb034297f9c218fc486cfe46e1995b73fb66651a09de96d623d8"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/utils/type_traits.hpp",
+      "source": "csrc/kda/sm90/utils/type_traits.hpp",
+      "upstream_sha256": "13fc03a0817cd0328c1643c1a9e64833e0a8333dddbffdb61ef6d149c4446a93"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kda/sm90/utils/unused.hpp",
+      "source": "csrc/kda/sm90/utils/unused.hpp",
+      "upstream_sha256": "95db6fcb0707e0486ec6535a6536d60b35356ace6d8d3e387a49c5ff046206bf"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kerutils/common/common.h",
+      "source": "csrc/kerutils/include/kerutils/common/common.h",
+      "upstream_sha256": "9945763de0a20e2a8cefe06c20790f7fbcd5e04e11c49b5ab745426249de3330"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kerutils/common/cute_ext.hpp",
+      "source": "csrc/kerutils/include/kerutils/common/cute_ext.hpp",
+      "upstream_sha256": "6b757699c6ff520167c68e74312fddbb2dbbc21ba093f6278f7393883526e9ba"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kerutils/device/common.h",
+      "source": "csrc/kerutils/include/kerutils/device/common.h",
+      "upstream_sha256": "7210f6471f8184ca9bbac73a3cbae15883fea060207b61a415962046c653a6d3"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kerutils/device/sm80/collective_inverse.hpp",
+      "source": "csrc/kerutils/include/kerutils/device/sm80/collective_inverse.hpp",
+      "upstream_sha256": "b8dddda699023fd1698bb96b67ce6692265d5f12ea950863283e27387deb099e"
+    },
+    {
+      "destination": "csrc/backends/sm90/cula/kerutils/device/sm80/helpers.cuh",
+      "source": "csrc/kerutils/include/kerutils/device/sm80/helpers.cuh",
+      "upstream_sha256": "6f080e81bfc23af36ad8677bcfe4a6f1bc45b9442588bf59ba6fbfc4e9a71148"
+    }
+  ]
+}

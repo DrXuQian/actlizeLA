@@ -1,0 +1,34 @@
+# build artifacts
+build/
+dist/
+*.egg-info/
+*.so
+*.o
+*.a
+*.pyc
+__pycache__/
+
+# ninja / torch extension
+.ninja_*
+*.ninja_log
+*.ninja_deps
+
+# editor / misc
+.vscode/
+.idea/
+*.swp
+
+# benchmark scratch
+benchmarks/_out/
+
+# build logs
+*.log
+
+# Local coordination and machine-maintenance records are not product source.
+.coord/
+.codex/
+RESUME.md
+benchmark.csv
+candidates.jsonl
+docs/ROOT_SPACE_RECOVERY_20260927.md
+docs/plan.md

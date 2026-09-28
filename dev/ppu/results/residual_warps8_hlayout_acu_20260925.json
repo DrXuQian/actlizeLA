@@ -1,0 +1,2474 @@
+{
+  "archive_sha256": "2b08d40e3f1b87a17f2b34e68ab1e1aa6cd01001d03356046aafd9568f28383b",
+  "source": "14c726806675324578d75c807dfafef0e9accad8",
+  "binaries": {
+    "/workspace/gdn-residual-delivery-14c7268-20260925T020535Z-292098/build/_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "56d58fe77e2d5bf261ed049ee0f87d1ab36e47f3d71564ff22326e56983c8512",
+    "/workspace/gdn-residual-delivery-14c7268-20260925T020535Z-292098/build/libgdn_wy_ppu.so": "6b21e88df91a7074eaa4542fb9c44971e7e05ebf3a37d795e1ca26802c2a193e"
+  },
+  "shape": {
+    "B": 1,
+    "S": 2048,
+    "Hk": 16,
+    "Hv": 32,
+    "K": 128,
+    "V": 128
+  },
+  "device": {
+    "name": "PPU-ZW810",
+    "cu": 72,
+    "total_memory": 103079215104,
+    "properties": "_CudaDeviceProperties(name='PPU-ZW810', major=8, minor=0, total_memory=98304MB, multi_processor_count=72, uuid=019ee024-8860-091c-0000-0000007aff6d, pci_bus_id=8, pci_device_id=0, pci_domain_id=0, L2_cache_size=64MB)",
+    "uuid": "019ee024-8860-091c-0000-0000007aff6d",
+    "visible": "0"
+  },
+  "capture_acu": {
+    "path": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+    "sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+    "sdk_bundled": false
+  },
+  "compiler": "hgcc(HGGC C/C++ Compiler)\nRelease version 2.1.1-a5c56e\nBuilt on Jul 25 2026 at 09:15:42",
+  "capture_tool_version": "T-Head Asight Compute version v2.0.0_20251231-4f7cd70\nData version 12006",
+  "fla": {
+    "version": "0.6.0",
+    "triton_version": "3.4.0",
+    "source": "/usr/local/lib/python3.12/site-packages/fla/ops/gated_delta_rule/chunk.py",
+    "entry_sha256": "a18ddbb3b326d160f6909e4ecf159117ea462817213f1e9b1197551329005243",
+    "triton_compiler": "/usr/local/lib/python3.12/site-packages/triton/backends/nvidia/compiler.py",
+    "triton_compiler_sha256": "89dea92ecf78895cbec65c6e8f88d4510a69488ede10c30e96b519b9e0b24105",
+    "cuda13_ptx_compat": {
+      "status": "process-local-upstream-backport",
+      "cuda": "13.0",
+      "ptx": 90,
+      "authority": "triton-v3.5.0",
+      "scope": "version-parser-only"
+    },
+    "backend_dispatch": "disabled-before-import"
+  },
+  "native": {
+    "state": {
+      "control_sites": 1313,
+      "candidate_sites": 1215,
+      "control_loops": [
+        516,
+        530
+      ],
+      "candidate_loops": [
+        512,
+        526
+      ],
+      "matrix_loads_control": [
+        20,
+        16
+      ],
+      "matrix_loads_candidate": [
+        28,
+        8
+      ]
+    },
+    "output": {
+      "control_sites": 1442,
+      "candidate_sites": 1418,
+      "control_loops": [
+        251,
+        258
+      ],
+      "candidate_loops": [
+        247,
+        254
+      ],
+      "matrix_loads_control": [
+        36,
+        24
+      ],
+      "matrix_loads_candidate": [
+        52,
+        8
+      ]
+    },
+    "device_latency_and_BC": "NOT_MEASURED"
+  },
+  "validation": {
+    "files": 624,
+    "hashes": 623,
+    "source_files": 148,
+    "kernels": [
+      4,
+      4,
+      7
+    ],
+    "native_opcode_sums": "15/15 closed; omitted-PC negative fails",
+    "unchanged_phase_opcode_histograms": "prefix/solve equal",
+    "numerics": "30 scalar +30 B-layout +30 paired H cases x8; RAW-BIT and independent 2% recurrence; g=-0.1,-1",
+    "source_native_negatives": "8 source +6 native EXPECTED_RED/PASS",
+    "timed_gate": -1
+  },
+  "timing_scope": "One complete site-ACU capture per arm, including FLA fills; NOT public API latency",
+  "decision": "OBSERVED_FULL_CALL_GAIN_VS_B_LAYOUT; ROUTING_UNCHANGED; TARGET_1_5X_NOT_MET",
+  "caveats": [
+    "Per-issue stall ratios are not wall-time shares; PC samples are not cycles.",
+    "One capture is not repeated speed admission against the retained non-B eight-warp incumbent.",
+    "H shared placement, snapshot publication and output reader changed together: their latency contributions are not isolated.",
+    "KVD transaction bytes, L2 bytes and logical bytes are distinct; no claim of exact per-PC BC attribution.",
+    "128B publication footprint accounts for aggregate stores but is an inference, not a measured hardware service rule.",
+    "Duplicate ambiguous max-register/max-thread attributes preserved in parsed.json and not used."
+  ],
+  "arms": {
+    "control": {
+      "complete_kernel_us": 205.73177,
+      "kernels": [
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "64,1,1",
+          "us": 2.4129400000000003,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "128,1,1",
+          "us": 52.65824,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::residual_warps8_blayout::gdn_wy_residual_warps8_blayout_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+          "grid": "128,1,1",
+          "block": "256,1,1",
+          "us": 104.95235000000001,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::aiu::gdn_wy_aiu_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+          "grid": "1024,1,1",
+          "block": "256,1,1",
+          "us": 45.708239999999996,
+          "hz": 1700000000.0
+        }
+      ],
+      "opcode_totals": [
+        379904,
+        14767104,
+        15885440,
+        11587584
+      ],
+      "stages": {
+        "state": {
+          "us": 104.95235000000001,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "5881856"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "2883584"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "2998272"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "117440512"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "17825792"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "102760448"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "102760448"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "52428800"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "127935488"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "1708032"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "1343488"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "16442496"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "14.09"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.35"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "124"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "45568"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "8"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "32"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "128"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "256"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "84293120"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "8879232"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.71"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.37"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.16"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.29"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.79"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.39"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.06"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.07"
+            }
+          },
+          "opcode_counts": {
+            "v.mov.b32": 1154048,
+            "s.mov.b32": 117760,
+            "v.cmp.ne.i32": 1024,
+            "s.wait": 1777664,
+            "v.mov.alllane.b32": 1024,
+            "s.cmp.eq.u32": 1024,
+            "s.cbr.az": 190464,
+            "smem.ksd.prefetch.kp0": 128,
+            "smem.ld.b32x2": 5120,
+            "s.shra.i32": 5120,
+            "s.shrl.b32": 14336,
+            "s.add.i32": 182272,
+            "s.and.b32": 48128,
+            "s.abs.i32": 5120,
+            "v.tid.init": 1024,
+            "v.and.b32": 9216,
+            "v.shrl.b32": 14336,
+            "v.bfe.b32": 11264,
+            "v.cnvt.f32.u32.rtte": 3072,
+            "s.xor.b32": 134144,
+            "v.shll.b32": 506880,
+            "v.rcp.f32": 3072,
+            "v.or.b32": 58368,
+            "v.mov.v2s": 1218560,
+            "v.cnvt.u32.f32.rtz": 3072,
+            "s.mull.i32": 13312,
+            "s.mulh.u32": 6144,
+            "s.cmp.ge.u32": 6144,
+            "s.csel.b32": 15360,
+            "s.cmp.gt.i32": 3072,
+            "s.cmp.eq.i32": 35840,
+            "s.shll.b32": 89088,
+            "s.cmp.eq.i64": 2048,
+            "s.cnvt.i64.i32": 6144,
+            "s.shll.b64": 13312,
+            "s.cbr.nz": 35840,
+            "v.madw.u64.u32": 7168,
+            "v.shll.b64": 5120,
+            "v.madw.i64.i32": 131072,
+            "v.add.co.u32": 136192,
+            "v.add.ci.u32": 136192,
+            "v.reg.dchk": 139264,
+            "vmem.ld.b32": 8192,
+            "smem.ld.b32": 1024,
+            "s.cmp.lt.i32": 1024,
+            "v.madl.i32": 67584,
+            "tsm.st.b32": 32768,
+            "v.add.i32": 5120,
+            "s.add.i64": 111616,
+            "s.nop": 132096,
+            "vmem.fence.blk": 99328,
+            "s.blksyn.defer": 132096,
+            "tsm.ld.b32x4": 102400,
+            "vmem.st.b32x4": 102400,
+            "s.exit": 1024,
+            "v.lop3.b32": 53248,
+            "v.xor.b32": 2048,
+            "v.cnvt.u64.u32": 2048,
+            "smem.ld.b32x4": 2048,
+            "v.cmp.lt.u32": 2048,
+            "s.mulw.i64.i32": 2048,
+            "s.mulw.u64.u32": 3072,
+            "s.max.i32": 1024,
+            "v.cmp.eq.i32": 1024,
+            "s.or.b32": 209920,
+            "v.cnvt.bf16.f32.rtte": 1311744,
+            "s.cbr": 33792,
+            "tsm.st.b16": 1310720,
+            "v.add.f32": 229376,
+            "tsm.ld.swzl.b32x4.s0.t1.trans0": 655360,
+            "v.mma.f32.bf16.m16n16k16": 655360,
+            "v.fma.f32.rtte": 753664,
+            "v.max.f32": 163840,
+            "v.min.f32": 163840,
+            "v.fma.f32.rtn": 163840,
+            "v.csel.b32": 262144,
+            "v.exp2.f32": 163840,
+            "v.mul.f32": 1212416,
+            "tsm.ld.swzl.b32x4.s0.t1.trans1": 524288,
+            "s.min.i32": 32768,
+            "s.lop.emsk": 270336,
+            "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 16384,
+            "v.cmp.gt.u32": 8192,
+            "vmem.ld.b16": 8192,
+            "vmem.acp.commit.grp": 65536,
+            "v.cmp.gt.i32": 65536,
+            "tsm.ld.b32": 163840,
+            "v.cmp.le.i32": 65536,
+            "tsm.ld.b16": 262144
+          },
+          "native_pc_binding": {
+            "report_sites": 1297,
+            "trailing_alignment_nops": 16,
+            "matrix_and_mma_operands": "ALL_IDENTICAL"
+          },
+          "pc_sample_sums": {
+            "compute_dependency": 3697,
+            "memory_dependency": 7803,
+            "sync": 5911,
+            "instruction_fetch": 1125,
+            "pipe_busy": 556,
+            "total": 20414
+          },
+          "top_memory_dependency_sample_pcs": [
+            {
+              "pc": "0x5480e030",
+              "code": "s.wait vldcnt(0)",
+              "executed": 8192,
+              "samples": 740
+            },
+            {
+              "pc": "0x5480e068",
+              "code": "s.wait vldcnt(0)",
+              "executed": 8192,
+              "samples": 626
+            },
+            {
+              "pc": "0x5480e1c0",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 341
+            },
+            {
+              "pc": "0x5480ddb8",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 32768,
+              "samples": 333
+            },
+            {
+              "pc": "0x5480dd70",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 32768,
+              "samples": 294
+            },
+            {
+              "pc": "0x5480e1d8",
+              "code": "s.wait commit_group(0)",
+              "executed": 32768,
+              "samples": 282
+            },
+            {
+              "pc": "0x5480de08",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 32768,
+              "samples": 254
+            },
+            {
+              "pc": "0x5480e400",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 247
+            }
+          ],
+          "top_compute_dependency_sample_pcs": [
+            {
+              "pc": "0x5480e410",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans1 vreg[116:119], [sreg2] @sreg17",
+              "executed": 32768,
+              "samples": 141
+            },
+            {
+              "pc": "0x5480de28",
+              "code": "v.mov.b32 vreg102, 0x100",
+              "executed": 32768,
+              "samples": 139
+            },
+            {
+              "pc": "0x5480ddd8",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[102:105], [sreg17] @sreg41",
+              "executed": 32768,
+              "samples": 133
+            },
+            {
+              "pc": "0x5480dd40",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[102:105], [sreg2] @sreg41",
+              "executed": 32768,
+              "samples": 118
+            },
+            {
+              "pc": "0x5480dd90",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[102:105], [sreg21] @sreg41",
+              "executed": 32768,
+              "samples": 117
+            },
+            {
+              "pc": "0x5480e3f8",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[116:119], [0x860] @sreg22",
+              "executed": 32768,
+              "samples": 100
+            },
+            {
+              "pc": "0x5480e4e8",
+              "code": "v.exp2.f32 vreg117, vreg116",
+              "executed": 32768,
+              "samples": 97
+            },
+            {
+              "pc": "0x5480e328",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[116:119], [0x810] @sreg20",
+              "executed": 32768,
+              "samples": 96
+            }
+          ],
+          "top_sync_sample_pcs": [
+            {
+              "pc": "0x5480e218",
+              "code": "tsm.ld.b32x4 vreg[102:105], [0x0 + vreg25 * 0x1]",
+              "executed": 32768,
+              "samples": 5405
+            },
+            {
+              "pc": "0x5480d8b0",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[112:115], [sreg16] @sreg41",
+              "executed": 32768,
+              "samples": 292
+            },
+            {
+              "pc": "0x5480dc38",
+              "code": "tsm.ld.b32x4 vreg[102:105], [0x0 + vreg29 * 0x1]",
+              "executed": 32768,
+              "samples": 178
+            },
+            {
+              "pc": "0x5480c938",
+              "code": "tsm.ld.b32x4 vreg[4:7], [vreg26 + vreg12 * 0x1]",
+              "executed": 1024,
+              "samples": 22
+            },
+            {
+              "pc": "0x5480e020",
+              "code": "vmem.ld.b32 vreg102, [0x0] @vreg[94:95]",
+              "executed": 8192,
+              "samples": 6
+            },
+            {
+              "pc": "0x5480df00",
+              "code": "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1 sreg[20:27]",
+              "executed": 4096,
+              "samples": 3
+            },
+            {
+              "pc": "0x5480e0e0",
+              "code": "tsm.st.b16 vreg102, [0x0 + vreg32 * 0x1]",
+              "executed": 32768,
+              "samples": 3
+            },
+            {
+              "pc": "0x5480c7b8",
+              "code": "tsm.st.b32 vreg6, [0x0 + vreg15 * 0x4]",
+              "executed": 1024,
+              "samples": 2
+            }
+          ]
+        },
+        "output": {
+          "us": 45.708239999999996,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "2752512"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "1572864"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "1179648"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "83886080"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "262144"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "84157440"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "983040"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "395264"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "11800576"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "37.00"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.86"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "94"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "49408"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "8"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "40"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "1024"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "256"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "67383168"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "1843712"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "2.02"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.60"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "2.85"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.41"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.59"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.12"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.34"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.31"
+            }
+          },
+          "opcode_counts": {
+            "s.mov.b32": 531456,
+            "v.mov.b32": 1146880,
+            "v.cmp.ne.i32": 8192,
+            "s.wait": 880640,
+            "v.mov.alllane.b32": 8192,
+            "s.cmp.eq.u32": 8192,
+            "s.cbr.az": 136192,
+            "smem.ksd.prefetch.kp0": 1024,
+            "smem.ld.b32x2": 12288,
+            "s.abs.i32": 57344,
+            "smem.ld.b32": 8192,
+            "v.tid.init": 8192,
+            "v.and.b32": 131072,
+            "s.add.i32": 380928,
+            "s.shra.i32": 25600,
+            "s.shrl.b32": 14336,
+            "v.cnvt.f32.u32.rtte": 32768,
+            "s.xor.b32": 32768,
+            "v.rcp.f32": 32768,
+            "s.cmp.gt.i32": 32768,
+            "s.cmp.eq.i32": 25600,
+            "v.mov.v2s": 688128,
+            "v.cnvt.u32.f32.rtz": 32768,
+            "v.reg.dchk": 67584,
+            "s.mull.i32": 116736,
+            "s.mulh.u32": 65536,
+            "s.cmp.ge.u32": 65536,
+            "s.csel.b32": 156672,
+            "s.shll.b32": 21504,
+            "s.min.i32": 8192,
+            "s.mulw.i64.i32": 16384,
+            "s.cnvt.i64.i32": 33792,
+            "s.add.i64": 89088,
+            "s.mulw.u64.u32": 17408,
+            "v.cmp.eq.i32": 8192,
+            "s.lop.emsk": 196608,
+            "s.and.b32": 163840,
+            "s.or.b32": 119808,
+            "s.shll.b64": 44032,
+            "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 8192,
+            "v.cmp.lt.u32": 8192,
+            "v.madw.u64.u32": 2048,
+            "v.shll.b64": 34816,
+            "v.add.co.u32": 34816,
+            "v.add.ci.u32": 34816,
+            "vmem.ld.b32": 2048,
+            "tsm.st.b32": 2048,
+            "vmem.acp.commit.grp": 49152,
+            "v.shrl.b32": 73728,
+            "v.or.b32": 606208,
+            "s.nop": 81920,
+            "vmem.fence.blk": 24576,
+            "s.blksyn.defer": 81920,
+            "tsm.ld.swzl.b32x4.s0.t1.trans0": 393216,
+            "v.mma.f32.bf16.m16n16k16": 524288,
+            "v.cmp.ge.u32": 131072,
+            "v.cmp.gt.i32": 16384,
+            "tsm.ld.b32": 163840,
+            "v.add.f32": 163840,
+            "v.fma.f32.rtte": 270336,
+            "v.max.f32": 90112,
+            "v.min.f32": 90112,
+            "v.fma.f32.rtn": 90112,
+            "v.shll.b32": 499712,
+            "v.exp2.f32": 90112,
+            "v.mul.f32": 688128,
+            "v.bfe.b32": 49152,
+            "v.cnvt.bf16.f32.rtte": 393216,
+            "v.madl.i32": 278528,
+            "tsm.st.b16": 393216,
+            "v.add.i32": 126976,
+            "v.lop3.b32": 65536,
+            "smem.ld.b32x4": 8192,
+            "v.xor.b32": 16384,
+            "s.shrl.b64": 8192,
+            "v.cmp.gt.u32": 16384,
+            "v.cnvt.u64.u32": 16384,
+            "v.mulw.u64.u32": 16384,
+            "s.mov.b64": 24576,
+            "s.cbr": 24576,
+            "tsm.ld.swzl.b32x4.s0.t1.trans1": 393216,
+            "tsm.ld.b32x4": 32768,
+            "vmem.st.b32x4": 32768,
+            "s.exit": 8192
+          },
+          "native_pc_binding": {
+            "report_sites": 1426,
+            "trailing_alignment_nops": 16,
+            "matrix_and_mma_operands": "ALL_IDENTICAL"
+          },
+          "pc_sample_sums": {
+            "compute_dependency": 721,
+            "memory_dependency": 2599,
+            "sync": 3444,
+            "instruction_fetch": 361,
+            "pipe_busy": 585,
+            "total": 8416
+          },
+          "top_memory_dependency_sample_pcs": [
+            {
+              "pc": "0x54816558",
+              "code": "s.wait commit_group(0)",
+              "executed": 16384,
+              "samples": 329
+            },
+            {
+              "pc": "0x548169f8",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 136
+            },
+            {
+              "pc": "0x54816bc0",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 131
+            },
+            {
+              "pc": "0x54814948",
+              "code": "s.wait vldcnt(0)",
+              "executed": 2048,
+              "samples": 123
+            },
+            {
+              "pc": "0x54816878",
+              "code": "s.wait tsmcnt(2)",
+              "executed": 16384,
+              "samples": 113
+            },
+            {
+              "pc": "0x548167e8",
+              "code": "s.wait tsmcnt(2)",
+              "executed": 16384,
+              "samples": 109
+            },
+            {
+              "pc": "0x548169d0",
+              "code": "s.wait tsmcnt(2)",
+              "executed": 16384,
+              "samples": 102
+            },
+            {
+              "pc": "0x54816c48",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 100
+            }
+          ],
+          "top_compute_dependency_sample_pcs": [
+            {
+              "pc": "0x54816b88",
+              "code": "v.cnvt.bf16.f32.rtte vreg62, vreg68",
+              "executed": 16384,
+              "samples": 26
+            },
+            {
+              "pc": "0x54816b58",
+              "code": "v.cnvt.bf16.f32.rtte vreg62, vreg65",
+              "executed": 16384,
+              "samples": 20
+            },
+            {
+              "pc": "0x548167d0",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans1 vreg[78:81], [sreg16] @sreg22",
+              "executed": 16384,
+              "samples": 18
+            },
+            {
+              "pc": "0x54816c10",
+              "code": "s.or.b32 emsk, emsk, sreg14",
+              "executed": 16384,
+              "samples": 17
+            },
+            {
+              "pc": "0x54816980",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[86:89], [0x8a0] @sreg24",
+              "executed": 16384,
+              "samples": 16
+            },
+            {
+              "pc": "0x54816af0",
+              "code": "v.cnvt.bf16.f32.rtte vreg70, vreg75",
+              "executed": 16384,
+              "samples": 16
+            },
+            {
+              "pc": "0x54816b80",
+              "code": "v.cnvt.bf16.f32.rtte vreg61, vreg67",
+              "executed": 16384,
+              "samples": 16
+            },
+            {
+              "pc": "0x54816bb0",
+              "code": "tsm.st.b16 vreg59, [0x0 + vreg57 * 0x1]",
+              "executed": 16384,
+              "samples": 16
+            }
+          ],
+          "top_sync_sample_pcs": [
+            {
+              "pc": "0x548165b8",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[78:81], [0x0] @sreg14",
+              "executed": 16384,
+              "samples": 2029
+            },
+            {
+              "pc": "0x54814b00",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[18:21], [0x0] @sreg2",
+              "executed": 8192,
+              "samples": 934
+            },
+            {
+              "pc": "0x54816010",
+              "code": "tsm.ld.b32 vreg11, [0x980 + vreg19 * 0x4]",
+              "executed": 8192,
+              "samples": 362
+            },
+            {
+              "pc": "0x54816a90",
+              "code": "tsm.st.b16 vreg59, [0x0 + vreg8 * 0x1]",
+              "executed": 16384,
+              "samples": 71
+            },
+            {
+              "pc": "0x54816be0",
+              "code": "tsm.ld.b32x4 vreg[62:65], [0x0 + vreg14 * 0x1]",
+              "executed": 16384,
+              "samples": 46
+            },
+            {
+              "pc": "0x54816548",
+              "code": "vmem.acp.commit.grp",
+              "executed": 16384,
+              "samples": 2
+            },
+            {
+              "pc": "0x54814000",
+              "code": "s.mov.b32 sreg57, 0x0",
+              "executed": 8192,
+              "samples": 0
+            },
+            {
+              "pc": "0x54814008",
+              "code": "v.mov.b32 vreg66, 0x0",
+              "executed": 8192,
+              "samples": 0
+            }
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "complete_kernel_us": 194.46647,
+      "kernels": [
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "64,1,1",
+          "us": 2.4088200000000004,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+          "grid": "1024,1,1",
+          "block": "128,1,1",
+          "us": 52.56118,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::residual_warps8_hlayout::gdn_wy_residual_warps8_hlayout_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+          "grid": "128,1,1",
+          "block": "256,1,1",
+          "us": 95.41235,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "gdn_qsa::wy::residual_warps8_hlayout::gdn_wy_residual_warps8_hlayout_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+          "grid": "1024,1,1",
+          "block": "256,1,1",
+          "us": 44.084120000000006,
+          "hz": 1700000000.0
+        }
+      ],
+      "opcode_totals": [
+        379904,
+        14767104,
+        15658112,
+        11257856
+      ],
+      "stages": {
+        "state": {
+          "us": 95.41235,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "4571136"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "2621440"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "1949696"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "117440512"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "17825792"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "69206016"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "69206016"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "52428800"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "127935488"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "1708032"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "1343488"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "16215168"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "14.19"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.38"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "122"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "45568"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "8"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "32"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "128"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "256"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "50735232"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "8314112"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.49"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.17"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.10"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.27"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.63"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.07"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.04"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.06"
+            }
+          },
+          "opcode_counts": {
+            "v.mov.b32": 1158144,
+            "s.mov.b32": 121856,
+            "v.cmp.ne.i32": 1024,
+            "s.wait": 1842176,
+            "v.mov.alllane.b32": 1024,
+            "s.cmp.eq.u32": 1024,
+            "s.cbr.az": 157696,
+            "smem.ksd.prefetch.kp0": 128,
+            "smem.ld.b32x2": 5120,
+            "s.shra.i32": 5120,
+            "s.shrl.b32": 14336,
+            "s.add.i32": 182272,
+            "s.and.b32": 48128,
+            "s.abs.i32": 5120,
+            "v.tid.init": 1024,
+            "s.shll.b32": 89088,
+            "v.and.b32": 13312,
+            "v.shrl.b32": 12288,
+            "v.bfe.b32": 6144,
+            "v.shll.b32": 470016,
+            "v.cnvt.f32.u32.rtte": 3072,
+            "s.xor.b32": 134144,
+            "v.rcp.f32": 3072,
+            "v.or.b32": 36864,
+            "v.mov.v2s": 1185792,
+            "v.cnvt.u32.f32.rtz": 3072,
+            "s.mull.i32": 13312,
+            "s.mulh.u32": 6144,
+            "s.cmp.ge.u32": 6144,
+            "s.csel.b32": 15360,
+            "s.cmp.gt.i32": 3072,
+            "s.cmp.eq.i32": 35840,
+            "s.cmp.eq.i64": 2048,
+            "s.cnvt.i64.i32": 6144,
+            "s.shll.b64": 12288,
+            "s.cbr.nz": 35840,
+            "v.madw.u64.u32": 9216,
+            "v.shll.b64": 5120,
+            "v.madw.i64.i32": 131072,
+            "v.add.co.u32": 104448,
+            "v.add.ci.u32": 104448,
+            "v.reg.dchk": 139264,
+            "vmem.ld.b32": 8192,
+            "smem.ld.b32": 1024,
+            "s.cmp.lt.i32": 1024,
+            "v.madl.i32": 49152,
+            "tsm.st.b32": 32768,
+            "v.add.i32": 5120,
+            "s.add.i64": 111616,
+            "s.nop": 132096,
+            "vmem.fence.blk": 99328,
+            "s.blksyn.defer": 132096,
+            "tsm.ld.b32x4": 102400,
+            "vmem.st.b32x4": 102400,
+            "s.exit": 1024,
+            "v.lop3.b32": 27648,
+            "s.mulw.i64.i32": 2048,
+            "smem.ld.b32x4": 2048,
+            "v.cnvt.u64.u32": 3072,
+            "s.mulw.u64.u32": 3072,
+            "s.max.i32": 1024,
+            "v.xor.b32": 1024,
+            "v.cmp.eq.i32": 1024,
+            "s.or.b32": 177152,
+            "v.cmp.lt.u32": 1024,
+            "v.cnvt.bf16.f32.rtte": 1311744,
+            "s.cbr": 33792,
+            "tsm.st.b16": 1310720,
+            "v.add.f32": 229376,
+            "tsm.ld.swzl.b32x4.s0.t1.trans0": 917504,
+            "v.mma.f32.bf16.m16n16k16": 655360,
+            "v.fma.f32.rtte": 753664,
+            "v.max.f32": 163840,
+            "v.min.f32": 163840,
+            "v.fma.f32.rtn": 163840,
+            "v.exp2.f32": 163840,
+            "v.csel.b32": 262144,
+            "v.mul.f32": 1212416,
+            "tsm.ld.swzl.b32x4.s0.t1.trans1": 262144,
+            "s.min.i32": 32768,
+            "s.lop.emsk": 237568,
+            "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 16384,
+            "v.cmp.gt.u32": 8192,
+            "vmem.ld.b16": 8192,
+            "v.cmp.gt.i32": 65536,
+            "vmem.acp.commit.grp": 65536,
+            "tsm.ld.b32": 163840,
+            "v.cmp.le.i32": 65536,
+            "tsm.ld.b16": 262144
+          },
+          "native_pc_binding": {
+            "report_sites": 1199,
+            "trailing_alignment_nops": 16,
+            "matrix_and_mma_operands": "ALL_IDENTICAL"
+          },
+          "pc_sample_sums": {
+            "compute_dependency": 2758,
+            "memory_dependency": 6668,
+            "sync": 5045,
+            "instruction_fetch": 1211,
+            "pipe_busy": 477,
+            "total": 17333
+          },
+          "top_memory_dependency_sample_pcs": [
+            {
+              "pc": "0x5480dd30",
+              "code": "s.wait vldcnt(0)",
+              "executed": 8192,
+              "samples": 603
+            },
+            {
+              "pc": "0x5480dd68",
+              "code": "s.wait vldcnt(0)",
+              "executed": 8192,
+              "samples": 434
+            },
+            {
+              "pc": "0x5480dfa0",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 32768,
+              "samples": 395
+            },
+            {
+              "pc": "0x5480d928",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 256
+            },
+            {
+              "pc": "0x5480df30",
+              "code": "s.wait commit_group(0)",
+              "executed": 32768,
+              "samples": 251
+            },
+            {
+              "pc": "0x5480dfb0",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 246
+            },
+            {
+              "pc": "0x5480d940",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 227
+            },
+            {
+              "pc": "0x5480e528",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 32768,
+              "samples": 206
+            }
+          ],
+          "top_compute_dependency_sample_pcs": [
+            {
+              "pc": "0x5480db28",
+              "code": "v.mov.b32 vreg86, 0x100",
+              "executed": 32768,
+              "samples": 116
+            },
+            {
+              "pc": "0x5480e3e0",
+              "code": "v.exp2.f32 vreg90, vreg89",
+              "executed": 32768,
+              "samples": 89
+            },
+            {
+              "pc": "0x5480e1d8",
+              "code": "v.exp2.f32 vreg101, vreg100",
+              "executed": 32768,
+              "samples": 83
+            },
+            {
+              "pc": "0x5480e448",
+              "code": "tsm.st.b16 vreg88, [0x10 + vreg48 * 0x1]",
+              "executed": 32768,
+              "samples": 82
+            },
+            {
+              "pc": "0x5480e300",
+              "code": "tsm.st.b16 vreg88, [0x100 + vreg48 * 0x1]",
+              "executed": 32768,
+              "samples": 77
+            },
+            {
+              "pc": "0x5480d6f8",
+              "code": "v.exp2.f32 vreg87, vreg87",
+              "executed": 32768,
+              "samples": 73
+            },
+            {
+              "pc": "0x5480e518",
+              "code": "tsm.st.b16 vreg88, [0x110 + vreg48 * 0x1]",
+              "executed": 32768,
+              "samples": 71
+            },
+            {
+              "pc": "0x5480dfc8",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[100:103], [sreg2] @sreg5",
+              "executed": 32768,
+              "samples": 70
+            }
+          ],
+          "top_sync_sample_pcs": [
+            {
+              "pc": "0x5480df90",
+              "code": "tsm.ld.b32x4 vreg[92:95], [0x0 + vreg25 * 0x1]",
+              "executed": 32768,
+              "samples": 4557
+            },
+            {
+              "pc": "0x5480d5c8",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[96:99], [sreg16] @sreg5",
+              "executed": 32768,
+              "samples": 300
+            },
+            {
+              "pc": "0x5480d938",
+              "code": "tsm.ld.b32x4 vreg[86:89], [0x0 + vreg28 * 0x1]",
+              "executed": 32768,
+              "samples": 148
+            },
+            {
+              "pc": "0x5480c950",
+              "code": "tsm.ld.b32x4 vreg[4:7], [vreg26 + vreg12 * 0x1]",
+              "executed": 1024,
+              "samples": 13
+            },
+            {
+              "pc": "0x5480dc00",
+              "code": "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1 sreg[20:27]",
+              "executed": 4096,
+              "samples": 10
+            },
+            {
+              "pc": "0x5480dd20",
+              "code": "vmem.ld.b32 vreg86, [0x0] @vreg[78:79]",
+              "executed": 8192,
+              "samples": 9
+            },
+            {
+              "pc": "0x5480dde0",
+              "code": "tsm.st.b16 vreg86, [0x0 + vreg31 * 0x1]",
+              "executed": 32768,
+              "samples": 5
+            },
+            {
+              "pc": "0x5480dd88",
+              "code": "s.or.b32 emsk, emsk, sreg2",
+              "executed": 8192,
+              "samples": 2
+            }
+          ]
+        },
+        "output": {
+          "us": 44.084120000000006,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "1703936"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "524288"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "1179648"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "83886080"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "262144"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "84157440"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "983040"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "395264"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "11472896"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "36.98"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.79"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "78"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "49408"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "6"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "8"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "40"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "1024"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "256"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "67383552"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "1726080"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.79"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.29"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "3.13"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.30"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.75"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.32"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.14"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.35"
+            }
+          },
+          "opcode_counts": {
+            "v.mov.b32": 1130496,
+            "s.mov.b32": 570368,
+            "v.cmp.ne.i32": 8192,
+            "s.wait": 870400,
+            "v.mov.alllane.b32": 8192,
+            "s.cmp.eq.u32": 8192,
+            "s.cbr.az": 136192,
+            "smem.ksd.prefetch.kp0": 1024,
+            "smem.ld.b32x2": 12288,
+            "s.abs.i32": 57344,
+            "smem.ld.b32": 8192,
+            "v.tid.init": 8192,
+            "v.and.b32": 131072,
+            "s.add.i32": 380928,
+            "s.shra.i32": 25600,
+            "s.shrl.b32": 14336,
+            "v.cnvt.f32.u32.rtte": 32768,
+            "s.xor.b32": 32768,
+            "v.rcp.f32": 32768,
+            "s.cmp.gt.i32": 32768,
+            "s.cmp.eq.i32": 25600,
+            "v.mov.v2s": 524288,
+            "v.cnvt.u32.f32.rtz": 32768,
+            "v.reg.dchk": 61440,
+            "s.mull.i32": 116736,
+            "s.mulh.u32": 65536,
+            "s.cmp.ge.u32": 65536,
+            "s.csel.b32": 156672,
+            "s.shll.b32": 21504,
+            "s.min.i32": 8192,
+            "s.mulw.i64.i32": 16384,
+            "s.cnvt.i64.i32": 33792,
+            "s.add.i64": 80896,
+            "s.mulw.u64.u32": 17408,
+            "v.cmp.eq.i32": 8192,
+            "s.lop.emsk": 196608,
+            "s.and.b32": 163840,
+            "s.or.b32": 119808,
+            "s.shll.b64": 39936,
+            "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": 10240,
+            "v.cmp.lt.u32": 8192,
+            "v.madw.u64.u32": 2048,
+            "v.shll.b64": 34816,
+            "v.add.co.u32": 34816,
+            "v.add.ci.u32": 34816,
+            "vmem.ld.b32": 2048,
+            "tsm.st.b32": 2048,
+            "vmem.acp.commit.grp": 49152,
+            "v.shrl.b32": 73728,
+            "v.or.b32": 475136,
+            "s.nop": 81920,
+            "vmem.fence.blk": 24576,
+            "s.blksyn.defer": 81920,
+            "tsm.ld.swzl.b32x4.s0.t1.trans0": 655360,
+            "v.mma.f32.bf16.m16n16k16": 524288,
+            "v.cmp.ge.u32": 131072,
+            "v.cmp.gt.i32": 16384,
+            "tsm.ld.b32": 163840,
+            "v.add.f32": 163840,
+            "v.fma.f32.rtte": 270336,
+            "v.max.f32": 90112,
+            "v.min.f32": 90112,
+            "v.fma.f32.rtn": 90112,
+            "v.shll.b32": 483328,
+            "v.exp2.f32": 90112,
+            "v.mul.f32": 688128,
+            "v.bfe.b32": 49152,
+            "v.cnvt.bf16.f32.rtte": 393216,
+            "v.madl.i32": 262144,
+            "tsm.st.b16": 393216,
+            "v.add.i32": 126976,
+            "v.lop3.b32": 65536,
+            "smem.ld.b32x4": 8192,
+            "v.xor.b32": 16384,
+            "s.shrl.b64": 8192,
+            "v.cmp.gt.u32": 16384,
+            "v.cnvt.u64.u32": 16384,
+            "v.mulw.u64.u32": 16384,
+            "s.mov.b64": 24576,
+            "s.cbr": 24576,
+            "s.or.b64": 2048,
+            "tsm.ld.swzl.b32x4.s0.t1.trans1": 131072,
+            "tsm.ld.b32x4": 32768,
+            "vmem.st.b32x4": 32768,
+            "s.exit": 8192
+          },
+          "native_pc_binding": {
+            "report_sites": 1402,
+            "trailing_alignment_nops": 16,
+            "matrix_and_mma_operands": "ALL_IDENTICAL"
+          },
+          "pc_sample_sums": {
+            "compute_dependency": 860,
+            "memory_dependency": 2153,
+            "sync": 3663,
+            "instruction_fetch": 285,
+            "pipe_busy": 226,
+            "total": 7846
+          },
+          "top_memory_dependency_sample_pcs": [
+            {
+              "pc": "0x548124f0",
+              "code": "s.wait commit_group(0)",
+              "executed": 16384,
+              "samples": 335
+            },
+            {
+              "pc": "0x54812b00",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 123
+            },
+            {
+              "pc": "0x54810938",
+              "code": "s.wait vldcnt(0)",
+              "executed": 2048,
+              "samples": 113
+            },
+            {
+              "pc": "0x54810980",
+              "code": "s.wait commit_group(0)",
+              "executed": 8192,
+              "samples": 90
+            },
+            {
+              "pc": "0x54812950",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 16384,
+              "samples": 68
+            },
+            {
+              "pc": "0x54812678",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 61
+            },
+            {
+              "pc": "0x548128c0",
+              "code": "s.wait tsmcnt(0)",
+              "executed": 16384,
+              "samples": 61
+            },
+            {
+              "pc": "0x54812910",
+              "code": "s.wait tsmcnt(1)",
+              "executed": 16384,
+              "samples": 61
+            }
+          ],
+          "top_compute_dependency_sample_pcs": [
+            {
+              "pc": "0x548128f0",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x8a0] @sreg26",
+              "executed": 16384,
+              "samples": 34
+            },
+            {
+              "pc": "0x54812798",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x870] @sreg30",
+              "executed": 16384,
+              "samples": 32
+            },
+            {
+              "pc": "0x54812930",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x8b0] @sreg30",
+              "executed": 16384,
+              "samples": 32
+            },
+            {
+              "pc": "0x54812630",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x810] @sreg17",
+              "executed": 16384,
+              "samples": 27
+            },
+            {
+              "pc": "0x54812810",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x880] @sreg14",
+              "executed": 16384,
+              "samples": 27
+            },
+            {
+              "pc": "0x54812668",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x820] @sreg26",
+              "executed": 16384,
+              "samples": 25
+            },
+            {
+              "pc": "0x548126a0",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x830] @sreg30",
+              "executed": 16384,
+              "samples": 24
+            },
+            {
+              "pc": "0x54812720",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x850] @sreg17",
+              "executed": 16384,
+              "samples": 23
+            }
+          ],
+          "top_sync_sample_pcs": [
+            {
+              "pc": "0x54812550",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[66:69], [0x0] @sreg14",
+              "executed": 16384,
+              "samples": 2228
+            },
+            {
+              "pc": "0x54810a78",
+              "code": "tsm.ld.swzl.b32x4.s0.t1.trans0 vreg[6:9], [0x0] @sreg2",
+              "executed": 8192,
+              "samples": 980
+            },
+            {
+              "pc": "0x54812000",
+              "code": "tsm.ld.b32 vreg19, [0x980 + vreg26 * 0x4]",
+              "executed": 8192,
+              "samples": 370
+            },
+            {
+              "pc": "0x548129b8",
+              "code": "tsm.st.b16 vreg58, [0x0 + vreg16 * 0x1]",
+              "executed": 16384,
+              "samples": 58
+            },
+            {
+              "pc": "0x54812b20",
+              "code": "tsm.ld.b32x4 vreg[50:53], [0x0 + vreg22 * 0x1]",
+              "executed": 16384,
+              "samples": 23
+            },
+            {
+              "pc": "0x548124e0",
+              "code": "vmem.acp.commit.grp",
+              "executed": 16384,
+              "samples": 4
+            },
+            {
+              "pc": "0x54810000",
+              "code": "v.mov.b32 vreg21, 0x0",
+              "executed": 8192,
+              "samples": 0
+            },
+            {
+              "pc": "0x54810008",
+              "code": "s.mov.b32 sreg57, 0x0",
+              "executed": 8192,
+              "samples": 0
+            }
+          ]
+        }
+      }
+    },
+    "fla": {
+      "complete_kernel_us": 224.35,
+      "kernels": [
+        {
+          "name": "chunk_local_cumsum_scalar_kernel",
+          "grid": "32,32,1",
+          "block": "32,1,1",
+          "us": 2.76588,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+          "grid": "4096,1,1",
+          "block": "128,1,1",
+          "us": 4.34941,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
+          "grid": "32,32,1",
+          "block": "32,1,1",
+          "us": 44.34765,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "recompute_w_u_fwd_kernel",
+          "grid": "32,32,1",
+          "block": "256,1,1",
+          "us": 35.664120000000004,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<float>, std::array<char*, 1ul>)",
+          "grid": "512,1,1",
+          "block": "128,1,1",
+          "us": 2.25882,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "chunk_gated_delta_rule_fwd_kernel_h_blockdim64",
+          "grid": "128,1,1",
+          "block": "128,1,1",
+          "us": 89.41647,
+          "hz": 1700000000.0
+        },
+        {
+          "name": "chunk_fwd_kernel_o",
+          "grid": "1,32,32",
+          "block": "256,1,1",
+          "us": 45.547650000000004,
+          "hz": 1700000000.0
+        }
+      ],
+      "opcode_totals": [
+        98304,
+        528384,
+        10306560,
+        6823936,
+        51712,
+        10040320,
+        9166848
+      ],
+      "stages": {
+        "state": {
+          "us": 89.41647,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "8550400"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "3815424"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "4734976"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "173662848"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "2097152"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "102760448"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "102760448"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "52428800"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "173792000"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "1052672"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "1589248"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "10040320"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "7.10"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.25"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "256"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "50432"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "16"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "4"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "16"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "128"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "128"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "92549248"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "8801664"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.25"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.10"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.24"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.08"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.46"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.20"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.29"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.04"
+            }
+          },
+          "opcode_counts": {
+            "v.mov.alllane.b32": 1024,
+            "s.shrl.b32": 1024,
+            "s.cnvt.u64.u32": 1536,
+            "s.shrl.b64": 512,
+            "s.mulw.i64.i32": 512,
+            "s.shll.b64": 6144,
+            "s.and.b64": 1024,
+            "s.or.b64": 1024,
+            "v.tid.init": 512,
+            "v.and.b32": 14336,
+            "s.add.i64": 37376,
+            "v.shrl.b32": 10752,
+            "s.shll.b32": 17408,
+            "v.or.b32": 151552,
+            "s.and.b32": 101888,
+            "v.shll.b32": 40448,
+            "s.add.i32": 17408,
+            "s.cmp.gt.i32": 512,
+            "v.cmp.gt.i32": 3072,
+            "s.mov.b32": 18432,
+            "v.bfe.b32": 512,
+            "v.lop3.b32": 18944,
+            "v.madw.u64.u32": 9216,
+            "v.add.i32": 12288,
+            "vmem.ld.tsm.zfill.b32x4.kp1": 270336,
+            "vmem.acp.commit.grp": 101376,
+            "v.mov.b32": 460288,
+            "v.madl.i32": 75264,
+            "v.madw.i64.i32": 100864,
+            "v.cmp.eq.i32": 1024,
+            "vmem.ld.tsm.zfill.b32x2.kp1": 67584,
+            "s.lop.emsk": 66048,
+            "vmem.ld.tsm.zfill.b32.kp1": 33792,
+            "s.or.b32": 66048,
+            "v.cnvt.u64.u32": 6144,
+            "s.cnvt.i64.i32": 512,
+            "s.cbr.az": 512,
+            "v.shll.b64": 213504,
+            "v.add.co.u32": 394752,
+            "s.mulw.u64.u32": 512,
+            "v.add.ci.u32": 394752,
+            "v.shra.i32": 512,
+            "v.mulw.u32.u16": 512,
+            "v.csel.b32": 33792,
+            "v.xor.b32": 4608,
+            "v.cmp.gt.u32": 1024,
+            "s.mov.b64": 1024,
+            "v.cnvt.bf16.f32.rtte": 1048576,
+            "tsm.st.b16": 1572864,
+            "s.nop": 133120,
+            "s.wait": 1021952,
+            "s.blksyn.defer": 133120,
+            "tsm.ld.b32x4": 102400,
+            "vmem.st.b32x4": 102400,
+            "vmem.fence.blk": 49664,
+            "tsm.ld.ncom.b32x4": 131072,
+            "tsm.ld.ncom.mt1616.b32x4": 524288,
+            "tsm.ld.b16": 262144,
+            "v.mma.f32.bf16.m16n16k16": 524288,
+            "v.cnvt.f32.bf16": 262144,
+            "v.add.f32": 294912,
+            "tsm.ld.b32": 32768,
+            "s.min.i32": 16384,
+            "vmem.ld.b32.sign": 16384,
+            "s.cmp.lt.u64": 16384,
+            "v.exp2.f32": 49152,
+            "v.mul.f32": 786432,
+            "v.cmp.gt.i64": 131072,
+            "v.reg.dchk": 16384,
+            "s.cmp.ne.i64": 16384,
+            "s.cbr.nz": 16384,
+            "s.cbr": 512,
+            "tsm.st.b32": 16384,
+            "simt.exit": 512
+          }
+        },
+        "output": {
+          "us": 45.547650000000004,
+          "metrics": {
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": {
+              "unit": "unitless",
+              "value": "1490944"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum": {
+              "unit": "unitless",
+              "value": "376832"
+            },
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum": {
+              "unit": "unitless",
+              "value": "1114112"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ldgsts_bytes.sum": {
+              "unit": "byte",
+              "value": "0"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "134217728"
+            },
+            "kvd__transactions_pipe_lsu_mem_global_op_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l12l2_write_transactions_mem_op_global_st_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22fabric_llc_write_bytes.sum": {
+              "unit": "byte",
+              "value": "16777216"
+            },
+            "l2__l22l1_read_transactions_mem_op_global_ld_bytes.sum": {
+              "unit": "byte",
+              "value": "92142464"
+            },
+            "sass__inst_executed_shared_loads": {
+              "unit": "inst",
+              "value": "491520"
+            },
+            "sass__inst_executed_shared_stores": {
+              "unit": "inst",
+              "value": "557056"
+            },
+            "pu__inst_executed.sum": {
+              "unit": "inst",
+              "value": "9166848"
+            },
+            "cu__warps_active.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "22.77"
+            },
+            "pu__we_warps_eligible.avg.per_cycle_active": {
+              "unit": "warp/cycle",
+              "value": "0.59"
+            },
+            "launch__registers_per_thread": {
+              "unit": "register/thread",
+              "value": "170"
+            },
+            "launch__stack_size_per_thread": {
+              "unit": "byte/thread",
+              "value": "0"
+            },
+            "launch__shared_mem_per_block": {
+              "unit": "byte/block",
+              "value": "49152"
+            },
+            "launch__occupancy_limit_registers": {
+              "unit": "block",
+              "value": "3"
+            },
+            "launch__occupancy_limit_shared_mem": {
+              "unit": "block",
+              "value": "5"
+            },
+            "launch__occupancy_limit_warps": {
+              "unit": "block",
+              "value": "8"
+            },
+            "launch__occupancy_blocks_per_cu": {
+              "unit": "block",
+              "value": "3"
+            },
+            "launch__occupancy_warps_per_cu": {
+              "unit": "warp",
+              "value": "24"
+            },
+            "launch__grid_size": {
+              "unit": "block",
+              "value": "1024"
+            },
+            "launch__block_size": {
+              "unit": "unitless",
+              "value": "256"
+            },
+            "dram__bytes_read.sum": {
+              "unit": "byte",
+              "value": "67413632"
+            },
+            "dram__bytes_write.sum": {
+              "unit": "byte",
+              "value": "2650240"
+            },
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.84"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.26"
+            },
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.80"
+            },
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.13"
+            },
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "1.19"
+            },
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.04"
+            },
+            "pu__we_average_warps_issue_stalled_tsm_pipe_busy_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0.34"
+            },
+            "pu__we_average_warps_issue_stalled_commit_dependency_per_issue_active.ratio": {
+              "unit": "inst",
+              "value": "0"
+            }
+          },
+          "opcode_counts": {
+            "v.mov.alllane.b32": 16384,
+            "s.cnvt.u64.u32": 24576,
+            "s.shrl.b64": 8192,
+            "s.shll.b32": 24576,
+            "s.and.b64": 16384,
+            "s.mulw.i64.i32": 16384,
+            "v.tid.init": 8192,
+            "s.shll.b64": 57344,
+            "s.or.b64": 16384,
+            "v.and.b32": 81920,
+            "v.shrl.b32": 57344,
+            "v.mov.b32": 901120,
+            "v.or.b32": 245760,
+            "s.add.i64": 65536,
+            "s.cnvt.i64.i32": 8192,
+            "v.shll.b32": 196608,
+            "s.add.i32": 16384,
+            "v.cmp.gt.i64": 32768,
+            "s.shra.i32": 16384,
+            "s.shrl.b32": 8192,
+            "v.shll.b64": 131072,
+            "v.add.co.u32": 196608,
+            "v.add.ci.u32": 196608,
+            "s.mov.b32": 196608,
+            "s.lop.emsk": 245760,
+            "vmem.ld.b32x4": 65536,
+            "s.or.b32": 245760,
+            "v.reg.dchk": 147456,
+            "v.madw.u64.u32": 40960,
+            "v.lop3.b32": 172032,
+            "v.cmp.lt.i32": 8192,
+            "s.wait": 434176,
+            "tsm.st.b32x4": 163840,
+            "s.and.b32": 294912,
+            "v.shra.i32": 8192,
+            "vmem.fence.blk": 24576,
+            "s.nop": 73728,
+            "s.blksyn.defer": 73728,
+            "vmem.ld.b32x4.sign": 98304,
+            "v.mulw.u32.u16": 16384,
+            "v.xor.b32": 286720,
+            "tsm.ld.ncom.b32x4": 262144,
+            "v.add.i32": 40960,
+            "v.madl.i32": 737280,
+            "tsm.ld.ncom.mt1616.b32x4": 196608,
+            "v.bfe.b32": 8192,
+            "v.mma.f32.bf16.m16n16k16": 524288,
+            "v.cmp.ge.u32": 122880,
+            "v.cmp.lt.i64": 65536,
+            "vmem.ld.b32": 65536,
+            "v.add.f32": 131072,
+            "v.exp2.f32": 163840,
+            "v.mul.f32": 655360,
+            "v.cnvt.bf16.f32.rtte": 393216,
+            "v.csel.b32": 131072,
+            "tsm.st.b16": 393216,
+            "v.fma.f32.rtte": 262144,
+            "tsm.ld.b32x4": 32768,
+            "vmem.st.b32x4.sign": 32768,
+            "simt.exit": 8192,
+            "s.cbr": 0
+          }
+        }
+      }
+    }
+  },
+  "opcode_deltas": {
+    "state": {
+      "s.cbr.az": {
+        "control": 190464,
+        "candidate": 157696,
+        "delta": -32768
+      },
+      "s.lop.emsk": {
+        "control": 270336,
+        "candidate": 237568,
+        "delta": -32768
+      },
+      "s.mov.b32": {
+        "control": 117760,
+        "candidate": 121856,
+        "delta": 4096
+      },
+      "s.or.b32": {
+        "control": 209920,
+        "candidate": 177152,
+        "delta": -32768
+      },
+      "s.shll.b64": {
+        "control": 13312,
+        "candidate": 12288,
+        "delta": -1024
+      },
+      "s.wait": {
+        "control": 1777664,
+        "candidate": 1842176,
+        "delta": 64512
+      },
+      "tsm.ld.swzl.b32x4.s0.t1.trans0": {
+        "control": 655360,
+        "candidate": 917504,
+        "delta": 262144
+      },
+      "tsm.ld.swzl.b32x4.s0.t1.trans1": {
+        "control": 524288,
+        "candidate": 262144,
+        "delta": -262144
+      },
+      "v.add.ci.u32": {
+        "control": 136192,
+        "candidate": 104448,
+        "delta": -31744
+      },
+      "v.add.co.u32": {
+        "control": 136192,
+        "candidate": 104448,
+        "delta": -31744
+      },
+      "v.and.b32": {
+        "control": 9216,
+        "candidate": 13312,
+        "delta": 4096
+      },
+      "v.bfe.b32": {
+        "control": 11264,
+        "candidate": 6144,
+        "delta": -5120
+      },
+      "v.cmp.lt.u32": {
+        "control": 2048,
+        "candidate": 1024,
+        "delta": -1024
+      },
+      "v.cnvt.u64.u32": {
+        "control": 2048,
+        "candidate": 3072,
+        "delta": 1024
+      },
+      "v.lop3.b32": {
+        "control": 53248,
+        "candidate": 27648,
+        "delta": -25600
+      },
+      "v.madl.i32": {
+        "control": 67584,
+        "candidate": 49152,
+        "delta": -18432
+      },
+      "v.madw.u64.u32": {
+        "control": 7168,
+        "candidate": 9216,
+        "delta": 2048
+      },
+      "v.mov.b32": {
+        "control": 1154048,
+        "candidate": 1158144,
+        "delta": 4096
+      },
+      "v.mov.v2s": {
+        "control": 1218560,
+        "candidate": 1185792,
+        "delta": -32768
+      },
+      "v.or.b32": {
+        "control": 58368,
+        "candidate": 36864,
+        "delta": -21504
+      },
+      "v.shll.b32": {
+        "control": 506880,
+        "candidate": 470016,
+        "delta": -36864
+      },
+      "v.shrl.b32": {
+        "control": 14336,
+        "candidate": 12288,
+        "delta": -2048
+      },
+      "v.xor.b32": {
+        "control": 2048,
+        "candidate": 1024,
+        "delta": -1024
+      }
+    },
+    "output": {
+      "s.add.i64": {
+        "control": 89088,
+        "candidate": 80896,
+        "delta": -8192
+      },
+      "s.mov.b32": {
+        "control": 531456,
+        "candidate": 570368,
+        "delta": 38912
+      },
+      "s.or.b64": {
+        "control": 0,
+        "candidate": 2048,
+        "delta": 2048
+      },
+      "s.shll.b64": {
+        "control": 44032,
+        "candidate": 39936,
+        "delta": -4096
+      },
+      "s.wait": {
+        "control": 880640,
+        "candidate": 870400,
+        "delta": -10240
+      },
+      "tsm.ld.swzl.b32x4.s0.t1.trans0": {
+        "control": 393216,
+        "candidate": 655360,
+        "delta": 262144
+      },
+      "tsm.ld.swzl.b32x4.s0.t1.trans1": {
+        "control": 393216,
+        "candidate": 131072,
+        "delta": -262144
+      },
+      "v.madl.i32": {
+        "control": 278528,
+        "candidate": 262144,
+        "delta": -16384
+      },
+      "v.mov.b32": {
+        "control": 1146880,
+        "candidate": 1130496,
+        "delta": -16384
+      },
+      "v.mov.v2s": {
+        "control": 688128,
+        "candidate": 524288,
+        "delta": -163840
+      },
+      "v.or.b32": {
+        "control": 606208,
+        "candidate": 475136,
+        "delta": -131072
+      },
+      "v.reg.dchk": {
+        "control": 67584,
+        "candidate": 61440,
+        "delta": -6144
+      },
+      "v.shll.b32": {
+        "control": 499712,
+        "candidate": 483328,
+        "delta": -16384
+      },
+      "vmem.aiu.ld.tsm.l0.t0.p0.s0.m0.2d.b16.kp1": {
+        "control": 8192,
+        "candidate": 10240,
+        "delta": 2048
+      }
+    }
+  },
+  "derived": {
+    "speedup_vs_control": 1.057929266675124,
+    "speedup_vs_fla": 1.1536693189319476,
+    "target_us": 149.56666666666666,
+    "remaining_us": 44.899803333333324,
+    "time_reduction_pct": 5.475722101647218,
+    "delta_us": {
+      "prefix": -0.0041199999999999015,
+      "solve": -0.09705999999999904,
+      "state": -9.540000000000006,
+      "output": -1.6241199999999907
+    },
+    "unchanged_stage_variation_us": -0.10117999999999894,
+    "state_grid_warp_supply": 14.222222222222221,
+    "publication_bytes": {
+      "logical_both": 52428800,
+      "kvd_control": 102760448,
+      "kvd_candidate": 69206016,
+      "l2_to_llc_both": 52428800,
+      "per_plane_128B_footprint_hypothesis_MiB": {
+        "H_control": 64,
+        "H_candidate": 32,
+        "Vnew_both": 32,
+        "final_both": 2
+      }
+    }
+  }
+}

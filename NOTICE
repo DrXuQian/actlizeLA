@@ -1,0 +1,18 @@
+actlizeLA
+
+Source snapshot: DrXuQian/GDN-QSA-sm80,
+commit 3dd407fde443648ec67055e201d9721ed3025509.
+The new repository history does not remove upstream ownership or licenses.
+
+Original GDN/QSA source: https://github.com/DrXuQian/GDN-QSA-sm80
+Apache License 2.0; root LICENSE and source notices retained.
+
+SM90 implementation includes and derives from inclusionAI/cuLA.
+Apache License 2.0; csrc/backends/sm90/cula/LICENSE.cuLA retained.
+Vendored source authority and file hashes: dev/backends/sm90_cula_sources.json.
+
+NVIDIA CUTLASS/CuTe headers: third_party/cutlass/LICENSE (BSD-3-Clause).
+PPU actlize dependency: third_party/actlize submodule; original notices retained.
+
+FLA and FlashInfer/FlashQLA are optional numerical/performance references,
+not dependencies of the installed native forward implementation.
