@@ -5,6 +5,11 @@ Opt-in `residual-full-chunk`; control `residual-gate-cache-solve-static`.
 Default routing and SM90 are unchanged. This is a local-validated candidate,
 **not a measured performance win**.
 
+Device follow-up: [2026-09-28 ACU result](PPU10_FULL_CHUNK_ACU_20260928.md).
+Both gates show lower complete-call kernel sums:174.845→168.924us and
+178.407→169.362us, about1.334x/1.345xFLA. Single captures, not1.5x;
+retain opt-in for confirmation. The preregistration below remains unchanged.
+
 ## Scope and one changed stage
 
 Priority: B1/S2048/Hk16/Hv32/K128/V128/C64, natural-log g=-1 and -0.1,
