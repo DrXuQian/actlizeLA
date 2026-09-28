@@ -1,0 +1,526 @@
+{
+  "source_sha": "77fee23e71e2f0dde68e8594ec884eabe4a8822b",
+  "scope": "SINGLE_ACU_CAPTURE_PER_ARM_AND_GATE_NO_ROUTE_PROMOTION",
+  "shape": {
+    "B": 1,
+    "S": 2048,
+    "Hk": 16,
+    "Hv": 32,
+    "K": 128,
+    "V": 128,
+    "C": 64
+  },
+  "decision": "KEEP_OPT_IN_CANDIDATE_FOR_CONFIRMATION; DEFAULT_UNCHANGED; 1.5X_NOT_REACHED",
+  "source_caveat": "Runner writes source.diff before submodule update: it records pre-bootstrap e893892, then update restores pin423253c before compilation. Capture records423253c. Do not claim e893892 was compiled from that stale diff; build-time header closure/submodule receipt is not bundled.",
+  "box_compiler": "HGCC 2.2.0-dev built Jun3 2026",
+  "device_driver": "2.1.2-r7b50d071022",
+  "device_sdk_banner": "2.0.2-d2568e060312",
+  "torch": "2.9.0",
+  "torch_cuda": "12.9",
+  "device": {
+    "name": "PPU-ZW810",
+    "cu": 72,
+    "total_memory": 103079215104,
+    "properties": "_CudaDeviceProperties(name='PPU-ZW810', major=8, minor=0, total_memory=98304MB, multi_processor_count=72, uuid=019ee024-8860-091c-0000-0000007aff6d, pci_bus_id=8, pci_device_id=0, pci_domain_id=0, L2_cache_size=64MB)",
+    "uuid": "019ee024-8860-091c-0000-0000007aff6d",
+    "visible": "0"
+  },
+  "binary_sha256": {
+    "extension_sha256": "dd1032d9dddbe62043ca721fb26afb2301eb82655487b664f36f4d95cc95d357",
+    "library_sha256": "18c106b392e3cc4d2a55832b35a83f258064bc36085c35306b10f4d7c20deee5"
+  },
+  "capture_tool": {
+    "path": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+    "sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+    "sdk_bundled": false
+  },
+  "source_files_per_bundle": 287,
+  "checksummed_files_per_bundle": 762,
+  "numerical": {
+    "residual_cases": 30,
+    "each_delivery_cases": 30,
+    "repetitions": 8,
+    "independent_limit": 0.02,
+    "raw_bit_vs_residual": "PASS",
+    "unchanged_wy_suite": "16cases+32deliverychecks/PASS"
+  },
+  "solve_native": {
+    "control_sites": 1678,
+    "candidate_sites": 1472,
+    "diagonal_sites": [
+      612,
+      405
+    ],
+    "indirect_register_sites": [
+      12,
+      0
+    ],
+    "diagonal_coefficient_words": 120,
+    "diagonal_ordered_fmas": 120,
+    "scope": "HOST_NATIVE_CHECK_ON_UPLOADED_DEVICE_BINARY"
+  },
+  "native_vs_local": {
+    "total": 37,
+    "identical": 4,
+    "reason": "Actual box evidence remains authoritative; do not reuse local resource/code facts for other stages."
+  },
+  "artifacts": {
+    "strong": {
+      "archive_sha256": "b437a6184cd927b294a034dea306df709cc646d32498b9ba81e00cb22bb507f9"
+    },
+    "weak": {
+      "archive_sha256": "4615c9df964a094d308270c43bc54ccc7d3ca0650ad83bba004ac9c722a88fa3"
+    }
+  },
+  "gates": {
+    "strong": {
+      "arms": {
+        "control": {
+          "total_us": 185.71001,
+          "kernels": [
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "64,1,1",
+              "us": 2.60824
+            },
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "128,1,1",
+              "us": 52.50118
+            },
+            {
+              "name": "gdn_qsa::wy::gate_cache::gdn_wy_residual_gate_cache_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+              "grid": "128,1,1",
+              "block": "256,1,1",
+              "us": 87.69765
+            },
+            {
+              "name": "gdn_qsa::wy::residual_warps8_hvlayout::gdn_wy_residual_warps8_hvlayout_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+              "grid": "1024,1,1",
+              "block": "256,1,1",
+              "us": 42.90294
+            }
+          ],
+          "errors": [
+            0.0063291084952652454,
+            0.003655239474028349
+          ],
+          "input_sha": "5b1677989c9b708f",
+          "output_sha": "ea8a22c5ccac1eb6",
+          "solve_metrics": {
+            "launch__registers_per_thread": 84,
+            "launch__shared_mem_per_block": 49664,
+            "cu__warps_active.avg.per_cycle_active": 18.99,
+            "pu__we_warps_eligible.avg.per_cycle_active": 0.71,
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": 2408448,
+            "pu__inst_executed.sum": 14920704,
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": 0.55,
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": 0.39,
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": 0.98,
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": 0.54,
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": 0.31,
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": 0.05
+          },
+          "solve_opcode_total": 14767104,
+          "solve_diagonal": {
+            "dynamic_instructions": 5013504,
+            "indirect_reads": 196608,
+            "pipe_flush": 466944,
+            "ordered_fmas": 491520,
+            "pc_binding": "ALL_OPCODES_AND_MATRIX_FMA_OPERANDS;16_UNREPORTED_TRAILING_NOPS"
+          },
+          "selected_solve_opcodes": {
+            "v.mov.b32": 1021952,
+            "s.wait": 1637376,
+            "s.add.i32": 342016,
+            "s.add.i64": 414720,
+            "v.add.i32": 856064,
+            "v.mma.f32.bf16.m16n16k16": 81920,
+            "tsm.ld.b32": 811008,
+            "v.fma.f32.rtte": 712704,
+            "s.cmp.ne.i32": 364544,
+            "s.cbr.nz": 380928,
+            "s.min.u32": 196608,
+            "s.bfi.b32": 196608,
+            "tsm.ld.b32x4": 81920,
+            "v.mma.f32.tf32.m16n16k8": 98304
+          }
+        },
+        "candidate": {
+          "total_us": 180.07,
+          "kernels": [
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "64,1,1",
+              "us": 2.47588
+            },
+            {
+              "name": "gdn_qsa::wy::solve_static::gdn_wy_split_solve_static(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "128,1,1",
+              "us": 44.875879999999995
+            },
+            {
+              "name": "gdn_qsa::wy::gate_cache::gdn_wy_residual_gate_cache_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+              "grid": "128,1,1",
+              "block": "256,1,1",
+              "us": 89.06411999999999
+            },
+            {
+              "name": "gdn_qsa::wy::residual_warps8_hvlayout::gdn_wy_residual_warps8_hvlayout_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+              "grid": "1024,1,1",
+              "block": "256,1,1",
+              "us": 43.654120000000006
+            }
+          ],
+          "errors": [
+            0.0063291084952652454,
+            0.003655239474028349
+          ],
+          "input_sha": "5b1677989c9b708f",
+          "output_sha": "ea8a22c5ccac1eb6",
+          "solve_metrics": {
+            "launch__registers_per_thread": 84,
+            "launch__shared_mem_per_block": 49664,
+            "cu__warps_active.avg.per_cycle_active": 18.95,
+            "pu__we_warps_eligible.avg.per_cycle_active": 0.66,
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": 2408448,
+            "pu__inst_executed.sum": 11570176,
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": 0.63,
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": 0.4,
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": 1.26,
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": 0.38,
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": 0.43,
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": 0.07
+          },
+          "solve_opcode_total": 11416576,
+          "solve_diagonal": {
+            "dynamic_instructions": 1658880,
+            "indirect_reads": 0,
+            "pipe_flush": 0,
+            "ordered_fmas": 491520,
+            "pc_binding": "ALL_OPCODES_AND_MATRIX_FMA_OPERANDS;16_UNREPORTED_TRAILING_NOPS"
+          },
+          "selected_solve_opcodes": {
+            "v.mov.b32": 784384,
+            "s.wait": 1043456,
+            "s.add.i32": 145408,
+            "s.add.i64": 21504,
+            "v.add.i32": 262144,
+            "v.mma.f32.bf16.m16n16k16": 81920,
+            "tsm.ld.b32": 614400,
+            "v.fma.f32.rtte": 712704,
+            "tsm.ld.b32x2": 32768,
+            "tsm.ld.b32x4": 114688,
+            "s.cbr.nz": 16384,
+            "v.mma.f32.tf32.m16n16k8": 98304
+          }
+        },
+        "fla": {
+          "total_us": 224.47999000000002,
+          "kernels": [
+            {
+              "name": "chunk_local_cumsum_scalar_kernel",
+              "grid": "32,32,1",
+              "block": "32,1,1",
+              "us": 2.8635300000000004
+            },
+            {
+              "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+              "grid": "4096,1,1",
+              "block": "128,1,1",
+              "us": 4.37647
+            },
+            {
+              "name": "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
+              "grid": "32,32,1",
+              "block": "32,1,1",
+              "us": 44.484120000000004
+            },
+            {
+              "name": "recompute_w_u_fwd_kernel",
+              "grid": "32,32,1",
+              "block": "256,1,1",
+              "us": 35.849410000000006
+            },
+            {
+              "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<float>, std::array<char*, 1ul>)",
+              "grid": "512,1,1",
+              "block": "128,1,1",
+              "us": 2.2688200000000003
+            },
+            {
+              "name": "chunk_gated_delta_rule_fwd_kernel_h_blockdim64",
+              "grid": "128,1,1",
+              "block": "128,1,1",
+              "us": 89.29588000000001
+            },
+            {
+              "name": "chunk_fwd_kernel_o",
+              "grid": "1,32,32",
+              "block": "256,1,1",
+              "us": 45.34176
+            }
+          ],
+          "errors": [
+            0.0063291084952652454,
+            0.003652401501312852
+          ],
+          "input_sha": "5b1677989c9b708f",
+          "output_sha": "5d926b265a53b356"
+        }
+      },
+      "derived": {
+        "total_us": {
+          "control": 185.71001,
+          "candidate": 180.07,
+          "fla": 224.47999000000002
+        },
+        "stage_delta_us": {
+          "prefix": -0.1323599999999998,
+          "solve": -7.625300000000003,
+          "state": 1.3664699999999925,
+          "output": 0.7511800000000051
+        },
+        "unchanged_variation_us": 1.9852899999999978,
+        "speedup_vs_control": 1.0313212084189483,
+        "speedup_vs_fla": 1.2466262564558228,
+        "target_us": 149.6533266666667,
+        "remaining_us": 30.416673333333307
+      },
+      "unchanged_stage_opcode_dictionaries": "IDENTICAL_ALL3",
+      "native_opcode_sum": "ALL4/4/7_CLOSED_ON_ACU_BUILTIN",
+      "ce_hz": 1700000000
+    },
+    "weak": {
+      "arms": {
+        "control": {
+          "total_us": 187.10236,
+          "kernels": [
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "64,1,1",
+              "us": 2.47588
+            },
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_solve(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "128,1,1",
+              "us": 52.48118
+            },
+            {
+              "name": "gdn_qsa::wy::gate_cache::gdn_wy_residual_gate_cache_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+              "grid": "128,1,1",
+              "block": "256,1,1",
+              "us": 89.32824000000001
+            },
+            {
+              "name": "gdn_qsa::wy::residual_warps8_hvlayout::gdn_wy_residual_warps8_hvlayout_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+              "grid": "1024,1,1",
+              "block": "256,1,1",
+              "us": 42.81706
+            }
+          ],
+          "errors": [
+            0.0048543657176196575,
+            0.0029321869369596243
+          ],
+          "input_sha": "e976de55fd4a2ac5",
+          "output_sha": "d00a34f833c79ca7",
+          "solve_metrics": {
+            "launch__registers_per_thread": 84,
+            "launch__shared_mem_per_block": 49664,
+            "cu__warps_active.avg.per_cycle_active": 18.91,
+            "pu__we_warps_eligible.avg.per_cycle_active": 0.7,
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": 2408448,
+            "pu__inst_executed.sum": 14920704,
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": 0.55,
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": 0.38,
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": 0.97,
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": 0.54,
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": 0.31,
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": 0.05
+          },
+          "solve_opcode_total": 14767104,
+          "solve_diagonal": {
+            "dynamic_instructions": 5013504,
+            "indirect_reads": 196608,
+            "pipe_flush": 466944,
+            "ordered_fmas": 491520,
+            "pc_binding": "ALL_OPCODES_AND_MATRIX_FMA_OPERANDS;16_UNREPORTED_TRAILING_NOPS"
+          },
+          "selected_solve_opcodes": {
+            "v.mov.b32": 1021952,
+            "s.wait": 1637376,
+            "s.add.i32": 342016,
+            "s.add.i64": 414720,
+            "v.add.i32": 856064,
+            "v.mma.f32.bf16.m16n16k16": 81920,
+            "tsm.ld.b32": 811008,
+            "v.fma.f32.rtte": 712704,
+            "s.cmp.ne.i32": 364544,
+            "s.cbr.nz": 380928,
+            "s.min.u32": 196608,
+            "s.bfi.b32": 196608,
+            "tsm.ld.b32x4": 81920,
+            "v.mma.f32.tf32.m16n16k8": 98304
+          }
+        },
+        "candidate": {
+          "total_us": 181.19353,
+          "kernels": [
+            {
+              "name": "gdn_qsa::wy::split_prepare::gdn_wy_split_prefix(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "64,1,1",
+              "us": 2.79235
+            },
+            {
+              "name": "gdn_qsa::wy::solve_static::gdn_wy_split_solve_static(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace)",
+              "grid": "1024,1,1",
+              "block": "128,1,1",
+              "us": 44.95353
+            },
+            {
+              "name": "gdn_qsa::wy::gate_cache::gdn_wy_residual_gate_cache_state(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, float*)",
+              "grid": "128,1,1",
+              "block": "256,1,1",
+              "us": 89.56824
+            },
+            {
+              "name": "gdn_qsa::wy::residual_warps8_hvlayout::gdn_wy_residual_warps8_hvlayout_output(gdn_qsa::wy::Inputs, gdn_qsa::wy::Workspace, cutlass::bfloat16_t*)",
+              "grid": "1024,1,1",
+              "block": "256,1,1",
+              "us": 43.87941
+            }
+          ],
+          "errors": [
+            0.0048543657176196575,
+            0.0029321869369596243
+          ],
+          "input_sha": "e976de55fd4a2ac5",
+          "output_sha": "d00a34f833c79ca7",
+          "solve_metrics": {
+            "launch__registers_per_thread": 84,
+            "launch__shared_mem_per_block": 49664,
+            "cu__warps_active.avg.per_cycle_active": 19.02,
+            "pu__we_warps_eligible.avg.per_cycle_active": 0.66,
+            "cu__data_bank_conflicts_pipe_lsu_mem_shared.sum": 2408448,
+            "pu__inst_executed.sum": 11570176,
+            "pu__we_average_warps_issue_stalled_memory_dependency_per_issue_active.ratio": 0.62,
+            "pu__we_average_warps_issue_stalled_tsm_ldst_dependency_per_issue_active.ratio": 0.4,
+            "pu__we_average_warps_issue_stalled_sync_per_issue_active.ratio": 1.25,
+            "pu__we_average_warps_issue_stalled_inst_fetch_per_issue_active.ratio": 0.4,
+            "pu__we_average_warps_issue_stalled_compute_dependency_per_issue_active.ratio": 0.43,
+            "pu__we_average_warps_issue_stalled_compute_tfu_war_per_issue_active.ratio": 0.07
+          },
+          "solve_opcode_total": 11416576,
+          "solve_diagonal": {
+            "dynamic_instructions": 1658880,
+            "indirect_reads": 0,
+            "pipe_flush": 0,
+            "ordered_fmas": 491520,
+            "pc_binding": "ALL_OPCODES_AND_MATRIX_FMA_OPERANDS;16_UNREPORTED_TRAILING_NOPS"
+          },
+          "selected_solve_opcodes": {
+            "v.mov.b32": 784384,
+            "s.wait": 1043456,
+            "s.add.i32": 145408,
+            "s.add.i64": 21504,
+            "v.add.i32": 262144,
+            "v.mma.f32.bf16.m16n16k16": 81920,
+            "tsm.ld.b32": 614400,
+            "v.fma.f32.rtte": 712704,
+            "tsm.ld.b32x2": 32768,
+            "tsm.ld.b32x4": 114688,
+            "s.cbr.nz": 16384,
+            "v.mma.f32.tf32.m16n16k8": 98304
+          }
+        },
+        "fla": {
+          "total_us": 226.11882,
+          "kernels": [
+            {
+              "name": "chunk_local_cumsum_scalar_kernel",
+              "grid": "32,32,1",
+              "block": "32,1,1",
+              "us": 2.53294
+            },
+            {
+              "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+              "grid": "4096,1,1",
+              "block": "128,1,1",
+              "us": 4.342350000000001
+            },
+            {
+              "name": "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
+              "grid": "32,32,1",
+              "block": "32,1,1",
+              "us": 44.81765
+            },
+            {
+              "name": "recompute_w_u_fwd_kernel",
+              "grid": "32,32,1",
+              "block": "256,1,1",
+              "us": 35.669410000000006
+            },
+            {
+              "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<float>, std::array<char*, 1ul>)",
+              "grid": "512,1,1",
+              "block": "128,1,1",
+              "us": 2.23706
+            },
+            {
+              "name": "chunk_gated_delta_rule_fwd_kernel_h_blockdim64",
+              "grid": "128,1,1",
+              "block": "128,1,1",
+              "us": 91.30588
+            },
+            {
+              "name": "chunk_fwd_kernel_o",
+              "grid": "1,32,32",
+              "block": "256,1,1",
+              "us": 45.21353
+            }
+          ],
+          "errors": [
+            0.0048543657176196575,
+            0.0035500864032655954
+          ],
+          "input_sha": "e976de55fd4a2ac5",
+          "output_sha": "58017d9d62d7b6cb"
+        }
+      },
+      "derived": {
+        "total_us": {
+          "control": 187.10236,
+          "candidate": 181.19353,
+          "fla": 226.11882
+        },
+        "stage_delta_us": {
+          "prefix": 0.3164699999999998,
+          "solve": -7.527650000000001,
+          "state": 0.23999999999999488,
+          "output": 1.0623500000000021
+        },
+        "unchanged_variation_us": 1.6188199999999968,
+        "speedup_vs_control": 1.0326106014933314,
+        "speedup_vs_fla": 1.2479409170956601,
+        "target_us": 150.74588,
+        "remaining_us": 30.44765000000001
+      },
+      "unchanged_stage_opcode_dictionaries": "IDENTICAL_ALL3",
+      "native_opcode_sum": "ALL4/4/7_CLOSED_ON_ACU_BUILTIN",
+      "ce_hz": 1700000000
+    }
+  },
+  "local_artifact_directory": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/acu-analysis-20260928",
+  "host_inspection": {
+    "initial_gnu_objdump": "IBT PLT symbols unresolved; strict check FAIL",
+    "relocation_resolved": "87 PLT entries; unchanged strict call check PASS; two negatives EXPECTED_RED"
+  }
+}

@@ -6,6 +6,11 @@ This completes the previously unmeasured solve-index experiment on the newer
 state control; it is not a new residual algorithm or an SM90 instruction port.
 Default dispatch remains unchanged.
 
+Device follow-up: [2026-09-28 ACU result](PPU10_STATIC_SOLVE_ACU_20260928.md).
+Both gates improve: complete control→candidate 185.710→180.070us (strong),
+187.102→181.194us (weak), approximately1.247xFLA, not the1.5x goal.
+Single captures; retain opt-in and confirm before any routing promotion.
+
 ## One changed stage
 
 | Stage | Control | Candidate |
