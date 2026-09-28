@@ -8,6 +8,10 @@ namespace gdn_qsa::wy::residual_warps8_hvlayout {
 int configure_hvlayout_output();
 int launch_hvlayout_output(Inputs, Workspace, BF16*, gdn_arch::Stream);
 }
+namespace gdn_qsa::wy::solve_static {
+int configure();
+int launch_inverse(Inputs, Workspace, gdn_arch::Stream);
+}
 
 namespace gdn_qsa::wy::gate_cache {
 using namespace residual_warps8_hvlayout;
@@ -161,7 +165,11 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
 }
 }  // namespace gdn_qsa::wy::gate_cache
 
-extern "C" int gdn_wy_forward_residual_gate_cache(
+namespace {
+// Host-only composition: both arms launch the exact same state/output symbols.
+// StaticSolve chooses the already-proved solve without a device-side branch.
+template <bool StaticSolve>
+int forward_gate_cache(
     void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
     void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
     int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
@@ -176,7 +184,9 @@ extern "C" int gdn_wy_forward_residual_gate_cache(
            static_cast<BF16 const*>(beta), g, initial, gate_fp32, {batch, sequence, q_heads, value_heads}};
   Workspace ws{static_cast<BF16*>(inverse), nullptr, static_cast<BF16*>(snapshots),
                static_cast<BF16*>(vnew), gates};
-  int rc = configure_split_prepare();
+  int rc;
+  if constexpr (StaticSolve) rc = solve_static::configure();
+  else rc = configure_split_prepare();
   if (rc) return rc;
   rc = int(hggcFuncSetAttribute(gdn_wy_residual_gate_cache_state,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
@@ -185,11 +195,29 @@ extern "C" int gdn_wy_forward_residual_gate_cache(
   if (rc) return rc;
   Workspace inverse_ws = ws;
   inverse_ws.snapshots = ws.w;  // old solve writes its padded pitch, NOT the live H workspace.
-  rc = launch_split_inverse(p, inverse_ws, stream);
+  if constexpr (StaticSolve) rc = solve_static::launch_inverse(p, inverse_ws, stream);
+  else rc = launch_split_inverse(p, inverse_ws, stream);
   if (rc) return rc;
   unsigned const grid = unsigned(int64_t(batch) * value_heads * (Dim / ValueTile));
   gdn_wy_residual_gate_cache_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
   rc = int(hggcGetLastError());
   if (rc) return rc;
   return launch_hvlayout_output(p, ws, static_cast<BF16*>(output), stream);
+}
+}  // namespace
+
+extern "C" int gdn_wy_forward_residual_gate_cache(
+    void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
+    void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
+    int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
+  return forward_gate_cache<false>(q, k, v, g, beta, initial, output, final, inverse,
+      snapshots, vnew, gates, batch, sequence, q_heads, value_heads, gate_fp32, stream);
+}
+
+extern "C" int gdn_wy_forward_residual_gate_cache_solve_static(
+    void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
+    void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
+    int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
+  return forward_gate_cache<true>(q, k, v, g, beta, initial, output, final, inverse,
+      snapshots, vnew, gates, batch, sequence, q_heads, value_heads, gate_fp32, stream);
 }

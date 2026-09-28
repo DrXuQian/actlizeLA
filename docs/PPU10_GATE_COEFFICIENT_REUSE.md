@@ -38,7 +38,10 @@ Prepare, prefix, inverse and output call the existing functions/symbols.
 
 This prices the +512 B shared memory, two additional registers and the
 producer's last-prefix global read. Fewer exponential evaluations do not
-establish a speedup. There is no new PPU timing result.
+establish a speedup. This table is the original compile-only handoff.
+The subsequent source3dd407f strong-gate upload measured complete ACU sums
+191.18765->186.11471us, FLA225.99588us; this is one capture, not a default
+selector or weak-gate result. See [the next isolated solve experiment](PPU10_GATE_CACHE_STATIC_SOLVE.md).
 
 - Real hgcc/PPU1.0 compilation, shared-library and Python-extension link.
 - Local Python-extension import is SKIP: this host's glibc is older than the
@@ -54,7 +57,7 @@ establish a speedup. There is no new PPU timing result.
 
 ## Box handoff
 
-Run from the updated GDN-QSA-sm80 checkout, with no competing device job:
+Run from the updated actlizeLA checkout, with no competing device job:
 
 ```bash
 git pull --ff-only

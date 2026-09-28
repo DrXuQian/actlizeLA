@@ -531,7 +531,7 @@ def audit(isa, resources, symbols):
     rows.append(dict(role="state",algorithm="residual",delivery="gate-cache",
                      registers=regs,stack=stack,shared_bytes=46080,
                      static_instructions=len(sequences[name]),device="NOT_RUN"))
-    for name in ("gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
+    for name in ("gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
                  "gdn_wy_forward_residual_prefetch", "gdn_wy_forward_residual_operands", "gdn_wy_forward_residual_v16",
                  "gdn_wy_forward_residual_blayout", "gdn_wy_forward_residual_warps8",
                  "gdn_wy_forward_residual_warps8_blayout", "gdn_wy_forward_residual_warps8_operands",
@@ -641,6 +641,7 @@ def main():
             ("metadata-missing-link", (isa,resources,symbols.replace("gdn_wy_forward_residual_warps8_metadata","MISSING_METADATA_LINK"))),
             ("solve-static-missing-image", (isa.replace("gdn_wy_split_solve_staticE","MISSING_STATIC_SOLVE"),resources,symbols)),
             ("solve-static-missing-link", (isa,resources,symbols.replace("gdn_wy_forward_residual_solve_static","MISSING_STATIC_SOLVE_LINK"))),
+            ("gate-cache-solve-missing-link", (isa,resources,symbols.replace("gdn_wy_forward_residual_gate_cache_solve_static","MISSING_COMPOSED_LINK"))),
             ("v16-wrong-reader", (plant_in_kernel(isa,"gdn_wy_residual_v16_state",
                 "tsm.ld.swzl","tsm.ld.ncom"),resources,symbols)),
         ):

@@ -15,6 +15,8 @@ readers; SM90 uses TMA/WGMMA and warpgroup resources.
    is a useful first step, not a measured speed win. Keep the three TF32
    high/residual products and the current rounding order unless a separately
    named arithmetic candidate passes independent admission.
+   Its [gate-cache composition](PPU10_GATE_CACHE_STATIC_SOLVE.md) is now locally
+   built/proved with a same-binary two-gate ACU runner; device timing is pending.
 2. **Full-chunk specialization.** SM90 S19 separates interior full chunks
    from the guarded final chunk; paired H800 full-forward times improved
    141.521 -> 135.2965 us in the recorded weak-gate capture. PPU still passes

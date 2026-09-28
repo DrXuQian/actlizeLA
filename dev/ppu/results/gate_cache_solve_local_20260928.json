@@ -1,0 +1,42 @@
+{
+  "updated_at_utc": "2026-09-28 03:44:38 UTC",
+  "parent_revision": "76161233c8cf2a1bd3052939d5c9084aee96c55a",
+  "branch": "agent/ppu10-solve-gate-cache-20260928",
+  "candidate": "residual-gate-cache-solve-static",
+  "control": "residual-gate-cache",
+  "status": "LOCAL_PASS_DEVICE_PENDING",
+  "default_routing": "UNCHANGED",
+  "arithmetic_contract": "gated-inverse-residual-bf16-v1",
+  "compiler": "hgcc 2.1.1-a5c56e",
+  "target": "PPU1.0 / -arch=ppu_10 (compile-probed SDK dialect)",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "source_sha256": {
+    "csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu": "15c1120d9449c56615c27fbbc369e9fcc93815c44f3de8af489dbc77a0b70cb2",
+    "csrc/gdn_chunk/gdn_wy_ops.cpp": "1ffcdc1cab118f7256677e5acb16238aa1150b5d0f70b3da6e4f658dac3460dc"
+  },
+  "binary_sha256": {
+    "libgdn_wy_ppu.so": "ab41e916bcfae950fbd11846b7e6974dd979209fe70041dac6672cd1d37f618e",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "b3aabb0381d1dfeb2b9b7748874dfdaeddf3a5bf9ad5c36d99b8de624658ef68"
+  },
+  "checks": {
+    "hgcc_device_compile": "PASS",
+    "shared_library_and_python_extension_link": "PASS",
+    "linked_host_solve_selection": "PASS",
+    "native_body_operand_sequences_unchanged": "37/37",
+    "new_device_kernels": 0,
+    "complete_resource_report_parent_equality": "PASS",
+    "resource_report_sha256": "365729a0f9134c29c3857742e6213999c143b1d8df4d84565b4961114679f0ee",
+    "native_binary_negatives_rejected": 61,
+    "python_tests": {"pass": 196, "fail": 0},
+    "host_ctest": {"pass": 24, "fail": 0},
+    "solve_production_helper": {"contexts": 65536, "values": 1048576, "ordered_products": 7864320, "stores": 524288, "status": "RAW_BIT_PASS"},
+    "gate_production_helper": {"tails": 64, "writers": 12288, "consumer_reads": 393216, "status": "PASS"},
+    "runner_build_once_two_gates_failure_stops_capture": "PASS",
+    "runtime_import": {"status": "SKIP", "reason": "local glibc lacks GLIBC_2.38 required by SDK libhggcrt.13.0.so; actual import attempt recorded"},
+    "device_correctness": "NOT_RUN",
+    "performance": "NOT_RUN"
+  },
+  "artifacts": "/workspace/actlizeLA-migration-20260928/ppu10-tuning",
+  "immutable_parent_native_build": "/workspace/gdn-backend-cleanup-20260927/ppu-build",
+  "next": "Run tools/run_ppu10_solve_gate_cache_box.sh on idle PPU; compare complete ACU kernel sums at both gates"
+}
