@@ -14,7 +14,7 @@ also not the same thing as an integrated public/default selector.
 | Prefix/relative gate coefficient reuse | Implemented gate-cache, included in full-chunk control | Reuse is CTA-local, not one global evaluation across all V slices/output |
 | Static register indexing and invariant address bases | Implemented static diagonal + paired-layout producer bases | Not a claim that every dynamic address calculation is gone |
 | Full chunks specialized, guarded tail retained | Partial: state/solve/output full-C64 candidates compiled and device-admitted | S%64!=0 still falls back for the whole call; interior-full + final-tail partitioning unported |
-| No-initial first-chunk KH/QH elimination | [Implemented as first-chunk](PPU10_FIRST_CHUNK.md); local compile/algebra/native proofs pass | Device admission and both-gate ACU pending; explicit state/tails unchanged |
+| No-initial first-chunk KH/QH elimination | [Implemented and device-validated](PPU10_FIRST_CHUNK_ACU_20260928.md); both-gate ACU evaluated | Mixed timing (-1: +1.11%, -0.1: -0.41%); keep opt-in, no default promotion. Explicit state/tails unchanged |
 | Keep inverse intermediates with their final owner | Partial / applicability not closed | PPU diagonal is already warp-local; off-diagonal sm.temp[warp] is also warp-private. Investigate register retention at that actual seam, not a fictional cross-warp reduction |
 | Convert NewV before operand rearrangement; paired conversion | Partial / applicability not closed | PPU already casts into consumer-oriented shared planes. Native paired BF16 conversion/ownership benefit remains unproved; keep separate unscaled/scaled rounding |
 | Workload-dependent V tile and warp geometry | Existing V16/V32, 4/8-warp candidates | PPU-specific selection not integrated. Earlier V16 doubled input traffic without a meaningful win; do not copy H800's winning tile |
@@ -45,6 +45,16 @@ static body shrank but executed instruction count grew 1.36%: two address
 reciprocal chains moved before the single-issuer mask. Static instruction
 savings are not speed evidence. No default changed as a result.
 
+The first-chunk follow-up at `21cee5e` is also complete: both deliveries pass
+36x8 device admission and 16x8 signed-zero/None-vs-explicit-zero edge cases.
+Complete-call control -> first-chunk is 167.75058 -> 169.61707 us at g=-1,
+168.95765 -> 168.27294 us at g=-0.1; one ACU capture per arm/gate.
+State/output each omit exactly 8,192 MMA, but executed instructions grow
+1.272%/3.423%. Native code repeats accumulator initialization across the new
+history guard and increases address moves. BC and global-to-shared staging
+bytes stay fixed. This closes the migration experiment without admitting a
+default optimization; detailed evidence is in the linked result record.
+
 ## Architecture-specific: do not mechanically transplant
 
 - TMA, WGMMA asynchronous O2/KV overlap, named-barrier opcodes and warpgroup
@@ -60,7 +70,7 @@ savings are not speed evidence. No default changed as a result.
 
 ## Closure order
 
-Finish first-chunk device evidence; then mixed full/tail handling; then
+First-chunk device evidence is closed. Next mixed full/tail handling; then
 resolve actual inverse retention and conversion/publication applicability;
 finally integrate admitted PPU selections behind the common API. For each
 item record implemented+validated, already-equivalent, or inapplicable with

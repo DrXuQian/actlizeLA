@@ -1,0 +1,83 @@
+{
+  "source_sha": "21cee5e5cdfc51a5251a8e66f53cea5069373029",
+  "archive_sha256": "84a8df044175784bb2669a5ce07e04a1c1b63232de8a0e9a9f467941d4df994d",
+  "verdict": "MIXED_SIGN_NO_PROMOTION",
+  "goal": "portable SM90 migration completeness; prior 1.5x target suspended",
+  "scope": "one ACU capture per arm per gate, complete 4/4/7-kernel call sums; not repeated latency distributions",
+  "default_routing": "UNCHANGED",
+  "device": {"name": "PPU-ZW810", "cu": 72, "uuid": "019ee024-8860-091c-0000-0000007aff6d", "ce_hz": 1700000000},
+  "driver": "2.1.2-r7b50d071022",
+  "compiler": "HGCC 2.2.0-dev, built Jun 3 2026",
+  "torch": "2.9.0",
+  "torch_cuda": "12.9",
+  "shape": {"B": 1, "S": 2048, "Hk": 16, "Hv": 32, "K": 128, "V": 128, "C": 64},
+  "initial_state": "None",
+  "output_final_state": true,
+  "capture_acu": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+  "capture_acu_sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+  "file_sha256": {
+    "isa.txt": "55d82985824301d60672ea79b07b15164e582d093c0591ec536a3ed4b5bc9d0a",
+    "resources.txt": "418427ed8647296664cf74366217e7951e1c65c84fd04709b91f03f431c7d45b",
+    "libgdn_wy_ppu.so": "75418e8ccbaf05329f5e0bfda8f29b418b85ee512788f830d5b72a25e7af52a8",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "afd89f23676514ad41382f204971219829f2e49c03f53c0afa2407f1180d1394"
+  },
+  "admission": {
+    "complete_cells": 2, "missing_cells": 0, "complete_kernel_count": 30,
+    "source_files_per_gate": 324, "manifest_files_per_gate": 799,
+    "delivery_cases_each": 36, "delivery_repeats_each": 8,
+    "deliveries": ["full-chunk", "first-chunk"],
+    "extra_edge_cases": 16, "extra_edge_repeats": 8,
+    "numerics": "independent unchanged 2% output/state criterion and residual RAW-BIT PASS",
+    "old_native_controls": "40/40 instruction/operand/resource/ABI records identical to same-box-compiler parent",
+    "per_pc": "all our opcodes and matrix/memory/FMA/move operands bound to uploaded native code; opcode totals reconciled",
+    "negative_controls": "missing kernel, old body, changed device, missing/duplicate cell, old MMA counts and corrupt zero counters reject"
+  },
+  "cells": [
+    {
+      "gate": -1.0,
+      "control_us": 167.75058, "candidate_us": 169.61707, "fla_us": 225.27236,
+      "candidate_delta_us": 1.86649,
+      "stage_order": ["prefix", "solve", "state", "output"],
+      "control_stage_us": [2.37235, 44.26176, 79.27000, 41.84647],
+      "candidate_stage_us": [2.35118, 44.52059, 79.70059, 43.04471],
+      "candidate_errors": [0.0063291084952652454, 0.003655239474028349],
+      "control_and_candidate_fingerprint": "ea8a22c5ccac1eb6"
+    },
+    {
+      "gate": -0.1,
+      "control_us": 168.95765, "candidate_us": 168.27294, "fla_us": 225.25823,
+      "candidate_delta_us": -0.68471,
+      "stage_order": ["prefix", "solve", "state", "output"],
+      "control_stage_us": [2.57000, 44.24000, 78.92824, 43.21941],
+      "candidate_stage_us": [2.44353, 44.14647, 78.36588, 43.31706],
+      "candidate_errors": [0.0048543657176196575, 0.0029321869369596243],
+      "control_and_candidate_fingerprint": "d00a34f833c79ca7"
+    }
+  ],
+  "counters_identical_at_both_gates": {
+    "state": {
+      "mma": [655360, 647168], "executed_instructions": [12153984, 12308608],
+      "native_sites": [1098, 1044], "registers": [120, 122], "stack_bytes": [0, 0],
+      "shared_bytes": [46080, 46080], "bank_conflicts": [4440064, 4440064],
+      "global_to_shared_bytes": [117440512, 117440512],
+      "mov_b32_delta": 262144, "mov_v2s_delta": 118784,
+      "duplicate_zero_executions": 253952,
+      "duplicate_zero_pcs": ["0x1e80", "0x1e90", "0x1ea0", "0x1eb0", "0x1ec0", "0x1ec8", "0x1ed0", "0x1ed8"],
+      "duplicate_zero_executions_per_pc": 31744
+    },
+    "output": {
+      "mma": [524288, 516096], "executed_instructions": [11069440, 11448320],
+      "native_sites": [1408, 1428], "registers": [70, 70], "stack_bytes": [0, 0],
+      "shared_bytes": [49408, 49408], "bank_conflicts": [1179648, 1179648],
+      "global_to_shared_bytes": [83886080, 83886080],
+      "mov_b32_delta": 245760, "mov_v2s_delta": 190464,
+      "duplicate_zero_executions": 253952,
+      "duplicate_zero_pcs": ["0x2550", "0x2558", "0x2560", "0x2570", "0x2580", "0x2588", "0x2590", "0x2598", "0x25a8", "0x25b0", "0x25b8", "0x25c0", "0x25c8", "0x25d0", "0x25d8", "0x25e0"],
+      "duplicate_zero_executions_per_pc": 15872
+    },
+    "whole_call_instructions": [35019904, 35553408]
+  },
+  "migration_status": "implemented, device-validated, evaluated; retain opt-in counterfactual, no default promotion",
+  "remaining": ["mixed interior-full/final-tail specialization", "inverse retention applicability", "paired conversion applicability", "admitted shape-driven public PPU selection"],
+  "local_evidence": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/first-chunk/acu-analysis-20260928"
+}
