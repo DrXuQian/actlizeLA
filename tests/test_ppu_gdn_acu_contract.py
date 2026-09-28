@@ -883,6 +883,18 @@ class ACUContract(unittest.TestCase):
             self.assertEqual(len(children), 6)
             self.assertTrue(all(c[c.index("--sequence") + 1] == str(sequence) for c in children))
 
+    def test_inverse_register_uses_same_binary_control_and_unfiltered_complete_calls(self):
+        status, commands, _, _ = self.run_mock_capture(self.directory(),
+            control="residual-full-chunk", subject_delivery="residual-inverse-register")
+        self.assertEqual(status["status"], "PASS", status["errors"])
+        subjects = [c for c in commands if "--set" in c]
+        self.assertEqual([(c[c.index("--role") + 1], c[c.index("--wy-delivery") + 1]) for c in subjects],
+                         [("wy", "residual-full-chunk"), ("wy", "residual-inverse-register"),
+                          ("fla", "residual-inverse-register")])
+        for command in subjects:
+            for forbidden in ("--launch-count", "--kernel-name", "--csv"):
+                self.assertNotIn(forbidden, command)
+
     def test_mixed_tail_rejects_ignored_sequence_and_unshaped_old_admission(self):
         root = self.directory()
         for plant in ("ignored-sequence", "missing-case-shape"):

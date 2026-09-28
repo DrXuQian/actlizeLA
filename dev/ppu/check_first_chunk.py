@@ -99,7 +99,7 @@ def check_source(old_state, new_state, old_output, new_output, composition, head
     if code(new_state).count("unsignedconstgrid=unsigned(int64_t(p.shape.batch)*p.shape.value_heads*(Dim/ValueTile));") != 1:
         raise AssertionError("first-chunk state grid changed")
     bound = code(binding)
-    for seam in ("FullStages<=5&&(!FullStages||(Residual&&Variant==14))",
+    for seam in ("FullStages<=6&&(!FullStages||(Residual&&Variant==14))",
                  "FullStages==4?gdn_wy_forward_residual_first_chunk:",
                  'm.def("residual_first_chunk",&forward<true,14,4>,', "rc=selected(q.data_ptr()"):
         if bound.count(seam) != 1:

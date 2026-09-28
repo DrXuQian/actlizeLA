@@ -163,6 +163,17 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
         sm.final_h, final + int64_t(bh) * Dim * Dim + v0, Dim);
   }
 }
+// Host-only reuse by the inverse-delivery experiment. The existing state
+// symbol and all of its old callers remain unchanged.
+int configure_state() {
+  return int(hggcFuncSetAttribute(gdn_wy_residual_gate_cache_state,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(Storage)));
+}
+int launch_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) {
+  unsigned const grid = unsigned(int64_t(p.shape.batch) * p.shape.value_heads * (Dim / ValueTile));
+  gdn_wy_residual_gate_cache_state<<<grid, Plan::Threads, sizeof(Storage), stream>>>(p, ws, final);
+  return int(hggcGetLastError());
+}
 }  // namespace gdn_qsa::wy::gate_cache
 
 namespace {

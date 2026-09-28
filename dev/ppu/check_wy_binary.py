@@ -22,6 +22,7 @@ from check_full_chunk import check_native as check_full_chunk_native
 from check_full_chunk_stages import check_native as check_full_chunk_stages_native
 from check_first_chunk import check_native as check_first_chunk_native
 from check_mixed_tail import check_native as check_mixed_tail_native
+from check_inverse_register import check_native as check_inverse_register_native
 
 
 def kernel_sequences(isa):
@@ -38,14 +39,26 @@ def kernel_sequences(isa):
 
 def compare_controls(before, after):
     old, new = kernel_sequences(before), kernel_sequences(after)
-    if len(old) != 42 or len(new) != 43:
-        raise AssertionError("control comparison must cover all42 old and all43 current images")
+    if len(old) != 43 or len(new) != 44:
+        raise AssertionError("control comparison must cover all43 old and all44 current images")
     added = set(new) - set(old)
-    if len(added) != 1 or "gdn_wy_residual_mixed_tail_stateE" not in next(iter(added)):
+    if len(added) != 1 or "gdn_wy_split_solve_registerE" not in next(iter(added)):
         raise AssertionError("wrong added stage inventory")
     for name, sequence in old.items():
         if new.get(name) != sequence:
             raise AssertionError(f"admitted control native instructions changed: {name}")
+
+
+def compare_resources(before, after):
+    # Each TU's ELF inventory introduces the NEXT function. It is not part of
+    # the preceding resource record and moves when an unrelated TU is added.
+    pattern = r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\nELF FILE |\Z)"
+    old, new = (dict(re.findall(pattern, text, flags=re.S)) for text in (before, after))
+    if len(old) != 43 or len(new) != 44:
+        raise AssertionError("control resource denominator must be43/44")
+    for name, body in old.items():
+        if body != new.get(name):
+            raise AssertionError("admitted control native resources changed: " + name)
 
 
 def plant_in_kernel(isa, marker, old, new):
@@ -206,10 +219,11 @@ def audit(isa, resources, symbols):
     check_full_chunk_stages_native(isa)
     check_first_chunk_native(isa)
     check_mixed_tail_native(isa)
+    check_inverse_register_native(isa)
     funcs = re.findall(r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\Z)",
                        resources, flags=re.S)
-    if len(funcs) != 43:
-        raise AssertionError(f"WY image denominator must be42 controls +1 mixed-tail image, got {len(funcs)}")
+    if len(funcs) != 44:
+        raise AssertionError(f"WY image denominator must be43 controls +1 register-inverse image, got {len(funcs)}")
     rows = []
     mma_counts = {}
     for role, packed in ((role, packed) for role in ("prepare", "state", "output") for packed in (False, True)):
@@ -532,6 +546,18 @@ def audit(isa, resources, symbols):
     rows.append(dict(role="solve",algorithm="residual",delivery="solve-static",registers=regs,
                      stack=stack,static_instructions=len(sequences[name]),shared_bytes=49664,
                      diagonal_ordered_fmas=120,tf32_mma_sites=12,indirect_register_reads=0))
+    control_regs = regs
+    matches = [(name, body) for name, body in funcs if "gdn_wy_split_solve_registerE" in name]
+    if len(matches) != 1:
+        raise AssertionError("register inverse resource image missing/ambiguous")
+    name, body = matches[0]
+    regs = int(re.search(r"vreg_number:(\d+)", body)[1])
+    stack = int(re.search(r"STACK SIZE:(\d+)", body)[1])
+    if stack or regs > control_regs or name not in sequences:
+        raise AssertionError("register inverse spills, increases registers or lacks native image")
+    rows.append(dict(role="solve", algorithm="residual", delivery="inverse-register", registers=regs,
+                     control_registers=control_regs, stack=stack, shared_bytes=49664,
+                     static_instructions=len(sequences[name]), device="NOT_RUN"))
     matches=[(name,body) for name,body in funcs if "gdn_wy_residual_gate_cache_stateE" in name]
     if len(matches)!=1: raise AssertionError("gate-cache resource image missing/ambiguous")
     name,body=matches[0]
@@ -589,7 +615,7 @@ def audit(isa, resources, symbols):
         rows.append(dict(role=role, algorithm="residual", delivery=delivery, registers=regs,
                          control_registers=control_regs, stack=stack, shared_bytes=shared,
                          static_instructions=len(sequences[name]), device="NOT_RUN"))
-    for name in ("gdn_wy_forward_residual_mixed_tail", "gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
+    for name in ("gdn_wy_forward_residual_inverse_register", "gdn_wy_forward_residual_mixed_tail", "gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
                  "gdn_wy_forward_residual_prefetch", "gdn_wy_forward_residual_operands", "gdn_wy_forward_residual_v16",
                  "gdn_wy_forward_residual_blayout", "gdn_wy_forward_residual_warps8",
                  "gdn_wy_forward_residual_warps8_blayout", "gdn_wy_forward_residual_warps8_operands",
@@ -614,6 +640,8 @@ def main():
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--baseline-isa", type=Path,
                    help="optional same-SDK parent build: require exact old instruction/operand sequences")
+    p.add_argument("--baseline-resources", type=Path,
+                   help="optional same-SDK parent build: require exact old resource records")
     args = p.parse_args()
     isa = (args.build / "gdn_wy_ppu.isa").read_text()
     resources = (args.build / "gdn_wy_ppu.resources").read_text()
@@ -715,6 +743,9 @@ def main():
             ("mixed-tail-lost-entry", (isa, resources, symbols.replace("gdn_wy_forward_residual_mixed_tail", "MISSING_MIXED_ENTRY"))),
             ("mixed-tail-lost-mma", (plant_in_kernel(isa, "gdn_wy_residual_mixed_tail_state",
                 "v.mma.f32.bf16", "MISSING_MMA"), resources, symbols)),
+            ("inverse-register-lost-entry", (isa, resources, symbols.replace("gdn_wy_forward_residual_inverse_register", "MISSING_REGISTER_ENTRY"))),
+            ("inverse-register-lost-shuffle", (plant_in_kernel(isa, "gdn_wy_split_solve_register",
+                "v.shuffle.idx.b32", "MISSING_SHUFFLE"), resources, symbols)),
             ("v16-wrong-reader", (plant_in_kernel(isa,"gdn_wy_residual_v16_state",
                 "tsm.ld.swzl","tsm.ld.ncom"),resources,symbols)),
         ):
@@ -736,6 +767,17 @@ def main():
                 raise AssertionError("control-comparison negative escaped")
         count = len(kernel_sequences(before))
         print(f"[WY binary controls] {count}/{count} native instruction+operand sequences IDENTICAL")
+    if args.baseline_resources:
+        before = args.baseline_resources.read_text()
+        compare_resources(before, resources)
+        if args.self_test:
+            try:
+                compare_resources(before, resources.replace("STACK SIZE:0", "STACK SIZE:32", 1))
+            except AssertionError:
+                print("[WY binary negative] changed-control-resources EXPECTED-RED/PASS")
+            else:
+                raise AssertionError("control resource negative escaped")
+        print("[WY binary controls] 43/43 resource records IDENTICAL")
     print("[WY binary] PASS device_execution=NOT_RUN")
 
 

@@ -118,6 +118,7 @@ cutlass_add_library(gdn_wy_ppu SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_aiu_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_split_prepare_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_solve_static_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_inverse_register_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_state_pipeline_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_operands_ppu.cu
@@ -164,6 +165,7 @@ foreach(_object IN LISTS _wy_objects)
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_aiu.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_split_prepare.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_solve_static.cuh
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_inverse_register.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_state_pipeline.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_residual.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_residual_prefetch.cuh

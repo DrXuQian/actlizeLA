@@ -125,7 +125,9 @@ def main():
             ("old-solve", "forward_gate_cache<true>", "forward_gate_cache<false>"),
             ("wrong-configure", "rc = solve_static::configure()", "rc = configure_split_prepare()"),
             ("inverse-alias", "inverse_ws.snapshots = ws.w", "inverse_ws.snapshots = ws.snapshots"),
-            ("wrong-state", "gdn_wy_residual_gate_cache_state<<<", "gdn_wy_residual_warps8_hvlayout_state<<<"),
+            # Target this composition, not the separate host-only reuse wrapper.
+            ("wrong-state", "gdn_wy_residual_gate_cache_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage)",
+             "gdn_wy_residual_warps8_hvlayout_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage)"),
             ("wrong-output", "return launch_hvlayout_output(", "return launch_hlayout_output("),
         ):
             if source.count(before) != 1:
