@@ -9,14 +9,16 @@ H800 has been shut down. No device was restarted for this refactor.
 
 | Layer | Responsibility | Must not own |
 |---|---|---|
-| Common Python forward contract | Inputs, state semantics, explicit backend/algorithm/configuration | GPU-specific intermediate layouts |
+| Common Python forward contract | Inputs, state semantics, automatic SM90 shape selection; explicit diagnostics/other algorithms | GPU-specific intermediate layouts |
 | `cuda_sm80` | Original scan/reset implementation | Hopper primitives |
 | `ppu_aiu` / PPU1.0 | Native AIU + paired shared readers, PPU-specific experiments | TMA/WGMMA emulation |
 | `sm90` | Scalar-GDN algorithm, TMA, async WGMMA, warpgroup role scheduling | PPU1.0 collective compatibility |
 | SM90 CUDA dependency | Explicit hash-bound CUTLASS headers | Implicit actlize fallback |
 | PPU1.7 dependency | PPU CUTLASS3.6.0/10700 | Claiming CUDA source-check is PPU execution |
 
-The existing original, WY and residual APIs/defaults remain unchanged.
+The direct original, WY and residual APIs remain unchanged. The common
+`gdn_forward` now defaults to SM90 shape selection on Hopper; other backend
+policies are not promoted by the H800 table.
 No forward-only task adds backward code. Experimental sources/evidence in
 older branches remain archived; they are not copied into the shipping tree.
 
@@ -27,7 +29,7 @@ no three-way copied mainloop, no experimental S-number macro.
 
 | Build configuration | Source authority | CTA work and distinguishing feature |
 |---|---|---|
-| `control` (default) | pre-cleanup main | Original nonsliced SM90 control |
+| `control` (diagnostic only) | pre-cleanup main | Original nonsliced SM90 control |
 | `value64` | c490c8d / S38 | Two independent V64 slices; 232-register auxiliary role |
 | `value64-local-inverse` | 6317ea4 / S55 | V64; local final inverse reduction; paired O2/KV tail |
 | `value128-paired` | d481a42 / S69 | V128; packed NewV BF16 conversion before retile; paired O2/KV tail |
@@ -45,11 +47,16 @@ with a numerically different summation merely to shorten the code.
 
 The fixed H800 inventory selected V64-local-inverse for seq8192/heads16, V128
 for the four high-head workloads, and V64 for the other low-head cases.
-That historical table is not a new general-purpose selector. Unknown shapes
-are not automatically assigned a measured winner, and PPU1.0 never inherits
-H800's winning configuration.
+That fixed table now drives [automatic dispatch](SM90_AUTO_DISPATCH.md) on
+the measured H800 device class. Unknown shapes use the explicit `value64`
+default without a performance claim; PPU1.0 never inherits H800's selection.
+All candidates are built at installation; selection adds no device branch
+and changes none of their native instruction streams.
 
-## Explicit build and use
+## Explicit diagnostic build and use
+
+Normal installation and `gdn_forward(...)` need no configuration argument;
+see [SM90_INSTALL.md](SM90_INSTALL.md). The following is a fixed-arm override.
 
 ```bash
 python tools/build_gdn_sm90.py \

@@ -1,8 +1,8 @@
 """Common forward contract, without imposing an intermediate/kernel ABI.
 
-Existing public APIs are retained. This entry does not promote an experimental
-algorithm or choose one from decay values: original remains the default, WY
-and residual are explicit. Each implementation owns allocation and all launches.
+SM90 automatically selects a prebuilt configuration from tensor/device metadata.
+Other families retain their original default; WY/residual remain explicit.
+Selection never examines gate values or compiles a kernel during a call.
 """
 from importlib import import_module
 import os
@@ -11,17 +11,30 @@ from .backends.registry import require_implementation
 
 
 def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
-                *, algorithm="original", backend=None, delivery=None, configuration=None):
+                *, algorithm="auto", backend=None, delivery=None, configuration=None):
     """Execute one complete implementation with its existing numerical gate.
 
     backend names identify compiled execution targets, not a measured device.
-    None preserves existing selection: original uses GDN_QSA_PPU_EXTENSION
-    when supplied, otherwise CUDA SM80; WY/residual require their opt-in PPU
-    extension. No new architecture is guessed from CUDA-compatible APIs.
+    Auto identifies NVIDIA SM90 from tensor-device metadata and uses the
+    installed shape-dispatched bundle. PPU generation must remain explicit.
+    Explicit original uses GDN_QSA_PPU_EXTENSION when supplied, otherwise
+    CUDA SM80; WY/residual require their opt-in PPU extension.
     Gate dtypes/normalization and state semantics are those of the selected
     implementation; this wrapper performs no hidden conversions.
     """
     legacy_ppu = "GDN_QSA_PPU_EXTENSION" in os.environ
+    if algorithm == "auto":
+        if configuration is not None:
+            raise ValueError("auto selects its configuration; use explicit fused_sm90 for diagnostics")
+        if backend is None:
+            from .sm90_policy import tensor_backend
+            backend = tensor_backend(q)
+        if backend == "cuda_sm90":
+            if delivery is not None:
+                raise ValueError("SM90 auto does not accept legacy delivery selectors")
+            from .sm90_auto import forward
+            return forward(q, k, v, g, beta, initial_state, output_final_state)
+        algorithm = "original"
     if configuration is not None and algorithm != "fused_sm90":
         raise ValueError("named SM90 configurations do not apply to another backend")
     if algorithm == "fused_sm90" and backend is None:

@@ -1,4 +1,4 @@
-"""Load one explicitly built Hopper configuration without environment routing."""
+"""Load the automatic Hopper bundle or an explicitly built diagnostic binary."""
 import hashlib
 import json
 from pathlib import Path
@@ -20,14 +20,22 @@ class Sm90Forward:
         return output, final if output_final_state else None
 
 
-def load_sm90(build_directory):
-    """Load tools/build_gdn_sm90.py output, retaining its build.json receipt.
+def load_sm90(build_directory=None):
+    """Load the installed auto bundle, a bundle directory, or one fixed build.
 
-    No kernel is launched, no GPU is selected and no configuration is guessed.
+    Omit the directory to use the registered installation. A single build
+    directory is an explicit diagnostic override, not automatic selection.
+    No kernel is launched during loading.
     Q/K normalization, gate preprocessing and the device stream stay with the
     caller. The existing C++ binding validates all tensors at invocation.
     """
+    if build_directory is None:
+        from .sm90_auto import default_forward
+        return default_forward()
     directory = Path(build_directory).resolve()
+    if (directory / "bundle.json").is_file():
+        from .sm90_auto import load_bundle
+        return load_bundle(directory)
     receipt = json.loads((directory / "build.json").read_text())
     if receipt.get("complete") is not True or receipt.get("target") != "cuda_sm90" or receipt.get("mode") != "native":
         raise ValueError("load_sm90 requires a complete native CUDA SM90 build")

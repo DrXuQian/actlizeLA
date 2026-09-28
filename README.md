@@ -13,20 +13,20 @@ submodule is needed for this CUDA backend; pinned CUTLASS headers are vendored.
 ```bash
 git clone git@github.com:DrXuQian/actlizeLA.git
 cd actlizeLA
-CUDA_HOME=/usr/local/cuda CONFIGURATION=value64 bash tools/install_sm90.sh
+CUDA_HOME=/usr/local/cuda bash tools/install_sm90.sh
 ```
 
-This installs the `actlize_la` frontend and builds one explicitly selected
-SM90a binary. It does not launch a GPU kernel. Plain `pip install .` installs
+This installs the `actlize_la` frontend and builds/registers all three retained
+SM90a candidates for automatic shape selection. It does not launch a GPU
+kernel. Plain `pip install .` installs
 only the frontend; it never silently builds the old SM80 implementation.
 
 ```python
-from actlize_la import load_sm90
+from actlize_la import gdn_forward
 
-forward = load_sm90("build/sm90-value64")
-output, final_state = forward(q, k, v, g, beta,
-                              initial_state=initial_state,
-                              output_final_state=True)
+output, final_state = gdn_forward(q, k, v, g, beta,
+                                 initial_state=initial_state,
+                                 output_final_state=True)
 ```
 
 Inputs must be contiguous on one CUDA device:
@@ -44,7 +44,16 @@ Chunk size is 64. Tail chunks and grouped-value heads are supported. Output
 includes the `1/sqrt(128)` query scale; do not apply it twice. No backward,
 implicit Q/K normalization, gate activation, or automatic precision change.
 
-### Named configurations
+### Automatic selection
+
+The normal SM90 call selects from tensor shape and cached device metadata;
+users do not select a configuration. There is no runtime compilation,
+autotuning, gate-value readback, or extra GPU kernel. The H800 table has 12
+distinct shapes covering the 14 measured workloads, with one selection for
+both gate regimes. Unknown shapes or other SM90 devices use `value64` as an
+**unmeasured default**, not a promised optimum. PPU does not inherit this table.
+
+Configuration names remain available for diagnostics:
 
 | Build configuration | Recorded H800 use |
 |---|---|
@@ -53,10 +62,10 @@ implicit Q/K normalization, gate activation, or automatic precision change.
 | `value128-paired` | Selected higher-head / larger-batch cases |
 | `control` | Original fused SM90 comparison control, not the optimized default |
 
-Build a different configuration by changing `CONFIGURATION`; each gets a
-separate directory. The loader verifies its receipt, binary hash and compiled
-configuration. There is no automatic winner selection or fallback to SM80.
-Do not extrapolate the H800 winner to every shape, GPU, or PPU1.7.
+The loader verifies all three receipts, binary hashes and compiled labels
+once. Missing or mismatched candidates fail instead of silently switching to
+another implementation. See [dispatch policy](docs/SM90_AUTO_DISPATCH.md) for
+the exact shape table and diagnostic overrides.
 
 For a device correctness check after installing, see [SM90 usage](docs/SM90_INSTALL.md).
 
@@ -81,7 +90,7 @@ graph; CUDA source checks are **not** native PPU1.7 execution evidence.
 
 ## Layout
 
-- `actlize_la/`: Python contracts and explicit native loading.
+- `actlize_la/`: Python contracts, shape policy and verified native loading.
 - `csrc/backends/`: target-specific CUDA/PPU implementation families.
 - `csrc/gdn_chunk/`, `include/gdn_qsa/`: original and PPU GDN kernels/layouts.
 - `third_party/`: pinned dependencies and their original licenses.

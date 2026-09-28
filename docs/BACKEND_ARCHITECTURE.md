@@ -6,7 +6,9 @@ The explicit cuLA-derived `fused_sm90` candidate is described in
 are in [SM90_FUSED_GDN_H800_20260926.md](SM90_FUSED_GDN_H800_20260926.md).
 Native PPU1.7 device admission is still UNVERIFIED; neither source availability
 nor a Hopper control is a claim of PPU execution or performance.
-Numerical thresholds and default algorithms are unchanged. The published legacy
+Numerical thresholds and direct algorithm APIs are unchanged. Since 2026-09-28,
+the common SM90 entry uses the [measured shape policy](SM90_AUTO_DISPATCH.md);
+PPU candidates remain explicit. The published legacy
 PPU `residual-solve-static` experiment remains pending device admission.
 
 ## Implemented boundary
@@ -20,10 +22,10 @@ PPU `residual-solve-static` experiment remains pending device admission.
   `actlize_la/backends/targets.json` drives target availability, dependency
   root and build-entry selection. A target cannot borrow another target's leaf
   builder or silently reuse an existing build directory of another target.
-- `gdn_forward` is an optional complete-algorithm front end. Existing APIs and
-  environment variables still work. The default remains `original`; WY and
-  residual are explicit. No automatic candidate promotion or decay heuristic
-  is added. Native loading is lazy and cached by selected module and path,
+- `gdn_forward` is the complete-algorithm front end. On NVIDIA SM90 its default
+  is an installed shape-dispatched bundle; NVIDIA SM80 retains `original`.
+  PPU generation and WY/residual remain explicit. There is no decay-value
+  heuristic. Native loading is lazy and cached by selected module and path,
   without filesystem checks on every invocation of an unchanged selection.
 - ACU source bundles include the moved primitives, build modules and JSON;
   missing backend dependencies mark a bundle incomplete.
@@ -32,7 +34,7 @@ PPU `residual-solve-static` experiment remains pending device admission.
 from actlize_la import backend_inventory, gdn_forward
 
 print(backend_inventory())  # source availability, not device admission
-o, ht = gdn_forward(q, k, v, g, beta)  # unchanged original selection
+o, ht = gdn_forward(q, k, v, g, beta)  # SM90: automatic; SM80: original
 
 # Explicit existing PPU algorithm, not the default. GDN_QSA_WY_EXTENSION must
 # identify the built extension. Dtypes/scale follow the existing residual API.

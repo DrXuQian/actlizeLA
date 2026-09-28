@@ -1,0 +1,45 @@
+{
+  "status": "LOCAL_PASS",
+  "updated_at_utc": "2026-09-28 03:20:36 UTC",
+  "base_revision": "0669bb173125591b19a016202bc0b63343f1f5c0",
+  "scope": "METADATA_DISPATCH_AND_INSTALLATION_NOT_NEW_DEVICE_PERFORMANCE",
+  "device_executed": false,
+  "cpp_cuda_sources_changed": false,
+  "policy": {
+    "file": "actlize_la/sm90_policy.json",
+    "sha256": "818a20a086b471769f1f323cc14f419f7400dc8a51ba5b0b09c77ab60fe4b6fc",
+    "shape_keys": 12,
+    "measured_workloads": 14,
+    "reference_cells": 56,
+    "numerically_valid_selection_rows": 55,
+    "retained_reference_failure_rows": 1,
+    "unknown_shape_or_other_sm90_device": "value64_UNMEASURED_DEFAULT",
+    "ppu_policy_changed": false
+  },
+  "local_checks": {
+    "python_unittests": {"pass": 191, "fail": 0},
+    "ppu_host_ctest": {"pass": 24, "fail": 0},
+    "actual_cute_maps": {"pass": 4, "fail": 0},
+    "retained_native_bodies_and_resources_identical": 12,
+    "retained_native_negative_plants_rejected": 12,
+    "editable_install_actual_modules_and_public_dispatch": "3/3_PASS",
+    "relocated_wheel_actual_modules_and_public_dispatch": "3/3_PASS",
+    "native_forward_during_installation_test": "MOCKED_NO_GPU_LAUNCH",
+    "wheel_policy_present_local_registration_absent": "PASS",
+    "wheel_sha256": "3a4223b8bb431fbf8cf2e1e98ee3a8d20f3ff2c32d4cacfa696686696dae3cf9"
+  },
+  "routing_negatives": [
+    "missing_measured_default_row",
+    "wrong_long_sequence_winner",
+    "missing_candidate",
+    "wrong_compiled_configuration",
+    "changed_policy_or_receipt_hash",
+    "mixed_source_identity",
+    "escaped_member_directory",
+    "changed_registered_bundle",
+    "empty_or_relative_override",
+    "failed_compile_cannot_publish_partial_bundle"
+  ],
+  "artifacts": "/workspace/actlizeLA-migration-20260928/auto-validation",
+  "retained_native_builds": "/workspace/actlizeLA-migration-20260928/build-{value64,value64-local-inverse,value128-paired}"
+}

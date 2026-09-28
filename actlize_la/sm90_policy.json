@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "h800-shapes-v1",
+  "configurations": ["value64", "value64-local-inverse", "value128-paired"],
+  "default": "value64",
+  "device": {"name_contains": "H800", "sm_count": 114, "capability": [9, 0]},
+  "head_dimensions": [128, 128],
+  "rows": [
+    {"shape": [1, 512, 16, 32], "configuration": "value64", "workloads": ["seq512"]},
+    {"shape": [1, 1024, 16, 32], "configuration": "value64", "workloads": ["seq1024"]},
+    {"shape": [1, 2048, 16, 32], "configuration": "value64", "workloads": ["seq2048", "vary-fp32", "initial-vary"]},
+    {"shape": [1, 4096, 16, 32], "configuration": "value64", "workloads": ["seq4096"]},
+    {"shape": [1, 8192, 16, 32], "configuration": "value64-local-inverse", "workloads": ["seq8192"]},
+    {"shape": [1, 2051, 16, 32], "configuration": "value64", "workloads": ["tail2051"]},
+    {"shape": [2, 2048, 16, 32], "configuration": "value128-paired", "workloads": ["batch2"]},
+    {"shape": [4, 2048, 16, 32], "configuration": "value128-paired", "workloads": ["batch4"]},
+    {"shape": [1, 2048, 16, 64], "configuration": "value128-paired", "workloads": ["heads64-gva4"]},
+    {"shape": [1, 2048, 32, 64], "configuration": "value128-paired", "workloads": ["heads64-gva2"]},
+    {"shape": [1, 2048, 32, 32], "configuration": "value64", "workloads": ["heads32-gva1"]},
+    {"shape": [1, 2048, 8, 16], "configuration": "value64-local-inverse", "workloads": ["heads16"]}
+  ]
+}

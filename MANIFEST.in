@@ -2,6 +2,8 @@
 recursive-include csrc/backends *.py *.cuh *.hpp *.h *.cu *.cpp *.md *.json LICENSE*
 recursive-include cmake *.cmake
 include tools/build_gdn_sm90.py
+include tools/build_sm90_bundle.py
+include actlize_la/sm90_policy.json
 include dev/backends/sm90_target_probe.cu
 include dev/backends/check_sm90_binary.py
 include dev/backends/sm90_cula_sources.json

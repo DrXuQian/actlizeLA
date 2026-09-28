@@ -61,7 +61,7 @@ class Dispatch(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True), patch("actlize_la.gdn_interface.import_module") as importer:
             for target in ("ppu15", "ppu17", "cuda_sm90"):
                 with self.subTest(target=target), self.assertRaisesRegex(RuntimeError, "not implemented|no .* implementation"):
-                    gdn_forward(*self.inputs, backend=target)
+                    gdn_forward(*self.inputs, algorithm="original", backend=target)
             with self.assertRaisesRegex(RuntimeError, "no cuda_sm80 implementation"):
                 gdn_forward(*self.inputs, algorithm="wy", backend="cuda_sm80")
             importer.assert_not_called()
@@ -72,9 +72,9 @@ class Dispatch(unittest.TestCase):
 
     def test_initial_state_and_delivery_are_not_silently_dropped(self):
         with self.assertRaisesRegex(ValueError, "must not be dropped"):
-            gdn_forward(*self.inputs, initial_state=object())
+            gdn_forward(*self.inputs, algorithm="original", initial_state=object())
         with self.assertRaisesRegex(ValueError, "no WY/residual delivery"):
-            gdn_forward(*self.inputs, delivery="scalar")
+            gdn_forward(*self.inputs, algorithm="original", delivery="scalar")
 
     def test_conflicting_explicit_backend_and_legacy_environment_are_red(self):
         for env, requested in (({}, "ppu10"), ({"GDN_QSA_PPU_EXTENSION": "control.so"}, "cuda_sm80")):

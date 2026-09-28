@@ -21,7 +21,11 @@ where = ["."]
 include = ["actlize_la*"]
 
 [tool.setuptools.package-data]
+"actlize_la" = ["sm90_policy.json"]
 "actlize_la.backends" = ["targets.json"]
+
+[tool.setuptools.exclude-package-data]
+"actlize_la" = ["_sm90_bundle.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

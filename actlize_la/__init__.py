@@ -3,7 +3,7 @@
 from importlib import import_module
 
 # A GDN-only installation must not need the three unrelated NVIDIA extensions.
-# Symbols and default NVIDIA behavior are unchanged; load the chosen op lazily.
+# Import only contracts here; load the selected implementation lazily.
 _MODULES = {
     "load_sm90": "sm90",
     "gdn_forward": "gdn_interface",
