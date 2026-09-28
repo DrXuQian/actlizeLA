@@ -8,7 +8,7 @@ PPU_SDK_ROOT="${PPU_SDK:-${PPU_SDK_ROOT:-/usr/local/PPU_SDK}}"
 ACU="${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
 CANDIDATE="${CANDIDATE:-residual-v16}"
 case "$CANDIDATE" in
-  residual-prefetch|residual-operands|residual-v16|residual-blayout|residual-warps8|residual-warps8-blayout|residual-warps8-operands|residual-warps8-hlayout|residual-warps8-hvlayout|residual-warps8-metadata|residual-solve-static|residual-gate-cache|residual-gate-cache-solve-static) DELIVERY="${CANDIDATE#residual-}" ;;
+  residual-prefetch|residual-operands|residual-v16|residual-blayout|residual-warps8|residual-warps8-blayout|residual-warps8-operands|residual-warps8-hlayout|residual-warps8-hvlayout|residual-warps8-metadata|residual-solve-static|residual-full-chunk|residual-gate-cache|residual-gate-cache-solve-static) DELIVERY="${CANDIDATE#residual-}" ;;
   *) echo "[residual delivery ACU] FAIL: unknown CANDIDATE=$CANDIDATE" >&2; exit 1 ;;
 esac
 if [[ -e "$RUN" || ! -x "$ACU" ]]; then
@@ -81,21 +81,27 @@ if [[ "$CANDIDATE" == residual-warps8-metadata ]]; then
     | tee "$RUN/metadata-native.log"
 fi
 export CUDA_VISIBLE_DEVICES="${DEVICE:-0}"
-if [[ "$CANDIDATE" == residual-gate-cache || "$CANDIDATE" == residual-gate-cache-solve-static ]]; then
+if [[ "$CANDIDATE" == residual-gate-cache || "$CANDIDATE" == residual-gate-cache-solve-static || "$CANDIDATE" == residual-full-chunk ]]; then
   cmake --build "$RUN/build" --target l033_wy_gate_cache -j"${JOBS:-16}" | tee "$RUN/gate-cache-host-build.log"
   "$RUN/build/l033_wy_gate_cache" | tee "$RUN/gate-cache-host.log"
   python "$ROOT/dev/ppu/check_gate_cache.py" --self-test --isa "$RUN/build/gdn_wy_ppu.isa" | tee "$RUN/gate-cache-native.log"
 fi
-if [[ "$CANDIDATE" == residual-solve-static || "$CANDIDATE" == residual-gate-cache-solve-static ]]; then
+if [[ "$CANDIDATE" == residual-solve-static || "$CANDIDATE" == residual-gate-cache-solve-static || "$CANDIDATE" == residual-full-chunk ]]; then
   cmake --build "$RUN/build" --target l032_wy_solve_static -j"${JOBS:-16}" \
     | tee "$RUN/solve-static-host-build.log"
   python "$ROOT/dev/ppu/check_solve_static.py" --self-test --host "$RUN/build/l032_wy_solve_static" \
     --isa "$RUN/build/gdn_wy_ppu.isa" \
     | tee "$RUN/solve-static-native.log"
 fi
-if [[ "$CANDIDATE" == residual-gate-cache-solve-static ]]; then
+if [[ "$CANDIDATE" == residual-gate-cache-solve-static || "$CANDIDATE" == residual-full-chunk ]]; then
   python "$ROOT/dev/ppu/check_gate_cache_solve.py" --self-test \
     --library "$RUN/build/libgdn_wy_ppu.so" | tee "$RUN/gate-cache-solve-composition.log"
+fi
+if [[ "$CANDIDATE" == residual-full-chunk ]]; then
+  cmake --build "$RUN/build" --target l034_wy_full_chunk -j"${JOBS:-16}" | tee "$RUN/full-chunk-host-build.log"
+  "$RUN/build/l034_wy_full_chunk" | tee "$RUN/full-chunk-host.log"
+  python "$ROOT/dev/ppu/check_full_chunk.py" --self-test --isa "$RUN/build/gdn_wy_ppu.isa" \
+    --library "$RUN/build/libgdn_wy_ppu.so" | tee "$RUN/full-chunk-native.log"
 fi
 export LD_LIBRARY_PATH="$PPU_SDK_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export PYTHONPATH="$ROOT${FLA_ROOT:+:$FLA_ROOT}${PYTHONPATH:+:$PYTHONPATH}"

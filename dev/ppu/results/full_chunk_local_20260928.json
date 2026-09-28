@@ -1,0 +1,62 @@
+{
+  "updated_at_utc": "2026-09-28 05:22:23 UTC",
+  "parent_revision": "c99d84bb93e32849a9eeac312809c3a4072a6c56",
+  "branch": "agent/ppu10-full-chunk-state-20260928",
+  "candidate": "residual-full-chunk",
+  "control": "residual-gate-cache-solve-static",
+  "status": "LOCAL_PASS_DEVICE_PENDING",
+  "default_routing": "UNCHANGED",
+  "arithmetic_contract": "gated-inverse-residual-bf16-v1",
+  "compiler": "hgcc 2.1.1-a5c56e",
+  "target": "PPU1.0 / compile-probed -arch=ppu_10",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "source_sha256": {
+    "csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu": "2eb2d73ac9cbf5115dd9574a3cabef2a6be97399261ea9f63bd67a551994f531",
+    "include/gdn_qsa/ppu/wy_full_chunk.hpp": "cefefca094b43c0600c9093ed486caa54e7497c391398ed6c343aab5c59c4342",
+    "csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu": "15c1120d9449c56615c27fbbc369e9fcc93815c44f3de8af489dbc77a0b70cb2",
+    "csrc/gdn_chunk/gdn_wy_ops.cpp": "811df3babecf3e718c3076c77f2e50081aaa8b36b17befaacf9cbd2a8fc3e77a"
+  },
+  "binary_sha256": {
+    "libgdn_wy_ppu.so": "9fcf613b44debbf0c381d9f842af74d9afd910edc39be9ad7cec1d5fceece681",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "410b68e79b102450dc92e4387371a94c23d05a7b9f8b981e524796c866b5166a"
+  },
+  "native_state": {
+    "control_static_sites": 1166,
+    "candidate_static_sites": 1085,
+    "control_registers": 124,
+    "candidate_registers": 120,
+    "stack_bytes": 0,
+    "shared_bytes_each": 46080,
+    "bf16_mma_sites_each": 20,
+    "aiu_loads_each": 4,
+    "swzl_nontrans_each": 28,
+    "swzl_trans_each": 8,
+    "barrier_sites_each": 5,
+    "exp2_sites_each": 2,
+    "wait_sites_control": 73,
+    "wait_sites_candidate": 78
+  },
+  "checks": {
+    "hgcc_compile_and_python_extension_link": "PASS",
+    "old_native_body_operands_unchanged": "37/37",
+    "old_resource_records_unchanged": "37/37 excluding separate ELF container headers",
+    "new_device_kernels": 1,
+    "native_binary_negatives_rejected": 65,
+    "source_native_host_full_chunk_negatives_rejected": 16,
+    "host_lengths": 65537,
+    "host_full_chunks": 524800,
+    "value_ownership_cells": 2048,
+    "state_ownership_cells": 4096,
+    "host_new_negatives": 3,
+    "python_tests": {"pass": 204, "fail": 0},
+    "host_ctest": {"pass": 25, "fail": 0},
+    "actual_uploaded_ibt_linked_host_calls_and_negatives": "PASS",
+    "runner_build_once_two_gates_failure_stops_capture": "PASS",
+    "runtime_import": {"status": "SKIP", "reason": "actual import fails: local glibc lacks GLIBC_2.38 required by SDK libhggcrt.13.0.so"},
+    "device_correctness": "NOT_RUN; 36-case box gate pending",
+    "performance": "NOT_RUN"
+  },
+  "artifacts": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/full-chunk",
+  "immutable_parent_build": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/build",
+  "next": "Run tools/run_ppu10_full_chunk_box.sh on idle PPU, count complete ACU calls at both gates"
+}

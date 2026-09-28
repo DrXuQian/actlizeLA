@@ -4,7 +4,7 @@ import argparse
 import hashlib
 from pathlib import Path
 import re
-import subprocess
+from host_disassembly import read_host_disassembly
 
 from check_state_pipeline import block, code
 from check_wy_binary import kernel_sequences
@@ -41,8 +41,8 @@ def check_source(source, binding):
         if wrapper[wrapper.index("{"):] != "{returnforward_gate_cache<" + value + ">(" + args + ");}":
             raise AssertionError("wrong ABI selector/argument forwarding: " + name)
     for token in (
-        "Variant<=13&&(!Variant||Residual)",
-        "Variant==12?gdn_wy_forward_residual_gate_cache:gdn_wy_forward_residual_gate_cache_solve_static;",
+        "Variant<=14&&(!Variant||Residual)",
+        "Variant==12?gdn_wy_forward_residual_gate_cache:Variant==13?gdn_wy_forward_residual_gate_cache_solve_static:",
         'm.def("residual_gate_cache_solve_static",&forward<true,13>,',
     ):
         if code(binding).count(token) != 1:
@@ -143,7 +143,7 @@ def main():
         else:
             raise AssertionError("escaped wrong-binding negative")
     if args.library:
-        host = subprocess.check_output(["objdump", "-d", "-C", "--no-show-raw-insn", str(args.library)], text=True)
+        host = read_host_disassembly(args.library)
         print("[gate-cache solve host]", check_linked_host(host))
         if args.self_test:
             for before, after in (("solve_static::launch_inverse(", "launch_split_inverse("),

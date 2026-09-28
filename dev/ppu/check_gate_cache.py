@@ -53,8 +53,8 @@ def check_source(control, subject, header, binding):
     ):
         if code(token) not in new: raise AssertionError("gate cache launch/reused stages mismatch")
     b = code(binding)
-    for token in ('Variant<=13&&(!Variant||Residual)',
-                  'Variant==12?gdn_wy_forward_residual_gate_cache:gdn_wy_forward_residual_gate_cache_solve_static;',
+    for token in ('Variant<=14&&(!Variant||Residual)',
+                  'Variant==12?gdn_wy_forward_residual_gate_cache:Variant==13?gdn_wy_forward_residual_gate_cache_solve_static:',
                   'm.def("residual_gate_cache",&forward<true,12>,'):
         if b.count(token)!=1: raise AssertionError("exact gate-cache binding missing")
 
