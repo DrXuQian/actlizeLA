@@ -1,6 +1,9 @@
 # PPU1.0 NewV paired conversion
 
-Local admission: 2026-09-28. **Device correctness and performance NOT_RUN.**
+Local admission: 2026-09-28. Device follow-up: **correctness PASS; both
+complete-call captures slightly lower, stable speedup not established**.
+See the [paired ACU verdict](PPU10_PAIRED_CONVERSION_ACU_20260928.md).
+The original local evidence and registered decision below remain intact.
 Parent: `e1627d0968604c6fde9d7273824abe3850b99b04`.
 Opt-in: `gdn_chunk_residual(..., delivery="paired-conversion")`.
 Same-binary control: `full-chunk`; scalar residual remains the RAW-BIT
