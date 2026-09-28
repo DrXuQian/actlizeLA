@@ -7,6 +7,11 @@ Goal: architecture-independent SM90 migration completeness, not the suspended
 1.5x FLA target. This is an explicit experiment; public/default routing stays
 unchanged. The previous first-chunk candidate is not composed into it.
 
+Device follow-up is now complete; see
+[the four-cell ACU verdict](PPU10_MIXED_TAIL_ACU_20260928.md).
+The registration and local-only evidence below are retained as written;
+they are not a substitute for that later measured record.
+
 ## Scope and implementation
 
 Previously `full-chunk` delegated the **entire call** to the generic state

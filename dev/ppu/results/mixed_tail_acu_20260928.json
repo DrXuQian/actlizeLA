@@ -1,0 +1,78 @@
+{
+  "source_sha": "d8b8b8536ce9c957a15b312fcbce11d19a7c7ff0",
+  "archive_sha256": "a53790f37730ce5eedc47860a0d3ebca828da340d1e2e5f18e4a0de9f7c16968",
+  "verdict": "LOWER_ALL_FOUR_PENDING_REPEATS",
+  "goal": "architecture-independent SM90 migration completeness; prior 1.5x FLA goal suspended",
+  "scope": "one ACU capture per arm per cell; complete 4/4/7-kernel sums including FLA fills, not API timing",
+  "default_routing": "UNCHANGED",
+  "device": {"name": "PPU-ZW810", "cu": 72, "uuid": "019ee024-8860-091c-0000-0000007aff6d", "ce_hz": 1700000000},
+  "driver": "2.1.2-r7b50d071022",
+  "compiler": "HGCC 2.2.0-dev, built Jun 3 2026",
+  "ppu_smi_sdk_label": "2.0.2-d2568e060312",
+  "torch": "2.9.0", "torch_cuda": "12.9", "fla": "0.6.0",
+  "triton": "3.4.0, process-local CUDA13 version-parser backport; backend override disabled",
+  "shape_common": {"B": 1, "Hk": 16, "Hv": 32, "K": 128, "V": 128, "C": 64},
+  "initial_state": "None", "output_final_state": true,
+  "capture_acu": "/sim/eec/shared/junfu.qx/asight/bin/acu",
+  "capture_acu_sha256": "7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6",
+  "file_sha256": {
+    "isa.txt": "f7f6f6ec1eb561c8d7bae74f4e1eb10fd64789b8e4306c32e418f543128833c3",
+    "resources.txt": "5656d7fecbe10fc75d9514fc7d06c6d9f18b6917aea48028adea48cc53cce90a",
+    "libgdn_wy_ppu.so": "a0e83494319b2c2aaa9147534c20a0db6fbeb654e14d4cdfc539cf3c2380cb5f",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "74a339d2e4e3b552f9ecf530a45067752cee7801131b1d8ed9b64379b6fc0222"
+  },
+  "admission": {
+    "registered_cells": 4, "analyzed_cells": 4, "missing_cells": 0, "complete_call_kernels": 60,
+    "outer_manifest_files": 11, "manifest_files_per_cell": 812, "source_files_per_cell": 337,
+    "retained_cases": 36, "edge_cases": 261, "repeats_each": 8,
+    "numerics": "RAW-BIT versus residual and unchanged independent 2% recurrence criterion PASS",
+    "old_native_instruction_operand_resource_abi_controls_unchanged": 42,
+    "measured_state_partition": "20 prefix MMA sites x32768 executions; 20 tail sites x1024; 32 full steps plus one tail",
+    "analysis_negatives": 18, "native_source_linked_negatives": 17
+  },
+  "stage_order": ["prefix", "solve", "state", "output"],
+  "cells": [
+    {
+      "sequence": 2049, "gate": -1.0,
+      "control_us": 181.90000, "candidate_us": 177.30707, "fla_us": 227.70882,
+      "control_stage_us": [2.51765, 44.94118, 91.08176, 43.35941],
+      "candidate_stage_us": [2.51824, 44.78706, 85.91765, 44.08412],
+      "unchanged_stage_variation_us": 0.57118
+    },
+    {
+      "sequence": 2049, "gate": -0.1,
+      "control_us": 182.26295, "candidate_us": 175.94001, "fla_us": 228.87293,
+      "control_stage_us": [2.52412, 44.77059, 92.18353, 42.78471],
+      "candidate_stage_us": [2.54118, 44.40706, 85.90412, 43.08765],
+      "unchanged_stage_variation_us": -0.04353
+    },
+    {
+      "sequence": 2111, "gate": -1.0,
+      "control_us": 180.73941, "candidate_us": 178.21471, "fla_us": 231.32176,
+      "control_stage_us": [2.69647, 44.26353, 90.03294, 43.74647],
+      "candidate_stage_us": [2.55647, 44.82412, 86.61765, 44.21647],
+      "unchanged_stage_variation_us": 0.89059
+    },
+    {
+      "sequence": 2111, "gate": -0.1,
+      "control_us": 182.64117, "candidate_us": 178.03883, "fla_us": 232.08706,
+      "control_stage_us": [2.64765, 44.46176, 90.97647, 44.55529],
+      "candidate_stage_us": [2.56118, 44.49353, 85.61353, 45.37059],
+      "unchanged_stage_variation_us": 0.76060
+    }
+  ],
+  "state_counters_control_candidate": {
+    "mma": [675840, 675840], "registers": [124, 120], "stack_bytes": [0, 0], "shared_bytes": [46080, 46080],
+    "native_sites_with_padding": [1181, 1918], "s.min.i32": [33792, 1024], "v.csel.b32": [270336, 8192],
+    "v.mov.v2s": [1155072, 1024000],
+    "s2049_opcode_sum": [14012928, 12692992], "s2111_opcode_sum": [14056576, 12841984],
+    "s2049_pu_inst_executed_sum_distinct_metric": [14585088, 12882688],
+    "s2111_pu_inst_executed_sum_distinct_metric": [14629504, 13010944],
+    "s2049_bank_conflicts": [4551680, 4551680], "s2111_bank_conflicts": [4575232, 4575232],
+    "s2049_global_to_shared_bytes": [118530048, 118530048], "s2111_global_to_shared_bytes": [121069568, 121069568],
+    "tsm.st.b16_warp_executions": [1352192, 1351680],
+    "s2049_bf16_conversion_executions": [1349120, 1351680], "s2111_bf16_conversion_executions": [1352704, 1351680]
+  },
+  "remaining": ["inverse intermediate register-retention applicability", "paired conversion applicability", "admitted shape-driven public PPU selection"],
+  "local_evidence": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/mixed-tail/acu-analysis-20260928"
+}
