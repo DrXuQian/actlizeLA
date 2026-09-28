@@ -1,0 +1,57 @@
+{
+  "updated_at_utc": "2026-09-28 06:57:53 UTC",
+  "parent_revision": "e379fea12adb07a3d8917b4b730bcfee10e0649d",
+  "branch": "agent/ppu10-full-chunk-stages-20260928",
+  "status": "LOCAL_PASS_DEVICE_PENDING",
+  "control": "residual-full-chunk",
+  "candidates": ["residual-full-chunk-solve", "residual-full-chunk-output", "residual-full-chunk-both"],
+  "default_routing": "UNCHANGED",
+  "arithmetic_contract": "gated-inverse-residual-bf16-v1",
+  "compiler": "hgcc 2.1.1-a5c56e",
+  "target": "PPU1.0 / compile-probed -arch=ppu_10",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "source_sha256": {
+    "csrc/gdn_chunk/gdn_wy_full_chunk_solve_ppu.cu": "5f15be97a81843cc77b8b7a4c4bc1989bb86e0d1fc23bec57b5a1698cf5753a0",
+    "csrc/gdn_chunk/gdn_wy_full_chunk_output_ppu.cu": "a737a40b62c6da2d0e41a59f0ffda22ee31fe10837f95c8ada859aebea4033b0",
+    "csrc/gdn_chunk/gdn_wy_full_chunk_stages_ppu.cu": "ca0b2e2cc09c94f30607d26607318e44d20cf60d372f2a95608ef8b285e8efa5",
+    "csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu": "c0c661780827c89f74a21749c598551545fb5d0752c68ed72e399e710346138b",
+    "csrc/gdn_chunk/gdn_wy_ops.cpp": "6d8941d723e4127c5ab338a7a5d1fe863eab4c565692cd5251db0a9d94c9231a"
+  },
+  "build_sha256": {
+    "libgdn_wy_ppu.so": "055e7998a12db7c5402077eb651ef2bccb9eaea7648d8d30aa9f9c94fcc6efdc",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "eac79a3ef9d1896598811adbd395d0ddf9fa373067a35b1a5885c6a09d1e54d7",
+    "gdn_wy_ppu.isa": "c1d419e8febabec46bb38f77e4f52a3da9e5b2adcf0e5ba93fc7eabe8426e46b",
+    "gdn_wy_ppu.resources": "ef6a31beef1a6efdcf8395c09d9aeb2282404a62950b903ab9d06998061412d4"
+  },
+  "native": {
+    "solve": {"control_sites": 1472, "candidate_sites": 1451, "registers_each": 84, "shared_bytes_each": 49664, "stack_bytes": 0},
+    "output": {"control_sites": 1405, "candidate_sites": 1378, "registers_each": 70, "shared_bytes_each": 49408, "stack_bytes": 0},
+    "state": {"same_kernel_symbol": true, "sites": 1085, "registers": 120, "shared_bytes": 46080, "stack_bytes": 0},
+    "useful_math_matrix_publication_synchronization_site_counts": "UNCHANGED",
+    "old_instruction_operand_sequences": "38/38 IDENTICAL",
+    "old_resource_abi_records": "38/38 IDENTICAL excluding separate ELF container headers"
+  },
+  "checks": {
+    "hgcc_complete_build_and_python_extension_link": "PASS",
+    "native_whole_library_negatives_rejected": 68,
+    "source_native_linked_host_binding_resource_negatives_rejected": 28,
+    "retained_full_state_negatives_rejected": 14,
+    "host_ctest": {"pass": 26, "fail": 0},
+    "python_unit_contracts": {"pass": 222, "fail": 0},
+    "residual_cpu_algebra": {"cases": 61, "semantic_negatives_rejected": 4, "device": "NOT_RUN"},
+    "native_layout_host": {"lengths": 65537, "full_chunks": 524800, "inverse_cells": 4096, "attention_cells": 4096, "output_cells": 8192, "negatives_rejected": 3},
+    "compiled_python_forward_targets": "4/4 PASS",
+    "compiled_cabi_compositions": "3/3 PASS",
+    "runner": "one build, four admitted deliveries, six paired captures, failure stops subsequent work",
+    "runtime_import": {"status": "SKIP", "reason": "Actual SDK-path import fails: local glibc lacks GLIBC_2.38 required by libhggcrt.13.0.so"},
+    "device_correctness": "NOT_RUN; unchanged 36-case x 8-repeat gate per delivery queued in box runner",
+    "performance": "NOT_RUN; local instruction reduction is not speed admission"
+  },
+  "rejected_local_attempts": [
+    "Initial new output TU omitted explicit HV-layout header; actual hgcc compilation failed. Added the authority header, then full build passed.",
+    "Old wrong-launch negative initially matched two identical launches after adding host reuse helper. Scoped separately to old entry and new helper; both wrong-launch plants now fail their real checker."
+  ],
+  "artifacts": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/full-chunk-stages",
+  "immutable_parent_build": "/workspace/actlizeLA-migration-20260928/ppu10-tuning/full-chunk/build",
+  "next": "Run tools/run_ppu10_full_chunk_stages_box.sh on an idle PPU; adjudicate every kernel at both gates without changing registration"
+}

@@ -16,7 +16,10 @@ RESIDUAL_VARIANTS = {"residual": "scalar", "residual-prefetch": "prefetch",
                      "residual-solve-static": "solve-static",
                      "residual-gate-cache": "gate-cache",
                      "residual-gate-cache-solve-static": "gate-cache-solve-static",
-                     "residual-full-chunk": "full-chunk"}
+                     "residual-full-chunk": "full-chunk",
+                     "residual-full-chunk-solve": "full-chunk-solve",
+                     "residual-full-chunk-output": "full-chunk-output",
+                     "residual-full-chunk-both": "full-chunk-both"}
 RESIDUAL_ENTRYPOINTS = {"scalar": "residual", "prefetch": "residual_prefetch",
                         "operands": "residual_operands", "v16": "residual_v16",
                         "blayout": "residual_blayout", "warps8": "residual_warps8",
@@ -28,7 +31,10 @@ RESIDUAL_ENTRYPOINTS = {"scalar": "residual", "prefetch": "residual_prefetch",
                         "solve-static": "residual_solve_static",
                         "gate-cache": "residual_gate_cache",
                         "gate-cache-solve-static": "residual_gate_cache_solve_static",
-                        "full-chunk": "residual_full_chunk"}
+                        "full-chunk": "residual_full_chunk",
+                        "full-chunk-solve": "residual_full_chunk_solve",
+                        "full-chunk-output": "residual_full_chunk_output",
+                        "full-chunk-both": "residual_full_chunk_both"}
 # Same-geometry performance controls; scalar residual remains the numeric
 # anchor for every delivery. Do not profile the combination against four warps.
 RESIDUAL_CONTROLS = {name: "residual" for name in RESIDUAL_VARIANTS if name != "residual"}
@@ -41,6 +47,8 @@ RESIDUAL_CONTROLS["residual-solve-static"] = "residual-warps8-hvlayout"
 RESIDUAL_CONTROLS["residual-gate-cache"] = "residual-warps8-hvlayout"
 RESIDUAL_CONTROLS["residual-gate-cache-solve-static"] = "residual-gate-cache"
 RESIDUAL_CONTROLS["residual-full-chunk"] = "residual-gate-cache-solve-static"
+for _stage in ("solve", "output", "both"):
+    RESIDUAL_CONTROLS["residual-full-chunk-" + _stage] = "residual-full-chunk"
 PROFILE_VARIANTS = {**DELIVERIES, **dict.fromkeys(RESIDUAL_VARIANTS)}
 
 

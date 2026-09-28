@@ -130,6 +130,9 @@ cutlass_add_library(gdn_wy_ppu SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_warps8_hvlayout_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_solve_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_output_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_stages_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_warps8_metadata_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_prefetch_ppu.cu)
 target_include_directories(gdn_wy_ppu PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -15,15 +15,18 @@ readers; SM90 uses TMA/WGMMA and warpgroup resources.
    is a useful first step, not a measured speed win. Keep the three TF32
    high/residual products and the current rounding order unless a separately
    named arithmetic candidate passes independent admission.
-   Its [gate-cache composition](PPU10_GATE_CACHE_STATIC_SOLVE.md) is now locally
-   built/proved with a same-binary two-gate ACU runner; device timing is pending.
+   Its [gate-cache composition](PPU10_GATE_CACHE_STATIC_SOLVE.md) has a
+   [device result](PPU10_STATIC_SOLVE_ACU_20260928.md): about3% complete-call
+   improvement at both gates. Off-diagonal ownership remains unported.
 2. **Full-chunk specialization.** SM90 S19 separates interior full chunks
    from the guarded final chunk; paired H800 full-forward times improved
-   141.521 -> 135.2965 us in the recorded weak-gate capture. PPU still passes
-   dynamic `valid` into staging and masks. For S2048/C64 all32 chunks are full;
-   an exact full-chunk path can remove unnecessary bounds work. Tail and
-   causal contracts must remain, and real PPU native code must show the checks
-   actually disappeared.
+   141.521 -> 135.2965 us in the recorded weak-gate capture. PPU's
+   [full-state specialization](PPU10_FULL_CHUNK_ACU_20260928.md) is now measured:
+   about169 us complete forward,1.33–1.35xFLA, not1.5x. Solve/output still pass
+   dynamic valid into staging/masks. The new
+   [three-arm extension](PPU10_FULL_CHUNK_STAGES.md) removes those redundant
+   bounds for S%64==0 and is locally compiled/proved; device timing is pending.
+   Tail and causal contracts remain. Mixed full/tail partitioning is deferred.
 3. **Convert before changing operand layout.** Retained SM90 S69 converts
    NewV in logical accumulator order before operand retile. On PPU, prove
    actual pair ownership and use native packed BF16 conversion/publication

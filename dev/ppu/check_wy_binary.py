@@ -19,6 +19,7 @@ from check_residual_metadata import check_native as check_metadata_native
 from check_solve_static import check_native as check_solve_static_native
 from check_gate_cache import check_native as check_gate_cache_native
 from check_full_chunk import check_native as check_full_chunk_native
+from check_full_chunk_stages import check_native as check_full_chunk_stages_native
 
 
 def kernel_sequences(isa):
@@ -35,8 +36,12 @@ def kernel_sequences(isa):
 
 def compare_controls(before, after):
     old, new = kernel_sequences(before), kernel_sequences(after)
-    if len(old) != 37 or len(new) != 38:
-        raise AssertionError("control comparison must cover all37 old and all38 current images")
+    if len(old) != 38 or len(new) != 40:
+        raise AssertionError("control comparison must cover all38 old and all40 current images")
+    added = set(new) - set(old)
+    if len(added) != 2 or any(not any(marker + "E" in name for name in added)
+                              for marker in ("gdn_wy_full_chunk_solve", "gdn_wy_full_chunk_output")):
+        raise AssertionError("wrong added stage inventory")
     for name, sequence in old.items():
         if new.get(name) != sequence:
             raise AssertionError(f"admitted control native instructions changed: {name}")
@@ -197,10 +202,11 @@ def audit(isa, resources, symbols):
     check_solve_static_native(isa)
     check_gate_cache_native(isa)
     check_full_chunk_native(isa)
+    check_full_chunk_stages_native(isa)
     funcs = re.findall(r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\Z)",
                        resources, flags=re.S)
-    if len(funcs) != 38:
-        raise AssertionError(f"WY image denominator must be37 controls +1 full-chunk image, got {len(funcs)}")
+    if len(funcs) != 40:
+        raise AssertionError(f"WY image denominator must be38 controls +2 full-stage images, got {len(funcs)}")
     rows = []
     mma_counts = {}
     for role, packed in ((role, packed) for role in ("prepare", "state", "output") for packed in (False, True)):
@@ -545,7 +551,24 @@ def audit(isa, resources, symbols):
     rows.append(dict(role="state", algorithm="residual", delivery="full-chunk",
                      registers=regs, control_registers=control_regs, stack=stack,
                      shared_bytes=46080, static_instructions=len(sequences[name]), device="NOT_RUN"))
-    for name in ("gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
+    for role, shared_bytes in (("solve", 49664), ("output", 49408)):
+        matches = [(name, body) for name, body in funcs if "gdn_wy_full_chunk_" + role + "E" in name]
+        if len(matches) != 1:
+            raise AssertionError("full stage resource image missing/ambiguous: " + role)
+        name, body = matches[0]
+        regs = int(re.search(r"vreg_number:(\d+)", body)[1])
+        stack = int(re.search(r"STACK SIZE:(\d+)", body)[1])
+        control = "gdn_wy_split_solve_staticE" if role == "solve" else "gdn_wy_residual_warps8_hvlayout_outputE"
+        controls = [info for symbol, info in funcs if control in symbol]
+        if len(controls) != 1:
+            raise AssertionError("full stage missing resource control: " + role)
+        control_regs = int(re.search(r"vreg_number:(\d+)", controls[0])[1])
+        if stack or regs > control_regs or name not in sequences:
+            raise AssertionError("full stage spills, increases registers or lacks native image: " + role)
+        rows.append(dict(role=role, algorithm="residual", delivery="full-chunk-" + role,
+                         registers=regs, control_registers=control_regs, stack=stack, shared_bytes=shared_bytes,
+                         static_instructions=len(sequences[name]), device="NOT_RUN"))
+    for name in ("gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
                  "gdn_wy_forward_residual_prefetch", "gdn_wy_forward_residual_operands", "gdn_wy_forward_residual_v16",
                  "gdn_wy_forward_residual_blayout", "gdn_wy_forward_residual_warps8",
                  "gdn_wy_forward_residual_warps8_blayout", "gdn_wy_forward_residual_warps8_operands",
@@ -660,6 +683,11 @@ def main():
             ("full-chunk-missing-link", (isa, resources, symbols.replace("gdn_wy_forward_residual_full_chunk", "MISSING_FULL_CHUNK_LINK"))),
             ("full-chunk-lost-mma", (plant_in_kernel(isa, "gdn_wy_residual_full_chunk_state",
                 "v.mma.f32.bf16.m16n16k16", "MISSING_MMA"), resources, symbols)),
+            ("full-solve-lost-mma", (plant_in_kernel(isa, "gdn_wy_full_chunk_solve",
+                "v.mma.f32.tf32", "MISSING_MMA"), resources, symbols)),
+            ("full-output-lost-mma", (plant_in_kernel(isa, "gdn_wy_full_chunk_output",
+                "v.mma.f32.bf16", "MISSING_MMA"), resources, symbols)),
+            ("full-stages-lost-entry", (isa, resources, symbols.replace("gdn_wy_forward_residual_full_chunk_both", "MISSING_BOTH"))),
             ("v16-wrong-reader", (plant_in_kernel(isa,"gdn_wy_residual_v16_state",
                 "tsm.ld.swzl","tsm.ld.ncom"),resources,symbols)),
         ):

@@ -110,7 +110,8 @@ def main():
     admit((1, 129, 2, 4), -.01, True, stress=True, deliveries=args.deliveries)
     # Full-C64 specialization must also exercise a nonzero carried state
     # across multiple complete chunks, not only the one-chunk64 and tails.
-    if "full-chunk" in args.deliveries:
+    full_chunk_family = any(d == "full-chunk" or d.startswith("full-chunk-") for d in args.deliveries)
+    if full_chunk_family:
         for gate in (-.1, -1.):
             for state in (False, True):
                 admit((2, 128, 1, 2), gate, state, deliveries=args.deliveries)
@@ -118,7 +119,7 @@ def main():
             admit((1, 2048, 16, 32), gate, True, deliveries=args.deliveries)
             count += 1
     count += 2
-    expected = 36 if "full-chunk" in args.deliveries else 30
+    expected = 36 if full_chunk_family else 30
     if count != expected:
         raise AssertionError("residual device coverage denominator changed")
     print(f"[residual device] PASS cases={count} repeats=8 original-2%-gate=UNCHANGED routing=UNCHANGED")

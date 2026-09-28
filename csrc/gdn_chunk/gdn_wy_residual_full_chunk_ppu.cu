@@ -165,6 +165,16 @@ gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
         sm.final_h, final + int64_t(bh) * Dim * Dim + v0, Dim);
   }
 }
+// Reuse this exact device symbol in the separate solve/output experiments.
+int configure_state() {
+  return int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
+}
+int launch_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) {
+  unsigned const grid = unsigned(int64_t(p.shape.batch) * p.shape.value_heads * (Dim / ValueTile));
+  gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
+  return int(hggcGetLastError());
+}
 }  // namespace gdn_qsa::wy::full_chunk
 
 extern "C" int gdn_wy_forward_residual_gate_cache_solve_static(

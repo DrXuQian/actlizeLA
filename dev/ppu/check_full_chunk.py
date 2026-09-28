@@ -148,6 +148,16 @@ def main():
             ("wrong-binding", 3, "&forward<true, 14>", "&forward<true, 13>"),
         ):
             changed = list(texts)
+            if label == "wrong-launch":
+                # Other arms may reuse this same kernel through another host
+                # helper. Plant in the retained public entry, not whichever
+                # launch happens to occur first in the file.
+                changed[index] = code(changed[index])
+                entry = block(changed[index], ENTRY + "(")
+                planted = replace_once(entry, old, new)
+                changed[index] = replace_once(changed[index], entry, planted)
+                expect_red(label, check_source, *changed)
+                continue
             if changed[index].count(old) != 1:
                 raise AssertionError("ambiguous negative: " + label)
             changed[index] = changed[index].replace(old, new, 1)
