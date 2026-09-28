@@ -148,10 +148,13 @@ def main():
     parser.add_argument("--phase", required=True, choices=("preflight", "subject"))
     parser.add_argument("--extension", type=Path, required=True)
     parser.add_argument("--gate", type=float, choices=(-0.1, -1.0), default=-0.1)
+    parser.add_argument("--sequence", type=int, default=2048)
     parser.add_argument("--warmup", type=int, default=5)
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--sources", type=Path, required=True)
     args = parser.parse_args()
+    if args.sequence <= 0:
+        parser.error("sequence must be positive")
     if not args.extension.is_file() or args.warmup < 1:
         parser.error("require an existing PPU extension and at least one warmup")
     library = args.extension.parent / ("libgdn_wy_ppu.so" if args.implementation == "wy" else "libgdn_qsa_ppu.so")
@@ -164,7 +167,7 @@ def main():
     if "PPU" not in props.name.upper():
         raise RuntimeError(f"not a PPU device: {props.name}")
 
-    cpu = bench.admission.fixture(1, 2048, 16, 32, args.gate)
+    cpu = bench.admission.fixture(1, args.sequence, 16, 32, args.gate)
     want = bench.admission.reference(cpu)
     inputs = tuple(x.cuda() for x in cpu)
     input_hash = bench.admission.digest(cpu)
@@ -172,7 +175,7 @@ def main():
 
     print(f"[PPU GDN ACU config] role={args.role} implementation={args.implementation} phase={args.phase} g={args.gate} "
           f"wy_delivery={args.wy_delivery} "
-          f"shape=B1,S2048,Hk16,Hv32,D128 input_sha={input_hash} "
+          f"shape=B1,S{args.sequence},Hk16,Hv32,D128 input_sha={input_hash} "
           "initial_state=zero final_state=1 GVA=native forward_only=1", flush=True)
     if args.phase == "subject":
         print(f"[PPU GDN ACU subject-only] role={args.role} public_api_calls=1 "
@@ -196,7 +199,7 @@ def main():
     receipt = dict(status="PASS", role=args.role, phase=args.phase, gate=args.gate,
                    implementation=args.implementation, wy_delivery=args.wy_delivery,
                    math_contract=math_contract(args.wy_delivery) if args.role == "wy" else "reference",
-                   shape=dict(B=1, S=2048, Hk=16, Hv=32, K=128, V=128),
+                   shape=dict(B=1, S=args.sequence, Hk=16, Hv=32, K=128, V=128),
                    input_sha=input_hash, reference_sha=bench.admission.digest(want),
                    fixture_seed=0x6A09E667, gate_bf16=float(cpu[3].flatten()[0]),
                    **measured,

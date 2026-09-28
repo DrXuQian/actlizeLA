@@ -133,22 +133,23 @@ def report_file(base):
     return candidates[0]
 
 
-def child_command(extension, role, gate, bundle, phase, implementation="original", delivery="scalar"):
+def child_command(extension, role, gate, bundle, phase, implementation="original", delivery="scalar", sequence=2048):
     receipt = f"{role}-preflight.json" if phase == "preflight" else f"{role}.json"
     return [sys.executable, "-u", str(ROOT / "benchmarks/profile_ppu_gdn_fla.py"),
             "--extension", str(extension), "--role", role, "--phase", phase, "--gate", str(gate),
             "--implementation", implementation,
             "--wy-delivery", delivery,
             "--receipt", str(bundle / receipt),
-            "--sources", str(bundle / "sources/reference")]
+            "--sources", str(bundle / "sources/reference"),
+            *(["--sequence", str(sequence)] if sequence != 2048 else [])]
 
 
-def acu_command(acu, report, extension, role, gate, bundle, implementation="original", delivery="scalar"):
+def acu_command(acu, report, extension, role, gate, bundle, implementation="original", delivery="scalar", sequence=2048):
     # Same direct CLI pattern as quactlize/tools/run_dense_marlin_m8_acu_box.sh:
     # preflight is a separate process; ACU owns profiling from process start.
     return [str(acu), "-f", "-o", str(report), "--set", "full",
             "--check-exit-code", "yes",
-            *child_command(extension, role, gate, bundle, "subject", implementation, delivery)]
+            *child_command(extension, role, gate, bundle, "subject", implementation, delivery, sequence)]
 
 
 def read_wy_run(directory):
@@ -204,7 +205,10 @@ def read_wy_run(directory):
 
 def validate_comparison(comparison, subject, fla):
     """Do not rebind an old median to changed inputs, FLA code or arithmetic."""
-    cases = [case for case in comparison["cases"] if case.get("g") == subject["gate"]]
+    # Older receipts have no shape field and only measured S2048. They cannot
+    # admit a newly requested tail shape, even if an arm ignores --sequence.
+    cases = [case for case in comparison["cases"] if case.get("g") == subject["gate"] and
+             (case["shape"] == subject["shape"] if "shape" in case else subject["shape"].get("S") == 2048)]
     if len(cases) != 1 or cases[0].get("input_sha") != subject["input_sha"]:
         raise ValueError("capture fixture differs from the selected WY comparison case")
     for key, value in (("initial_state", "zero"), ("final_state", True),
@@ -327,6 +331,11 @@ def validate_loaded_binary(receipt, extension, library):
         matches = [digest for path, digest in loaded.items() if Path(path).name == binary.name]
         if matches != [sha(binary)]:
             raise ValueError(f"loaded binary differs from archive or is absent: {binary.name}")
+
+
+def validate_requested_sequence(receipt, sequence):
+    if receipt.get("shape") != dict(B=1, S=sequence, Hk=16, Hv=32, K=128, V=128):
+        raise ValueError("capture ignored the requested shape/sequence")
 
 
 def pack(bundle, status):
@@ -460,7 +469,7 @@ def collect(args, bundle, env):
 
         for arm in arms:
             try:
-                run(child_command(extension, arm.role, args.gate, arm.directory, "preflight", implementation, arm.delivery),
+                run(child_command(extension, arm.role, args.gate, arm.directory, "preflight", implementation, arm.delivery, args.sequence),
                     arm.directory / f"{arm.role}-preflight.log", env)
             except Exception as exc:
                 status["errors"].append(f"{arm.label} preflight: {type(exc).__name__}: {exc}")
@@ -469,6 +478,7 @@ def collect(args, bundle, env):
         preflights = {arm.label: json.loads((arm.directory / f"{arm.role}-preflight.json").read_text())
                       for arm in arms}
         for arm in arms:
+            validate_requested_sequence(preflights[arm.label], args.sequence)
             if preflights[arm.label].get("wy_delivery", "scalar") != arm.delivery:
                 raise ValueError(f"{arm.label}: preflight ignored selected delivery")
         if comparison is not None:
@@ -481,7 +491,7 @@ def collect(args, bundle, env):
             try:
                 base = arm.directory / f"{arm.role}-g{args.gate}.report"
                 command = acu_command(args.acu, base, extension, arm.role, args.gate,
-                                      arm.directory, implementation, arm.delivery)
+                                      arm.directory, implementation, arm.delivery, args.sequence)
                 run(command, arm.directory / f"{arm.role}-acu.log", env)
                 report = report_file(base)
                 # Native reports remain the authority. Text exports make the tar
@@ -528,6 +538,7 @@ def collect(args, bundle, env):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gate", type=float, choices=(-0.1, -1.0), default=-0.1)
+    parser.add_argument("--sequence", type=int, default=2048)
     parser.add_argument("--extension", type=Path, default=os.environ.get("EXTENSION"))
     parser.add_argument("--wy-run", type=Path,
                         help="reuse this admitted WY comparison/numeric-receipt directory; never compile")
@@ -535,6 +546,8 @@ def main():
     parser.add_argument("--wy-control", choices=tuple(PROFILE_VARIANTS),
                         help="also capture this same-binary WY control before the candidate; FLA runs once")
     args = parser.parse_args()
+    if args.sequence <= 0:
+        parser.error("sequence must be positive")
     if args.wy_run and args.extension:
         parser.error("--wy-run and --extension/EXTENSION are mutually exclusive")
     if args.wy_delivery != "scalar" and not args.wy_run:
@@ -568,7 +581,7 @@ def main():
                PYTHONPATH=":".join(filter(None, [str(ROOT), os.environ.get("FLA_ROOT"),
                                                 os.environ.get("PYTHONPATH")])))
     status = collect(args, bundle, env)
-    status.update(created_utc=stamp, gate=args.gate, physical_device=args.device,
+    status.update(created_utc=stamp, gate=args.gate, sequence=args.sequence, physical_device=args.device,
                   sdk=str(args.sdk), acu=str(args.acu),
                   scope="ACU kernel durations and counters; not complete public-API event timing")
     pack(bundle, status)

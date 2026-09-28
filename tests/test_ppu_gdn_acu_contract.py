@@ -354,7 +354,7 @@ class ACUContract(unittest.TestCase):
 
     def records(self):
         ours = dict(status="PASS", role="ours", phase="subject", warmup=0, public_api_calls=1, gate=-0.1,
-                    shape=dict(B=1, S=2048), input_sha="input", reference_sha="ref",
+                    shape=dict(B=1, S=2048, Hk=16, Hv=32, K=128, V=128), input_sha="input", reference_sha="ref",
                     device=dict(name="PPU", uuid="fixture", cu=72), torch="vendor",
                     torch_cuda="13.0", initial_state="zero", output_final_state=True,
                     fla_heads="native", max_relative_error_limit=0.02, protocol="single-forward",
@@ -762,12 +762,13 @@ class ACUContract(unittest.TestCase):
                 collect.validate_comparison(comparison, ours | ({key: value} if role == "wy" else {}),
                                              fla | ({key: value} if role == "fla" else {}))
 
-    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None):
+    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None, sequence=2048):
         """Run the real orchestration with synthetic tool receipts, not a GPU."""
         prior = directory / "preceding"
         prior.mkdir()
         binding, library = self.make_wy_run(prior)
         ours, fla = self.records()
+        ours["shape"]["S"] = sequence
         ours.update(role="wy", implementation="wy", extension_sha256=collect.sha(binding),
                     library_sha256=collect.sha(library),
                     loaded_libraries={str(p.resolve()): collect.sha(p) for p in (binding, library)})
@@ -780,6 +781,8 @@ class ACUContract(unittest.TestCase):
                           device=ours["device"]["properties"])
         comparison["cases"] = [dict(g=-0.1, input_sha="input", arms={
             role: dict(fingerprint="output", state_dtype="torch.float32") for role in ("wy", "fla")})]
+        if sequence != 2048 and plant != "missing-case-shape":
+            comparison["cases"][0]["shape"] = dict(ours["shape"])
         delivery = subject_delivery or ("aiu-state-output" if control is not None else "scalar")
         if control is not None:
             # Reproduce the already-shipped AIU JSON exactly at the disputed
@@ -811,7 +814,7 @@ class ACUContract(unittest.TestCase):
         bundle = directory / "bundle"
         bundle.mkdir()
         args = SimpleNamespace(wy_run=prior, extension=None, sdk=directory,
-                               acu=Path(sys.executable), gate=-0.1, device="0",
+                               acu=Path(sys.executable), gate=-0.1, device="0", sequence=sequence,
                                wy_delivery=delivery, wy_control=control)
         commands = []
         def fake_run(command, log, env, **kwargs):
@@ -828,6 +831,10 @@ class ACUContract(unittest.TestCase):
                 self.assertIn(role, ("wy", "fla"))
                 self.assertEqual(command[command.index("--implementation") + 1], "wy")
                 receipt = dict(ours if role == "wy" else fla)
+                if sequence != 2048:
+                    self.assertEqual(command[command.index("--sequence") + 1], str(sequence))
+                if plant == "ignored-sequence":
+                    receipt["shape"] = dict(receipt["shape"], S=2048)
                 receipt["wy_delivery"] = selected
                 if delivery == "residual" and role == "wy":
                     receipt.update(math_contract=collect.MATH_CONTRACT if selected == "residual" else collect.WY_MATH_CONTRACT,
@@ -862,6 +869,30 @@ class ACUContract(unittest.TestCase):
             status = collect.collect(args, bundle, {"PATH": ""})
         self.assertEqual(collect.sha(comparison_path), original_comparison_hash)
         return status, commands, bundle, library
+
+    def test_mixed_tail_sequence_reaches_every_actual_child_and_receipt(self):
+        root = self.directory()
+        for sequence in (2049, 2111):
+            directory = root / str(sequence)
+            directory.mkdir()
+            status, commands, _, _ = self.run_mock_capture(
+                directory,
+                control="residual-full-chunk", subject_delivery="residual-mixed-tail", sequence=sequence)
+            self.assertEqual(status["status"], "PASS", status["errors"])
+            children = [c for c in commands if "--role" in c]
+            self.assertEqual(len(children), 6)
+            self.assertTrue(all(c[c.index("--sequence") + 1] == str(sequence) for c in children))
+
+    def test_mixed_tail_rejects_ignored_sequence_and_unshaped_old_admission(self):
+        root = self.directory()
+        for plant in ("ignored-sequence", "missing-case-shape"):
+            directory = root / plant
+            directory.mkdir()
+            status, commands, _, _ = self.run_mock_capture(directory,
+                control="residual-full-chunk", subject_delivery="residual-mixed-tail",
+                sequence=2049, plant=plant)
+            self.assertNotEqual(status["status"], "PASS")
+            self.assertFalse(any("--set" in c for c in commands))
 
     def test_pipeline_capture_keeps_same_binary_split_control_and_all_fla_kernels(self):
         status, commands, bundle, _ = self.run_mock_capture(

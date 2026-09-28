@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+from itertools import product
 import os
 from pathlib import Path
 import torch
@@ -17,8 +18,11 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--extension", type=Path, required=True)
     p.add_argument("--results", type=Path, required=True)
+    p.add_argument("--sequences", type=int, nargs="+", default=[2048])
     p.add_argument("--deliveries", nargs="+", choices=tuple(k for k in RESIDUAL_ENTRYPOINTS if k != "scalar"), default=[])
     args = p.parse_args()
+    if any(s <= 0 for s in args.sequences) or len(set(args.sequences)) != len(args.sequences):
+        p.error("sequences must be distinct positive lengths")
     if not args.extension.is_file():
         p.error("WY extension missing")
     os.environ["GDN_QSA_WY_EXTENSION"] = str(args.extension.resolve())
@@ -33,8 +37,8 @@ def main():
                   initial_state="zero", final_state=True, qk_norm=False, scale="1/sqrt(128)",
                   dtype="bf16", limit=admission.MAX_RELATIVE_ERROR,
                   binary_sha256={str(args.extension.resolve()): hashlib.sha256(args.extension.read_bytes()).hexdigest()})
-    for gate in (-.1, -1.):
-        cpu = admission.fixture(1, 2048, 16, 32, gate)
+    for sequence, gate in product(args.sequences, (-.1, -1.)):
+        cpu = admission.fixture(1, sequence, 16, 32, gate)
         inputs = tuple(t.cuda() for t in cpu)
         want = admission.reference(cpu)
         calls = {"wy": lambda: gdn_chunk_wy(*inputs),
@@ -44,7 +48,8 @@ def main():
         for delivery in args.deliveries:
             calls[f"wy-residual-{delivery}"] = lambda delivery=delivery: gdn_chunk_residual(*inputs, delivery=delivery)
         residual_pair = None
-        record = dict(g=gate, input_sha=admission.digest(cpu), timing="NOT_RUN", arms={})
+        record = dict(g=gate, shape=dict(B=1, S=sequence, Hk=16, Hv=32, K=128, V=128),
+                      input_sha=admission.digest(cpu), timing="NOT_RUN", arms={})
         for role, call in calls.items():
             got = call()
             torch.cuda.synchronize()
@@ -74,7 +79,7 @@ def main():
                 arm.update(math_contract=WY_MATH_CONTRACT, scalar_raw_bit_equal=True,
                            delivery_mask=DELIVERIES["scalar" if role == "wy" else "state-pipeline"])
             record["arms"][role] = arm
-            print(f"[residual admission] g={gate} role={role} errors={errors} fingerprint={fingerprint} "
+            print(f"[residual admission] S={sequence} g={gate} role={role} errors={errors} fingerprint={fingerprint} "
                   f"contract={arm.get('math_contract','FLA')} repeat=8/8 NUMERIC/PASS", flush=True)
         if admission.digest(inputs) != record["input_sha"]:
             raise AssertionError("comparison mutated fixture")

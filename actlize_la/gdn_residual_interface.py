@@ -20,7 +20,8 @@ RESIDUAL_VARIANTS = {"residual": "scalar", "residual-prefetch": "prefetch",
                      "residual-full-chunk-solve": "full-chunk-solve",
                      "residual-full-chunk-output": "full-chunk-output",
                      "residual-full-chunk-both": "full-chunk-both",
-                     "residual-first-chunk": "first-chunk"}
+                     "residual-first-chunk": "first-chunk",
+                     "residual-mixed-tail": "mixed-tail"}
 RESIDUAL_ENTRYPOINTS = {"scalar": "residual", "prefetch": "residual_prefetch",
                         "operands": "residual_operands", "v16": "residual_v16",
                         "blayout": "residual_blayout", "warps8": "residual_warps8",
@@ -36,7 +37,8 @@ RESIDUAL_ENTRYPOINTS = {"scalar": "residual", "prefetch": "residual_prefetch",
                         "full-chunk-solve": "residual_full_chunk_solve",
                         "full-chunk-output": "residual_full_chunk_output",
                         "full-chunk-both": "residual_full_chunk_both",
-                        "first-chunk": "residual_first_chunk"}
+                        "first-chunk": "residual_first_chunk",
+                        "mixed-tail": "residual_mixed_tail"}
 # Same-geometry performance controls; scalar residual remains the numeric
 # anchor for every delivery. Do not profile the combination against four warps.
 RESIDUAL_CONTROLS = {name: "residual" for name in RESIDUAL_VARIANTS if name != "residual"}
@@ -52,6 +54,7 @@ RESIDUAL_CONTROLS["residual-full-chunk"] = "residual-gate-cache-solve-static"
 for _stage in ("solve", "output", "both"):
     RESIDUAL_CONTROLS["residual-full-chunk-" + _stage] = "residual-full-chunk"
 RESIDUAL_CONTROLS["residual-first-chunk"] = "residual-full-chunk"
+RESIDUAL_CONTROLS["residual-mixed-tail"] = "residual-full-chunk"
 PROFILE_VARIANTS = {**DELIVERIES, **dict.fromkeys(RESIDUAL_VARIANTS)}
 
 

@@ -136,6 +136,8 @@ cutlass_add_library(gdn_wy_ppu SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_first_chunk_state_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_first_chunk_output_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_first_chunk_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_mixed_tail_state_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_mixed_tail_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_warps8_metadata_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_prefetch_ppu.cu)
 target_include_directories(gdn_wy_ppu PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -176,6 +178,7 @@ foreach(_object IN LISTS _wy_objects)
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_gate_coefficients.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_full_chunk.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_first_chunk.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_mixed_tail.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/wy_metadata.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/shared_copy.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/fragment.cuh)

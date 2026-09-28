@@ -1,0 +1,81 @@
+{
+  "updated_at_utc": "2026-09-28 10:03:25 UTC",
+  "parent_revision": "f967cfe87251c7559f07bb30a39c49e4163a9d1d",
+  "branch": "agent/ppu10-mixed-tail-20260928",
+  "status": "LOCAL_PASS_DEVICE_PENDING",
+  "goal": "SM90 portable-mechanism migration; prior1.5x goal suspended",
+  "control": "residual-full-chunk",
+  "candidate": "residual-mixed-tail",
+  "eligibility": "positive S with at least one full C64 chunk and one nonempty tail",
+  "fallback": "exact residual-full-chunk entry; full/short lengths unchanged",
+  "default_routing": "UNCHANGED",
+  "arithmetic_contract": "gated-inverse-residual-bf16-v1",
+  "compiler": "HGCC 2.1.1-a5c56e",
+  "target": "PPU1.0, compile-probed -arch=ppu_10",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "source_sha256": {
+    "csrc/gdn_chunk/gdn_wy_mixed_tail_state_ppu.cu": "1d03cc4adc176f4e9562c60f5b2de82f69bb75950981f18197dfd51f298c65b1",
+    "csrc/gdn_chunk/gdn_wy_mixed_tail_ppu.cu": "9542718c9b6c849159b17a8919cc30121fa55c62d4505e46e93fc88122b7660a",
+    "include/gdn_qsa/ppu/wy_mixed_tail.hpp": "8dc5cb69a7170b550a16d258dee2046eb249a0b58924704cafe5ce5da2b70293",
+    "csrc/gdn_chunk/gdn_wy_ops.cpp": "6c7c3c1738cdb3175bda7f6ba73181fbf0bbfc545eec7eac44cd33348b77eadc",
+    "dev/ppu/check_mixed_tail.py": "9bc4712301fc4010200c9e3b4721fb5661fdd611435b2c635a54d8e9ebc4bf54",
+    "tools/run_ppu10_mixed_tail_box.sh": "ca2a4d867498603e692612027a3c842f613893106665fcf46f175c31bb25e3df",
+    "tools/pack_ppu10_mixed_tail.sh": "55a7146c00eb97c7e9df2d2731ab40ebf47afdeeeab2efe8d2cdb6eefb4b7cd7",
+    "benchmarks/admit_ppu_residual_fla.py": "5b4836b70c8400183102adadb978d949344d3b4400c0c18dfc2f3d9e3d28e128",
+    "benchmarks/profile_ppu_gdn_fla.py": "f5d0c73c0d580d2e239450adc9be28d02d7fb511908210c2af1fd77070223f0c",
+    "tools/collect_ppu_gdn_acu.py": "6c970d039647353d19e54468c707e7028047409c3b0ce932d1492abe39ec9dc2"
+  },
+  "build_sha256": {
+    "libgdn_wy_ppu.so": "9b0df937c7ec5e8c359b05f709372eca101e2227a235474352e416b543505b90",
+    "_gdn_wy_ppu.cpython-312-x86_64-linux-gnu.so": "57ddf22422e73e5bcfc747b85016a34dd512f4ab8aa6aea7602a56760ff5e7a1",
+    "gdn_wy_ppu.isa": "7e6650a15c797c38f014bc0a0a2b7ef888f7603ffcd3359125043cf8966f4da2",
+    "gdn_wy_ppu.resources": "a429a4668b8c65ed32fef7c346bb8d3000c4ecc4f3e6b0f88768380bd1b44b5c"
+  },
+  "native": {
+    "generic_control_sites": 1166, "generic_loop_sites": 485,
+    "full_only_control_sites": 1085, "full_only_loop_sites": 411,
+    "candidate_sites": 1909, "constant_prefix_sites": 415,
+    "prefix_mma_sites": 20, "acyclic_tail_mma_sites": 20,
+    "prefix_s_min_sites": 0, "prefix_v_csel_sites": 0,
+    "generic_registers": 124, "full_only_registers": 120, "candidate_registers": 122,
+    "stack_bytes": 0, "shared_bytes": 46080,
+    "matrix_path": "unchanged AIU.swzl + matching ld.swzl",
+    "resident_state": "same FP32 registers across full/tail boundary; no extra rounding or launch",
+    "old_instruction_operand_sequences": "42/42 IDENTICAL",
+    "old_resource_abi_records": "42/42 IDENTICAL excluding separate ELF container headers"
+  },
+  "checks": {
+    "hgcc_build_and_python_extension_link": "PASS",
+    "new_source_native_link_negatives_rejected": 17,
+    "whole_library_negatives_rejected": 73,
+    "host_ctest": {"pass": 28, "fail": 0},
+    "python_cpu_unittest": {"pass": 247, "skip": 0, "fail": 0},
+    "separate_device_module_skip": {
+      "count": 4,
+      "modules": ["test_gdn_chunk", "test_output_gate", "test_qsa_core", "test_qsa_indexer"],
+      "reason": "NVIDIA CUDA device suites; required device/backend unavailable in local compile-only environment"
+    },
+    "runtime_import": "SKIP: SDK needs GLIBCXX_3.4.32; compatible C++ library needs unavailable GLIBC_2.38",
+    "host_partition": {
+      "lengths": 65537, "mixed_lengths": 64449,
+      "full_prefix_steps": 32997888, "tail_steps": 64449,
+      "tail_extents": 63, "negatives": 5,
+      "result": "EXACT_ONCE; actual actlize C-layout owners"
+    },
+    "cpu_algebra": {"cases": 276, "negatives": 3, "result": "RAW-BIT residual plus independent2% recurrence PASS"},
+    "measurement_contract": "requested sequence -> child CLI -> fixture -> receipt -> matching shaped admission; ignored sequence and old unshaped admission reject",
+    "runner_and_packer": "mocked build/admission/edge/capture failures stop; four cells and one non-overwriting tar verified"
+  },
+  "device_numerics": "NOT_RUN; existing36x8 plus added261x8 preflight required",
+  "performance": "NOT_RUN",
+  "registered_cells": [
+    {"B": 1, "S": 2049, "Hk": 16, "Hv": 32, "g": -1.0},
+    {"B": 1, "S": 2049, "Hk": 16, "Hv": 32, "g": -0.1},
+    {"B": 1, "S": 2111, "Hk": 16, "Hv": 32, "g": -1.0},
+    {"B": 1, "S": 2111, "Hk": 16, "Hv": 32, "g": -0.1}
+  ],
+  "work_prediction": {"state_grid": 128, "state_threads": 256, "chunks": 33, "full_chunks": 32, "tail_chunks": 1, "bf16_mma_each_arm": 675840, "scope": "dimension-derived, not device counters"},
+  "command": "DEVICE=0 JOBS=16 bash tools/run_ppu10_mixed_tail_box.sh",
+  "upload": "mixed-tail.tar.gz",
+  "remaining": "device admission/performance, mixed-tail prepare/output applicability, inverse retention, paired conversion and admitted public PPU selection"
+}

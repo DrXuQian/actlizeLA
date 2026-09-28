@@ -21,6 +21,7 @@ from check_gate_cache import check_native as check_gate_cache_native
 from check_full_chunk import check_native as check_full_chunk_native
 from check_full_chunk_stages import check_native as check_full_chunk_stages_native
 from check_first_chunk import check_native as check_first_chunk_native
+from check_mixed_tail import check_native as check_mixed_tail_native
 
 
 def kernel_sequences(isa):
@@ -37,11 +38,10 @@ def kernel_sequences(isa):
 
 def compare_controls(before, after):
     old, new = kernel_sequences(before), kernel_sequences(after)
-    if len(old) != 40 or len(new) != 42:
-        raise AssertionError("control comparison must cover all40 old and all42 current images")
+    if len(old) != 42 or len(new) != 43:
+        raise AssertionError("control comparison must cover all42 old and all43 current images")
     added = set(new) - set(old)
-    if len(added) != 2 or any(not any(marker + "E" in name for name in added)
-                              for marker in ("gdn_wy_residual_first_chunk_state", "gdn_wy_first_chunk_output")):
+    if len(added) != 1 or "gdn_wy_residual_mixed_tail_stateE" not in next(iter(added)):
         raise AssertionError("wrong added stage inventory")
     for name, sequence in old.items():
         if new.get(name) != sequence:
@@ -205,10 +205,11 @@ def audit(isa, resources, symbols):
     check_full_chunk_native(isa)
     check_full_chunk_stages_native(isa)
     check_first_chunk_native(isa)
+    check_mixed_tail_native(isa)
     funcs = re.findall(r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\Z)",
                        resources, flags=re.S)
-    if len(funcs) != 42:
-        raise AssertionError(f"WY image denominator must be40 controls +2 first-chunk images, got {len(funcs)}")
+    if len(funcs) != 43:
+        raise AssertionError(f"WY image denominator must be42 controls +1 mixed-tail image, got {len(funcs)}")
     rows = []
     mma_counts = {}
     for role, packed in ((role, packed) for role in ("prepare", "state", "output") for packed in (False, True)):
@@ -570,24 +571,25 @@ def audit(isa, resources, symbols):
         rows.append(dict(role=role, algorithm="residual", delivery="full-chunk-" + role,
                          registers=regs, control_registers=control_regs, stack=stack, shared_bytes=shared_bytes,
                          static_instructions=len(sequences[name]), device="NOT_RUN"))
-    for role, marker, control, shared in (
-        ("state", "gdn_wy_residual_first_chunk_stateE", "gdn_wy_residual_full_chunk_stateE", 46080),
-        ("output", "gdn_wy_first_chunk_outputE", "gdn_wy_residual_warps8_hvlayout_outputE", 49408),
+    for delivery, role, marker, control, shared in (
+        ("first-chunk", "state", "gdn_wy_residual_first_chunk_stateE", "gdn_wy_residual_full_chunk_stateE", 46080),
+        ("first-chunk", "output", "gdn_wy_first_chunk_outputE", "gdn_wy_residual_warps8_hvlayout_outputE", 49408),
+        ("mixed-tail", "state", "gdn_wy_residual_mixed_tail_stateE", "gdn_wy_residual_gate_cache_stateE", 46080),
     ):
         matches = [(name, body) for name, body in funcs if marker in name]
         controls = [body for name, body in funcs if control in name]
         if len(matches) != 1 or len(controls) != 1:
-            raise AssertionError("first-chunk resource image/control missing: " + role)
+            raise AssertionError(delivery + " resource image/control missing: " + role)
         name, body = matches[0]
         regs = int(re.search(r"vreg_number:(\d+)", body)[1])
         stack = int(re.search(r"STACK SIZE:(\d+)", body)[1])
         control_regs = int(re.search(r"vreg_number:(\d+)", controls[0])[1])
         if stack or regs > 256 or name not in sequences:
-            raise AssertionError("first-chunk body absent or spilling: " + role)
-        rows.append(dict(role=role, algorithm="residual", delivery="first-chunk", registers=regs,
+            raise AssertionError(delivery + " body absent or spilling: " + role)
+        rows.append(dict(role=role, algorithm="residual", delivery=delivery, registers=regs,
                          control_registers=control_regs, stack=stack, shared_bytes=shared,
                          static_instructions=len(sequences[name]), device="NOT_RUN"))
-    for name in ("gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
+    for name in ("gdn_wy_forward_residual_mixed_tail", "gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
                  "gdn_wy_forward_residual_prefetch", "gdn_wy_forward_residual_operands", "gdn_wy_forward_residual_v16",
                  "gdn_wy_forward_residual_blayout", "gdn_wy_forward_residual_warps8",
                  "gdn_wy_forward_residual_warps8_blayout", "gdn_wy_forward_residual_warps8_operands",
@@ -710,6 +712,9 @@ def main():
             ("first-chunk-lost-state", (isa.replace("gdn_wy_residual_first_chunk_stateE", "MISSING_FIRST_STATE"), resources, symbols)),
             ("first-chunk-lost-output", (isa.replace("gdn_wy_first_chunk_outputE", "MISSING_FIRST_OUTPUT"), resources, symbols)),
             ("first-chunk-lost-entry", (isa, resources, symbols.replace("gdn_wy_forward_residual_first_chunk", "MISSING_FIRST_ENTRY"))),
+            ("mixed-tail-lost-entry", (isa, resources, symbols.replace("gdn_wy_forward_residual_mixed_tail", "MISSING_MIXED_ENTRY"))),
+            ("mixed-tail-lost-mma", (plant_in_kernel(isa, "gdn_wy_residual_mixed_tail_state",
+                "v.mma.f32.bf16", "MISSING_MMA"), resources, symbols)),
             ("v16-wrong-reader", (plant_in_kernel(isa,"gdn_wy_residual_v16_state",
                 "tsm.ld.swzl","tsm.ld.ncom"),resources,symbols)),
         ):

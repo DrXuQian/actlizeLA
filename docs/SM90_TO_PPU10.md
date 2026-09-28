@@ -13,7 +13,7 @@ also not the same thing as an integrated public/default selector.
 | Scalar gate outside matrix products; residual formulation without W/U materialization | Implemented and admitted in residual path | Do not replace PPU inverse precision to imitate Hopper |
 | Prefix/relative gate coefficient reuse | Implemented gate-cache, included in full-chunk control | Reuse is CTA-local, not one global evaluation across all V slices/output |
 | Static register indexing and invariant address bases | Implemented static diagonal + paired-layout producer bases | Not a claim that every dynamic address calculation is gone |
-| Full chunks specialized, guarded tail retained | Partial: state/solve/output full-C64 candidates compiled and device-admitted | S%64!=0 still falls back for the whole call; interior-full + final-tail partitioning unported |
+| Full chunks specialized, guarded tail retained | Full-C64 candidates device-admitted; [mixed full-prefix/final-tail state](PPU10_MIXED_TAIL.md) locally compiled/proved, device pending | State keeps FP32 recurrence in one CTA. Mixed-tail solve/output remain generic; new state not yet performance-admitted |
 | No-initial first-chunk KH/QH elimination | [Implemented and device-validated](PPU10_FIRST_CHUNK_ACU_20260928.md); both-gate ACU evaluated | Mixed timing (-1: +1.11%, -0.1: -0.41%); keep opt-in, no default promotion. Explicit state/tails unchanged |
 | Keep inverse intermediates with their final owner | Partial / applicability not closed | PPU diagonal is already warp-local; off-diagonal sm.temp[warp] is also warp-private. Investigate register retention at that actual seam, not a fictional cross-warp reduction |
 | Convert NewV before operand rearrangement; paired conversion | Partial / applicability not closed | PPU already casts into consumer-oriented shared planes. Native paired BF16 conversion/ownership benefit remains unproved; keep separate unscaled/scaled rounding |
@@ -70,7 +70,8 @@ default optimization; detailed evidence is in the linked result record.
 
 ## Closure order
 
-First-chunk device evidence is closed. Next mixed full/tail handling; then
+First-chunk device evidence is closed. Mixed full/tail state is implemented
+with local proof; next device admission of its four registered cells, then
 resolve actual inverse retention and conversion/publication applicability;
 finally integrate admitted PPU selections behind the common API. For each
 item record implemented+validated, already-equivalent, or inapplicable with

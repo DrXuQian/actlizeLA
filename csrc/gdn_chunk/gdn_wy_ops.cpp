@@ -70,13 +70,16 @@ extern "C" int gdn_wy_forward_residual_full_chunk_both(
 extern "C" int gdn_wy_forward_residual_first_chunk(
     void const*, void const*, void const*, void const*, void const*, float const*,
     void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
+extern "C" int gdn_wy_forward_residual_mixed_tail(
+    void const*, void const*, void const*, void const*, void const*, float const*,
+    void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
 template <bool Residual = false, unsigned Variant = 0, unsigned FullStages = 0>
 std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tensor v,
     torch::Tensor g, torch::Tensor beta, c10::optional<torch::Tensor> initial,
     bool output_final_state, unsigned delivery) {
   using namespace gdn_qsa::wy;
   static_assert(Variant <= 14 && (!Variant || Residual), "invalid residual-only delivery");
-  static_assert(FullStages <= 4 && (!FullStages || (Residual && Variant == 14)),
+  static_assert(FullStages <= 5 && (!FullStages || (Residual && Variant == 14)),
                 "full stage choices require the full-C64 residual control");
   TORCH_CHECK(valid_delivery(delivery), "invalid or conflicting WY delivery mask");
   TORCH_CHECK(!Residual || delivery == 0, "residual is an algorithm, not a WY delivery mask");
@@ -141,7 +144,8 @@ std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tens
       constexpr auto selected = FullStages == 1 ? gdn_wy_forward_residual_full_chunk_solve :
                                 FullStages == 2 ? gdn_wy_forward_residual_full_chunk_output :
                                 FullStages == 3 ? gdn_wy_forward_residual_full_chunk_both :
-                                FullStages == 4 ? gdn_wy_forward_residual_first_chunk : launch;
+                                FullStages == 4 ? gdn_wy_forward_residual_first_chunk :
+                                FullStages == 5 ? gdn_wy_forward_residual_mixed_tail : launch;
       rc = selected(q.data_ptr(), k.data_ptr(), v.data_ptr(), g.data_ptr(), beta.data_ptr(),
         initial.has_value() ? initial->data_ptr<float>() : nullptr, out.data_ptr(),
         output_final_state ? final.data_ptr<float>() : nullptr, w.data_ptr(),
@@ -225,6 +229,9 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
         pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
   m.def("residual_first_chunk", &forward<true, 14, 4>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
+        pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
+        pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
+  m.def("residual_mixed_tail", &forward<true, 14, 5>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
         pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
         pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
 }
