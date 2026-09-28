@@ -130,6 +130,8 @@ if build:
         captures = [r for r in rows if r["kind"] == "bash" and r["args"][0].endswith("run_ppu_gdn_fla_acu_box.sh")]
         expected_captures = 6 if fail_at == "none" else int(fail_at == "capture")
         self.assertEqual(len(captures), expected_captures)
+        packs = [r for r in rows if r["kind"] == "bash" and r["args"][0].endswith("pack_ppu10_full_chunk_stages.sh")]
+        self.assertEqual(len(packs), int(fail_at == "none"))
         for r, (stage, gate) in zip(captures, ((s, g) for s in STAGES for g in ("-1.0", "-0.1"))):
             self.assertEqual(r["args"][1:], ["--wy-run", str(out), "--wy-control", "residual-full-chunk",
                 "--wy-delivery", "residual-full-chunk-" + stage, "--gate", gate])
@@ -137,6 +139,7 @@ if build:
             self.assertEqual(r["sdk"], "/explicit/sdk")
             self.assertEqual(r["visible"], "3")
         if fail_at == "none":
+            self.assertEqual(packs[0]["args"][1:], [str(out)])
             admissions = [r for r in rows if r["kind"] == "python" and
                           r["args"][0].endswith(("test_ppu_residual_backend.py", "admit_ppu_residual_fla.py"))]
             self.assertEqual(len(admissions), 2)

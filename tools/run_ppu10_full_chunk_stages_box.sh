@@ -55,7 +55,8 @@ for stage in solve output both; do
     env -u EXTENSION OUT="$capture" PPU_SDK="$PPU_SDK_ROOT" ACU="$ACU" \
       bash "$ROOT/tools/run_ppu_gdn_fla_acu_box.sh" --wy-run "$RUN" \
       --wy-control residual-full-chunk --wy-delivery "residual-full-chunk-$stage" --gate "$gate"
-    printf '[full stages ACU] bundle: %s/%s.tar.gz\n' "$capture" "$(basename "$capture")"
+    printf '[full stages ACU] captured stage=%s gate=%s\n' "$stage" "$gate"
   done
 done
-printf '[full stages ACU] admission and six captures complete; speed requires ACU analysis: %s\n' "$RUN"
+bash "$ROOT/tools/pack_ppu10_full_chunk_stages.sh" "$RUN"
+printf '[full stages ACU] admission and six captures complete; speed requires ACU analysis\n'
