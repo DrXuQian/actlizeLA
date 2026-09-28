@@ -5,6 +5,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from .device import DeviceProfile, device_profile, get_device_profile, validate_profile_options
+
 POLICY_FILE = Path(__file__).with_suffix(".json")
 
 
@@ -25,24 +27,10 @@ def policy_digest():
 
 
 @dataclass(frozen=True)
-class DeviceProfile:
-    name: str
-    sm_count: int
-    capability: tuple
-
-
-@dataclass(frozen=True)
 class Selection:
     configuration: str
     basis: str
     policy_id: str
-
-
-@lru_cache(maxsize=None)
-def device_profile(index):
-    import torch
-    props = torch.cuda.get_device_properties(index)
-    return DeviceProfile(props.name, props.multi_processor_count, (props.major, props.minor))
 
 
 def tensor_backend(q):
@@ -69,6 +57,10 @@ def select(shape, profile):
     expected = data["device"]
     if profile.capability != tuple(expected["capability"]) or "PPU" in profile.name.upper():
         raise ValueError("SM90 shape policy cannot be applied to another execution target")
+    if profile.source == "configured":
+        return Selection(data["default"], "perfmodel-unmeasured-default", data["id"])
+    if profile.source != "measured":
+        raise ValueError("unknown device profile source")
     if expected["name_contains"] not in profile.name or profile.sm_count != expected["sm_count"]:
         return Selection(data["default"], "unmeasured-device-default", data["id"])
     for row in data["rows"]:
@@ -77,10 +69,13 @@ def select(shape, profile):
     return Selection(data["default"], "unmeasured-shape-default", data["id"])
 
 
-def selection_for(q, v):
+def selection_for(q, v, *, mode="device", sm_count=None):
+    validate_profile_options(mode, "cuda_sm90", sm_count)
     if q.ndim != 4 or v.ndim != 4 or tuple(q.shape[:2]) != tuple(v.shape[:2]):
         raise ValueError("SM90 requires q/v [B,T,H,D] with matching batch and sequence")
     if q.device.type != "cuda" or q.device != v.device:
         raise ValueError("SM90 q/v must be on the same CUDA device")
     shape = tuple(int(x) for x in (*q.shape[:3], v.shape[2], q.shape[3], v.shape[3]))
-    return select(shape, device_profile(q.device.index))
+    profile = (get_device_profile(mode=mode, backend="cuda_sm90", sm_count=sm_count)
+               if mode == "perfmodel" else device_profile(q.device.index))
+    return select(shape, profile)

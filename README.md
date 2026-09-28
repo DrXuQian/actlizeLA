@@ -69,6 +69,10 @@ the exact shape table and diagnostic overrides.
 
 For a device correctness check after installing, see [SM90 usage](docs/SM90_INSTALL.md).
 
+For simulator input, `mode="perfmodel"` with an explicit backend and
+`sm_count=20` uses configured metadata instead of querying device properties.
+This is opt-in (PPU alone does not enable it); see [perfmodel usage](docs/PERFMODEL.md).
+
 ## PPU and SM80
 
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated

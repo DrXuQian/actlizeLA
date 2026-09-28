@@ -1,0 +1,35 @@
+{
+  "status": "LOCAL_PASS",
+  "scope": "CONFIGURED_DEVICE_METADATA_NOT_SIMULATOR_OR_DEVICE_PERFORMANCE",
+  "base_revision": "76161233c8cf2a1bd3052939d5c9084aee96c55a",
+  "device_executed": false,
+  "cpp_cuda_sources_changed": false,
+  "native_launch_geometry_changed": false,
+  "default_mode": "device",
+  "opt_in": {
+    "mode": "perfmodel",
+    "backend": "explicit_required",
+    "sm_count": "explicit_positive_integer_required",
+    "example": 20,
+    "source": "configured",
+    "ppu_capability": null,
+    "cuda_sm90_auto_basis": "perfmodel-unmeasured-default"
+  },
+  "checks": {
+    "python_unittests": {"pass": 202, "skip": 0, "fail": 0},
+    "new_perfmodel_tests": 11,
+    "no_torch_import_for_configured_profile": "PASS",
+    "actual_single_call_runner_profile_and_result_contract": "PASS_NATIVE_MOCKED",
+    "ignored_mode_mutation_triggers_forbidden_query": "EXPECTED_RED_PASS",
+    "configured_h800_identity_cannot_claim_measured_winner": "PASS",
+    "device_mode_uses_measured_profile_and_keeps_cache_separate": "PASS",
+    "existing_h800_shape_policy_json_unchanged": "PASS",
+    "relocated_wheel_unified_api": "PASS_NATIVE_MOCKED_NO_TORCH_IMPORT",
+    "native_kernel_execution": "NOT_RUN_PYTHON_ONLY_CHANGE",
+    "simulation": "NOT_RUN_NO_SIMULATOR_INVOKED"
+  },
+  "artifacts": "/workspace/actlizeLA-migration-20260928/perfmodel",
+  "unittest_log_sha256": "503bc6bbf120875f261a632c988c353556fcbf23a8f52e46231e18489cbcffcc",
+  "wheel_sha256": "27e56bd2ce391b68fa7d34a6bbfde7c7d74c56cae159da5fb7733d2a21f1e5fb",
+  "environment_note": "Initial wheel command lacked setuptools on PYTHONPATH; rerun with the existing local build environment and --no-index passed. No packages downloaded."
+}

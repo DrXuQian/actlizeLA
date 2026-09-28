@@ -8,10 +8,12 @@ from importlib import import_module
 import os
 
 from .backends.registry import require_implementation
+from .device import validate_profile_options
 
 
 def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
-                *, algorithm="auto", backend=None, delivery=None, configuration=None):
+                *, algorithm="auto", backend=None, delivery=None, configuration=None,
+                mode="device", sm_count=None):
     """Execute one complete implementation with its existing numerical gate.
 
     backend names identify compiled execution targets, not a measured device.
@@ -21,7 +23,12 @@ def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
     CUDA SM80; WY/residual require their opt-in PPU extension.
     Gate dtypes/normalization and state semantics are those of the selected
     implementation; this wrapper performs no hidden conversions.
+
+    mode='perfmodel' requires an explicit backend and positive sm_count.
+    It skips our device-profile query, not the forward computation. Configured
+    metadata cannot claim a measured H800 winner or alter native launch geometry.
     """
+    validate_profile_options(mode, backend, sm_count)
     legacy_ppu = "GDN_QSA_PPU_EXTENSION" in os.environ
     if algorithm == "auto":
         if configuration is not None:
@@ -33,7 +40,8 @@ def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
             if delivery is not None:
                 raise ValueError("SM90 auto does not accept legacy delivery selectors")
             from .sm90_auto import forward
-            return forward(q, k, v, g, beta, initial_state, output_final_state)
+            return forward(q, k, v, g, beta, initial_state, output_final_state,
+                           mode=mode, sm_count=sm_count)
         algorithm = "original"
     if configuration is not None and algorithm != "fused_sm90":
         raise ValueError("named SM90 configurations do not apply to another backend")
