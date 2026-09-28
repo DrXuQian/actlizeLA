@@ -3,6 +3,8 @@
 The package is `actlize-la`; the Python module is `actlize_la`. There is no
 `gdn_qsa_sm80` alias. Install using the same Python environment that owns
 CUDA-enabled PyTorch. CUDA 12.8 was used for the retained H800 measurements.
+Use an activated virtual environment if the system Python is externally
+managed; the installer does not override the package manager's protection.
 
 ```bash
 git clone git@github.com:DrXuQian/actlizeLA.git
@@ -35,6 +37,8 @@ output, final = forward(q, k, v, g, beta, initial_state=h0)
 and configuration once. Move the `.so` and `build.json` together if relocating
 a build. Rebuild for a different Python/PyTorch/CUDA ABI. It does not choose a
 configuration by inspecting gates or silently fall back to another backend.
+Distinct binaries receive distinct import identities, so separately built
+configurations can coexist in one process without pybind reusing the first.
 Do not mutate a loaded binary in place; use a new build directory.
 
 See the README for tensor dimensions, dtypes and preprocessing boundaries.

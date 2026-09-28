@@ -11,5 +11,10 @@ else
     PY="${PY:-python}"
 fi
 export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0}"
+export GDN_QSA_TARGET="${GDN_QSA_TARGET:-cuda_sm80}"
+if [[ "$GDN_QSA_TARGET" != cuda_sm80 ]]; then
+    echo "[actlizeLA] scripts/build.sh builds cuda_sm80; use the selected backend's builder" >&2
+    exit 2
+fi
 "$PY" setup.py build_ext --inplace "$@"
-echo "[gdn-qsa-sm80] build OK"
+echo "[actlizeLA] cuda_sm80 build OK"

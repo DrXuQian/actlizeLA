@@ -290,6 +290,29 @@ class LoaderBoundary(unittest.TestCase):
             self.assertEqual(create.call_count, 3)
             self.assertEqual(spec.return_value.loader.exec_module.call_count, 3)
 
+    def test_native_spec_cache_isolated_by_build_not_only_python_cache(self):
+        from actlize_la.backends.loading import _load, clear_backend_cache
+        native_cache = {}
+        def spec(name, path):
+            return SimpleNamespace(name=name, loader=SimpleNamespace(exec_module=lambda module: None))
+        def create(binding):
+            # Model pybind11's independent __spec__.name-keyed native cache.
+            return native_cache.setdefault(binding.name, object())
+        def verify_pair():
+            clear_backend_cache()
+            a = _load("_gdn_fused_sm90", "/a.so", "first-image")
+            b = _load("_gdn_fused_sm90", "/b.so", "second-image")
+            c = _load("_gdn_fused_sm90", "/a.so", "replacement-image")
+            self.assertIsNot(a, b)
+            self.assertIsNot(a, c)
+        with patch("actlize_la.backends.loading.util.spec_from_file_location", side_effect=spec), patch(
+            "actlize_la.backends.loading.util.module_from_spec", side_effect=create
+        ):
+            verify_pair()
+            with patch("actlize_la.backends.loading._qualified_name", return_value="_gdn_fused_sm90"):
+                with self.assertRaises(AssertionError):
+                    verify_pair()
+
     def test_file_validation_is_not_repeated_on_the_hot_path(self):
         from actlize_la.backends.loading import _explicit_path
         with patch.dict(os.environ, {"GDN_QSA_WY_EXTENSION": str(ROOT / "setup.py")}), patch(

@@ -5,16 +5,25 @@ This is loading only: each algorithm's existing wrapper still owns its inputs,
 workspace and launches. A changed environment must not borrow an old cached DSO.
 """
 from functools import lru_cache
+import hashlib
 from importlib import import_module, util
 import os
 from pathlib import Path
 
 
+def _qualified_name(module_name, path, image_sha):
+    # Pybind's process-wide module cache uses spec.name, independently of this
+    # Python lru_cache. Keep the leaf equal to the compiled PyInit symbol while
+    # isolating distinct builds in separate qualified module namespaces.
+    identity = hashlib.sha256(f"{module_name}\0{path}\0{image_sha or ''}".encode()).hexdigest()
+    return f"actlize_la._native_{identity}.{module_name}"
+
+
 @lru_cache(maxsize=None)
-def _load(module_name, path):
+def _load(module_name, path, image_sha=None):
     if path is None:
         return import_module("._gdn_chunk", "actlize_la")
-    spec = util.spec_from_file_location(module_name, path)
+    spec = util.spec_from_file_location(_qualified_name(module_name, path, image_sha), path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load GDN extension: {path}")
     module = util.module_from_spec(spec)

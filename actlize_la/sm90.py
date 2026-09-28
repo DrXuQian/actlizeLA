@@ -51,7 +51,7 @@ def load_sm90(build_directory):
     digest = hasher.hexdigest()
     if receipt.get("extension_sha256") != digest:
         raise ValueError("SM90 binary hash differs from build receipt")
-    module = _load("_gdn_fused_sm90", str(extension))
+    module = _load("_gdn_fused_sm90", str(extension), digest)
     if (getattr(module, "target", None) != "cuda_sm90" or
             getattr(module, "configuration", None) != configuration or
             getattr(module, "math_contract", None) != MATH_CONTRACT):

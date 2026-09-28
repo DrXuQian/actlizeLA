@@ -18,6 +18,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Installation(unittest.TestCase):
+    def test_sm80_script_cannot_report_success_for_frontend_only(self):
+        result = subprocess.run(["bash", str(ROOT / "scripts/build.sh")], cwd=ROOT,
+                                env=os.environ | {"GDN_QSA_TARGET": "python"},
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertNotIn("build OK", result.stdout)
+
     def test_frontend_install_does_not_invoke_a_compiler(self):
         for env in ({}, {"GDN_QSA_TARGET": "python"}):
             with patch.dict(os.environ, env, clear=True), patch("setuptools.setup") as setup, patch(
@@ -59,7 +66,8 @@ class Installation(unittest.TestCase):
                 self.assertEqual(forward.configuration, configuration)
                 self.assertEqual(forward(1, 2, 3, 4, 5, initial_state="initial"), ("O", "H"))
                 self.assertEqual(forward(1, 2, 3, 4, 5, output_final_state=False), ("O", None))
-                loader.assert_called_once_with("_gdn_fused_sm90", str(binary))
+                loader.assert_called_once_with("_gdn_fused_sm90", str(binary),
+                                               hashlib.sha256(binary.read_bytes()).hexdigest())
                 self.assertEqual(module.forward.call_args_list[0].args, (1, 2, 3, 4, 5, "initial", True))
 
     def test_changed_missing_or_symlinked_binary_is_rejected_before_import(self):
