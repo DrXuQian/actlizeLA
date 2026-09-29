@@ -79,7 +79,16 @@ extern "C" int gdn_wy_forward_residual_inverse_register(
 extern "C" int gdn_wy_forward_residual_paired_conversion(
     void const*, void const*, void const*, void const*, void const*, float const*,
     void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
-template <bool Residual = false, unsigned Variant = 0, unsigned FullStages = 0>
+extern "C" int gdn_wy_forward_geometry_v32_w8(
+    void const*, void const*, void const*, void const*, void const*, float const*,
+    void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
+extern "C" int gdn_wy_forward_geometry_v32_w4(
+    void const*, void const*, void const*, void const*, void const*, float const*,
+    void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
+extern "C" int gdn_wy_forward_geometry_v16_w4(
+    void const*, void const*, void const*, void const*, void const*, float const*,
+    void*, float*, void*, void*, void*, float*, int, int, int, int, bool, cudaStream_t);
+template <bool Residual = false, unsigned Variant = 0, unsigned FullStages = 0, unsigned Geometry = 0>
 std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tensor v,
     torch::Tensor g, torch::Tensor beta, c10::optional<torch::Tensor> initial,
     bool output_final_state, unsigned delivery) {
@@ -87,6 +96,8 @@ std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tens
   static_assert(Variant <= 14 && (!Variant || Residual), "invalid residual-only delivery");
   static_assert(FullStages <= 7 && (!FullStages || (Residual && Variant == 14)),
                 "full stage choices require the full-C64 residual control");
+  static_assert(Geometry <= 3 && (!Geometry || (Residual && Variant == 14 && FullStages == 0)),
+                "geometry changes only the full/generic gate-cache state");
   TORCH_CHECK(valid_delivery(delivery), "invalid or conflicting WY delivery mask");
   TORCH_CHECK(!Residual || delivery == 0, "residual is an algorithm, not a WY delivery mask");
   TORCH_CHECK(q.dim() == 4 && q.size(3) == Dim && k.sizes() == q.sizes(),
@@ -110,7 +121,7 @@ std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tens
   TORCH_CHECK(!(Residual || (delivery & AiuOptions)) || Hv <= INT_MAX / Dim,
               "WY AIU row pitch exceeds 32-bit element descriptor");
   int64_t const nt = (S - 1) / Chunk + 1;
-  constexpr int slices = Variant == 3 ? 8 : 4;
+  constexpr int slices = Variant == 3 || Geometry == 3 ? 8 : 4;
   TORCH_CHECK(B <= INT_MAX / Hv && B * Hv <= INT_MAX / nt && B * Hv <= INT_MAX / slices,
               "WY launch grid overflow");
   if (initial.has_value()) {
@@ -147,7 +158,10 @@ std::vector<torch::Tensor> forward(torch::Tensor q, torch::Tensor k, torch::Tens
                               Variant == 12 ? gdn_wy_forward_residual_gate_cache :
                               Variant == 13 ? gdn_wy_forward_residual_gate_cache_solve_static :
                                               gdn_wy_forward_residual_full_chunk;
-      constexpr auto selected = FullStages == 7 ? gdn_wy_forward_residual_paired_conversion :
+      constexpr auto selected = Geometry == 1 ? gdn_wy_forward_geometry_v32_w8 :
+                                Geometry == 2 ? gdn_wy_forward_geometry_v32_w4 :
+                                Geometry == 3 ? gdn_wy_forward_geometry_v16_w4 :
+                                FullStages == 7 ? gdn_wy_forward_residual_paired_conversion :
                                 FullStages == 6 ? gdn_wy_forward_residual_inverse_register :
                                 FullStages == 1 ? gdn_wy_forward_residual_full_chunk_solve :
                                 FullStages == 2 ? gdn_wy_forward_residual_full_chunk_output :
@@ -246,6 +260,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
         pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
   m.def("residual_paired_conversion", &forward<true, 14, 7>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
+        pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
+        pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
+  m.def("residual_geometry_v32_w8", &forward<true, 14, 0, 1>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
+        pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
+        pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
+  m.def("residual_geometry_v32_w4", &forward<true, 14, 0, 2>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
+        pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
+        pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
+  m.def("residual_geometry_v16_w4", &forward<true, 14, 0, 3>, pybind11::arg("q"), pybind11::arg("k"), pybind11::arg("v"),
         pybind11::arg("g"), pybind11::arg("beta"), pybind11::arg("initial_state") = pybind11::none(),
         pybind11::arg("output_final_state") = true, pybind11::arg("delivery") = 0);
 }

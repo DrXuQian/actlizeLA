@@ -43,8 +43,9 @@ RESIDUAL_ENTRYPOINTS = {"scalar": "residual", "prefetch": "residual_prefetch",
                         "mixed-tail": "residual_mixed_tail",
                         "inverse-register": "residual_inverse_register",
                         "paired-conversion": "residual_paired_conversion"}
-# Same-geometry performance controls; scalar residual remains the numeric
-# anchor for every delivery. Do not profile the combination against four warps.
+# Registered performance controls; scalar residual is the numerical anchor.
+# Layout experiments hold geometry fixed. The explicit geometry family below
+# instead holds layout/math fixed and compares to the retained full-chunk arm.
 RESIDUAL_CONTROLS = {name: "residual" for name in RESIDUAL_VARIANTS if name != "residual"}
 RESIDUAL_CONTROLS["residual-warps8-blayout"] = "residual-warps8"
 RESIDUAL_CONTROLS["residual-warps8-operands"] = "residual-warps8-blayout"
@@ -61,6 +62,11 @@ RESIDUAL_CONTROLS["residual-first-chunk"] = "residual-full-chunk"
 RESIDUAL_CONTROLS["residual-mixed-tail"] = "residual-full-chunk"
 RESIDUAL_CONTROLS["residual-inverse-register"] = "residual-full-chunk"
 RESIDUAL_CONTROLS["residual-paired-conversion"] = "residual-full-chunk"
+for _geometry in ("v32-w8", "v32-w4", "v16-w4"):
+    _delivery = "geometry-" + _geometry
+    RESIDUAL_VARIANTS["residual-" + _delivery] = _delivery
+    RESIDUAL_ENTRYPOINTS[_delivery] = "residual_" + _delivery.replace("-", "_")
+    RESIDUAL_CONTROLS["residual-" + _delivery] = "residual-full-chunk"
 PROFILE_VARIANTS = {**DELIVERIES, **dict.fromkeys(RESIDUAL_VARIANTS)}
 
 

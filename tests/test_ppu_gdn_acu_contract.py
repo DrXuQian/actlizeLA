@@ -762,13 +762,15 @@ class ACUContract(unittest.TestCase):
                 collect.validate_comparison(comparison, ours | ({key: value} if role == "wy" else {}),
                                              fla | ({key: value} if role == "fla" else {}))
 
-    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None, sequence=2048):
+    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None, sequence=2048,
+                         extras=(), batch=1, q_heads=16, value_heads=32):
         """Run the real orchestration with synthetic tool receipts, not a GPU."""
         prior = directory / "preceding"
         prior.mkdir()
         binding, library = self.make_wy_run(prior)
         ours, fla = self.records()
         ours["shape"]["S"] = sequence
+        ours["shape"].update(B=batch,Hk=q_heads,Hv=value_heads)
         ours.update(role="wy", implementation="wy", extension_sha256=collect.sha(binding),
                     library_sha256=collect.sha(library),
                     loaded_libraries={str(p.resolve()): collect.sha(p) for p in (binding, library)})
@@ -781,7 +783,7 @@ class ACUContract(unittest.TestCase):
                           device=ours["device"]["properties"])
         comparison["cases"] = [dict(g=-0.1, input_sha="input", arms={
             role: dict(fingerprint="output", state_dtype="torch.float32") for role in ("wy", "fla")})]
-        if sequence != 2048 and plant != "missing-case-shape":
+        if (sequence,batch,q_heads,value_heads) != (2048,1,16,32) and plant != "missing-case-shape":
             comparison["cases"][0]["shape"] = dict(ours["shape"])
         delivery = subject_delivery or ("aiu-state-output" if control is not None else "scalar")
         if control is not None:
@@ -796,10 +798,10 @@ class ACUContract(unittest.TestCase):
                 fingerprint="residual-output", math_contract=collect.MATH_CONTRACT,
                 errors=[.008, .004], scalar_raw_bit_equal=None)
         if delivery in collect.RESIDUAL_DELIVERIES:
-            for variant in {"residual",delivery,control}:
+            for variant in {"residual",delivery,control,*extras}:
                 comparison["cases"][0]["arms"].setdefault(f"wy-{variant}", dict(delivery_mask=None)).update(
                     fingerprint="residual-output",math_contract=collect.MATH_CONTRACT,
-                    errors=[.008,.004],scalar_raw_bit_equal=None)
+                    errors=[.008,.004],scalar_raw_bit_equal=None,state_dtype="torch.float32")
                 if variant != "residual":
                     comparison["cases"][0]["arms"][f"wy-{variant}"].update(
                         residual_raw_bit_equal=True,residual_fingerprint="residual-output")
@@ -815,7 +817,8 @@ class ACUContract(unittest.TestCase):
         bundle.mkdir()
         args = SimpleNamespace(wy_run=prior, extension=None, sdk=directory,
                                acu=Path(sys.executable), gate=-0.1, device="0", sequence=sequence,
-                               wy_delivery=delivery, wy_control=control)
+                               wy_delivery=delivery, wy_control=control,wy_extra_deliveries=extras,
+                               batch=batch,q_heads=q_heads,value_heads=value_heads)
         commands = []
         def fake_run(command, log, env, **kwargs):
             command = [str(x) for x in command]
@@ -833,6 +836,9 @@ class ACUContract(unittest.TestCase):
                 receipt = dict(ours if role == "wy" else fla)
                 if sequence != 2048:
                     self.assertEqual(command[command.index("--sequence") + 1], str(sequence))
+                if (batch,q_heads,value_heads)!=(1,16,32):
+                    for option,value in (("--batch",batch),("--q-heads",q_heads),("--value-heads",value_heads)):
+                        self.assertEqual(command[command.index(option)+1],str(value))
                 if plant == "ignored-sequence":
                     receipt["shape"] = dict(receipt["shape"], S=2048)
                 receipt["wy_delivery"] = selected
@@ -847,6 +853,10 @@ class ACUContract(unittest.TestCase):
                             receipt["errors"] = [.03, .004]
                 if delivery in collect.RESIDUAL_DELIVERIES and role == "wy":
                     receipt.update(math_contract=collect.MATH_CONTRACT,errors=[.008,.004],output_sha="residual-output")
+                if selected in extras:
+                    if plant=="extra-wrong-shape": receipt["shape"]=dict(receipt["shape"],Hv=128)
+                    if plant=="extra-changed-output": receipt["output_sha"]="changed-extra-output"
+                    if plant=="extra-stale-library" and phase=="subject": receipt["loaded_libraries"]={}
                 if phase == "preflight":
                     receipt.update(phase=phase, warmup=5, public_api_calls=6)
                 if is_control and plant == "changed-control-device":

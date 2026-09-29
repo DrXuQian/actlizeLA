@@ -36,8 +36,8 @@ class CaptureArm(NamedTuple):
     directory: Path
 
 
-def capture_arms(bundle, implementation, delivery, control=None):
-    """One FLA capture, optionally preceded by two explicitly selected WY arms."""
+def capture_arms(bundle, implementation, delivery, control=None, extras=()):
+    """One FLA capture shared by explicit same-control candidate arms."""
     if implementation not in ("original", "wy") or delivery not in PROFILE_VARIANTS:
         raise ValueError("unknown capture implementation or delivery")
     if implementation != "wy" and (delivery != "scalar" or control is not None):
@@ -45,15 +45,19 @@ def capture_arms(bundle, implementation, delivery, control=None):
     if delivery == "residual" and control != "state-pipeline":
         raise ValueError("residual requires the registered state-pipeline control")
     if delivery in RESIDUAL_DELIVERIES and control != RESIDUAL_CONTROLS[delivery]:
-        raise ValueError(f"residual delivery requires same-geometry control {RESIDUAL_CONTROLS[delivery]}")
+        raise ValueError(f"residual delivery requires registered control {RESIDUAL_CONTROLS[delivery]}")
+    if len(set(extras))!=len(extras) or any(x in (delivery,control) or x not in RESIDUAL_DELIVERIES or
+        RESIDUAL_CONTROLS[x]!=control for x in extras):
+        raise ValueError("extra arms require distinct deliveries with the same registered control")
     arms = []
     if control is not None:
         if control not in PROFILE_VARIANTS or control == delivery:
             raise ValueError("WY control must be a different supported delivery")
         arms.append(CaptureArm("wy-control", "wy", control, bundle / "wy-control"))
     role = "wy" if implementation == "wy" else "ours"
-    return tuple(arms + [CaptureArm(role, role, delivery, bundle),
-                         CaptureArm("fla", "fla", delivery, bundle)])
+    return tuple(arms + [CaptureArm(role, role, delivery, bundle)] +
+                 [CaptureArm("wy-"+x,"wy",x,bundle/("wy-"+x)) for x in extras] +
+                 [CaptureArm("fla", "fla", delivery, bundle)])
 
 
 def validate_residual_admission(arm, limit):
@@ -133,7 +137,8 @@ def report_file(base):
     return candidates[0]
 
 
-def child_command(extension, role, gate, bundle, phase, implementation="original", delivery="scalar", sequence=2048):
+def child_command(extension, role, gate, bundle, phase, implementation="original", delivery="scalar", sequence=2048,
+                  batch=1, q_heads=16, value_heads=32):
     receipt = f"{role}-preflight.json" if phase == "preflight" else f"{role}.json"
     return [sys.executable, "-u", str(ROOT / "benchmarks/profile_ppu_gdn_fla.py"),
             "--extension", str(extension), "--role", role, "--phase", phase, "--gate", str(gate),
@@ -141,15 +146,18 @@ def child_command(extension, role, gate, bundle, phase, implementation="original
             "--wy-delivery", delivery,
             "--receipt", str(bundle / receipt),
             "--sources", str(bundle / "sources/reference"),
-            *(["--sequence", str(sequence)] if sequence != 2048 else [])]
+            *(["--sequence", str(sequence)] if sequence != 2048 else []),
+            *(["--batch",str(batch),"--q-heads",str(q_heads),"--value-heads",str(value_heads)]
+              if (batch,q_heads,value_heads)!=(1,16,32) else [])]
 
 
-def acu_command(acu, report, extension, role, gate, bundle, implementation="original", delivery="scalar", sequence=2048):
+def acu_command(acu, report, extension, role, gate, bundle, implementation="original", delivery="scalar", sequence=2048,
+                batch=1, q_heads=16, value_heads=32):
     # Same direct CLI pattern as quactlize/tools/run_dense_marlin_m8_acu_box.sh:
     # preflight is a separate process; ACU owns profiling from process start.
     return [str(acu), "-f", "-o", str(report), "--set", "full",
             "--check-exit-code", "yes",
-            *child_command(extension, role, gate, bundle, "subject", implementation, delivery, sequence)]
+            *child_command(extension, role, gate, bundle, "subject", implementation, delivery, sequence,batch,q_heads,value_heads)]
 
 
 def read_wy_run(directory):
@@ -208,7 +216,8 @@ def validate_comparison(comparison, subject, fla):
     # Older receipts have no shape field and only measured S2048. They cannot
     # admit a newly requested tail shape, even if an arm ignores --sequence.
     cases = [case for case in comparison["cases"] if case.get("g") == subject["gate"] and
-             (case["shape"] == subject["shape"] if "shape" in case else subject["shape"].get("S") == 2048)]
+             (case["shape"] == subject["shape"] if "shape" in case else
+              subject["shape"] == dict(B=1,S=2048,Hk=16,Hv=32,K=128,V=128))]
     if len(cases) != 1 or cases[0].get("input_sha") != subject["input_sha"]:
         raise ValueError("capture fixture differs from the selected WY comparison case")
     for key, value in (("initial_state", "zero"), ("final_state", True),
@@ -269,9 +278,11 @@ def validate_preflight(preflight, subject):
             raise ValueError(f"subject differs from independent preflight: {key}")
 
 
-def validate_pair(ours, fla, implementation="original"):
-    if ours.get("wy_delivery", "scalar") != fla.get("wy_delivery", "scalar"):
+def validate_pair(ours, fla, implementation="original", *, shared_reference=False):
+    if not shared_reference and ours.get("wy_delivery", "scalar") != fla.get("wy_delivery", "scalar"):
         raise ValueError("capture pair delivery labels differ")
+    if shared_reference and (implementation!="wy" or ours.get("wy_delivery") not in RESIDUAL_DELIVERIES):
+        raise ValueError("shared FLA reference requires an explicit residual delivery")
     if implementation not in ("original", "wy"):
         raise ValueError(f"unknown implementation: {implementation}")
     for record, role in ((ours, "wy" if implementation == "wy" else "ours"), (fla, "fla")):
@@ -333,8 +344,8 @@ def validate_loaded_binary(receipt, extension, library):
             raise ValueError(f"loaded binary differs from archive or is absent: {binary.name}")
 
 
-def validate_requested_sequence(receipt, sequence):
-    if receipt.get("shape") != dict(B=1, S=sequence, Hk=16, Hv=32, K=128, V=128):
+def validate_requested_sequence(receipt, sequence, batch=1, q_heads=16, value_heads=32):
+    if receipt.get("shape") != dict(B=batch, S=sequence, Hk=q_heads, Hv=value_heads, K=128, V=128):
         raise ValueError("capture ignored the requested shape/sequence")
 
 
@@ -385,7 +396,9 @@ def collect(args, bundle, env):
     delivery = getattr(args, "wy_delivery", "scalar")
     status = dict(status="INCOMPLETE", errors=[], probes={}, implementation=implementation, wy_delivery=delivery)
     try:
-        arms = capture_arms(bundle, implementation, delivery, getattr(args, "wy_control", None))
+        arms = capture_arms(bundle, implementation, delivery, getattr(args, "wy_control", None),
+                            getattr(args,"wy_extra_deliveries",()))
+        shape_args=(args.sequence,getattr(args,"batch",1),getattr(args,"q_heads",16),getattr(args,"value_heads",32))
         status["capture_order"] = [arm.label for arm in arms]
         status["capture_arms"] = {arm.label: dict(role=arm.role, wy_delivery=arm.delivery,
             directory=str(arm.directory.relative_to(bundle))) for arm in arms}
@@ -469,7 +482,7 @@ def collect(args, bundle, env):
 
         for arm in arms:
             try:
-                run(child_command(extension, arm.role, args.gate, arm.directory, "preflight", implementation, arm.delivery, args.sequence),
+                run(child_command(extension, arm.role, args.gate, arm.directory, "preflight", implementation, arm.delivery, *shape_args),
                     arm.directory / f"{arm.role}-preflight.log", env)
             except Exception as exc:
                 status["errors"].append(f"{arm.label} preflight: {type(exc).__name__}: {exc}")
@@ -478,20 +491,22 @@ def collect(args, bundle, env):
         preflights = {arm.label: json.loads((arm.directory / f"{arm.role}-preflight.json").read_text())
                       for arm in arms}
         for arm in arms:
-            validate_requested_sequence(preflights[arm.label], args.sequence)
+            validate_requested_sequence(preflights[arm.label], *shape_args)
             if preflights[arm.label].get("wy_delivery", "scalar") != arm.delivery:
                 raise ValueError(f"{arm.label}: preflight ignored selected delivery")
         if comparison is not None:
             for arm in arms[:-1]:
                 validate_comparison(comparison, preflights[arm.label], preflights["fla"])
         if "wy-control" in preflights:
-            validate_wy_control(preflights["wy-control"], preflights["wy"])
+            for arm in arms:
+                if arm.label not in ("wy-control","fla"):
+                    validate_wy_control(preflights["wy-control"], preflights[arm.label])
 
         for arm in arms:
             try:
                 base = arm.directory / f"{arm.role}-g{args.gate}.report"
                 command = acu_command(args.acu, base, extension, arm.role, args.gate,
-                                      arm.directory, implementation, arm.delivery, args.sequence)
+                                      arm.directory, implementation, arm.delivery, *shape_args)
                 run(command, arm.directory / f"{arm.role}-acu.log", env)
                 report = report_file(base)
                 # Native reports remain the authority. Text exports make the tar
@@ -510,12 +525,15 @@ def collect(args, bundle, env):
         if status["errors"]:
             return status
         receipts = {arm.label: json.loads((arm.directory / f"{arm.role}.json").read_text()) for arm in arms}
-        ours, fla = receipts[arms[-2].label], receipts["fla"]
+        ours, fla = receipts["wy" if implementation=="wy" else "ours"], receipts["fla"]
         for arm in arms:
             validate_preflight(preflights[arm.label], receipts[arm.label])
         validate_pair(ours, fla, implementation)
         if "wy-control" in receipts:
-            validate_wy_control(receipts["wy-control"], ours)
+            for arm in arms:
+                if arm.label not in ("wy-control","fla"):
+                    validate_wy_control(receipts["wy-control"], receipts[arm.label])
+                    validate_pair(receipts[arm.label],fla,implementation,shared_reference=arm.label!="wy")
         if comparison is not None:
             for arm in arms[:-1]:
                 validate_comparison(comparison, receipts[arm.label], fla)
@@ -539,6 +557,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gate", type=float, choices=(-0.1, -1.0), default=-0.1)
     parser.add_argument("--sequence", type=int, default=2048)
+    parser.add_argument("--batch", type=int, default=1)
+    parser.add_argument("--q-heads", type=int, default=16)
+    parser.add_argument("--value-heads", type=int, default=32)
+    parser.add_argument("--wy-extra-deliveries", nargs="*", choices=tuple(RESIDUAL_DELIVERIES), default=[],
+                        help="additional same-control candidates; share one FLA capture, not one timing")
     parser.add_argument("--extension", type=Path, default=os.environ.get("EXTENSION"))
     parser.add_argument("--wy-run", type=Path,
                         help="reuse this admitted WY comparison/numeric-receipt directory; never compile")
@@ -546,8 +569,10 @@ def main():
     parser.add_argument("--wy-control", choices=tuple(PROFILE_VARIANTS),
                         help="also capture this same-binary WY control before the candidate; FLA runs once")
     args = parser.parse_args()
-    if args.sequence <= 0:
-        parser.error("sequence must be positive")
+    if min(args.sequence,args.batch,args.q_heads,args.value_heads)<=0 or args.value_heads%args.q_heads:
+        parser.error("positive B/S/Hk/Hv and integral GVA required")
+    if args.wy_extra_deliveries and not args.wy_run:
+        parser.error("extra deliveries require an admitted --wy-run")
     if args.wy_run and args.extension:
         parser.error("--wy-run and --extension/EXTENSION are mutually exclusive")
     if args.wy_delivery != "scalar" and not args.wy_run:

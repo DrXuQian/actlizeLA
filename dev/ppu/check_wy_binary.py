@@ -24,6 +24,7 @@ from check_first_chunk import check_native as check_first_chunk_native
 from check_mixed_tail import check_native as check_mixed_tail_native
 from check_inverse_register import check_native as check_inverse_register_native
 from check_paired_conversion import check_native as check_paired_conversion_native
+from check_geometry import check_native as check_geometry_native
 
 
 def kernel_sequences(isa):
@@ -40,11 +41,12 @@ def kernel_sequences(isa):
 
 def compare_controls(before, after):
     old, new = kernel_sequences(before), kernel_sequences(after)
-    if len(old) != 44 or len(new) != 46:
-        raise AssertionError("control comparison must cover all44 old and all46 current images")
+    if (len(old),len(new)) not in ((44,46),(46,52)):
+        raise AssertionError("control comparison must cover the exact registered image inventory")
     added = set(new) - set(old)
-    if len(added) != 2 or any(not any("gdn_wy_paired_conversion_stateILb"+str(full)+"EE" in name
-                                             for name in added) for full in (0,1)):
+    markers=(["gdn_wy_paired_conversion_stateILb"+str(f)+"EE" for f in (0,1)] if len(new)==46 else
+             [f"gdn_wy_geometry_stateILi{v}ELi{w}ELb{f}EE" for v,w in ((32,8),(32,4),(16,4)) for f in (0,1)])
+    if len(added)!=len(markers) or any(sum(m in n for n in added)!=1 for m in markers):
         raise AssertionError("wrong added stage inventory")
     for name, sequence in old.items():
         if new.get(name) != sequence:
@@ -56,8 +58,8 @@ def compare_resources(before, after):
     # the preceding resource record and moves when an unrelated TU is added.
     pattern = r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\nELF FILE |\Z)"
     old, new = (dict(re.findall(pattern, text, flags=re.S)) for text in (before, after))
-    if len(old) != 44 or len(new) != 46:
-        raise AssertionError("control resource denominator must be44/46")
+    if (len(old),len(new)) not in ((44,46),(46,52)):
+        raise AssertionError("control resource denominator must be44/46 or46/52")
     for name, body in old.items():
         if body != new.get(name):
             raise AssertionError("admitted control native resources changed: " + name)
@@ -223,10 +225,11 @@ def audit(isa, resources, symbols):
     check_mixed_tail_native(isa)
     check_inverse_register_native(isa)
     check_paired_conversion_native(isa)
+    geometry_rows=check_geometry_native(isa)
     funcs = re.findall(r"Func \d+ (\S+) RESOURCE INFO:\n(.*?)(?=Func \d+ \S+ RESOURCE INFO:|\Z)",
                        resources, flags=re.S)
-    if len(funcs) != 46:
-        raise AssertionError(f"WY image denominator must be44 controls +2 paired-conversion images, got {len(funcs)}")
+    if len(funcs) != 52:
+        raise AssertionError(f"WY image denominator must be46 controls +6 geometry images, got {len(funcs)}")
     rows = []
     mma_counts = {}
     for role, packed in ((role, packed) for role in ("prepare", "state", "output") for packed in (False, True)):
@@ -630,7 +633,13 @@ def audit(isa, resources, symbols):
         rows.append(dict(role="state",algorithm="residual",delivery="paired-conversion",full=full,
                          registers=regs,stack=stack,shared_bytes=46080,
                          static_instructions=len(sequences[name]),device="NOT_RUN"))
-    for name in ("gdn_wy_forward_residual_paired_conversion", "gdn_wy_forward_residual_inverse_register", "gdn_wy_forward_residual_mixed_tail", "gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
+    for row in geometry_rows:
+        body=dict(funcs)[row["symbol"]]
+        regs=int(re.search(r"vreg_number:(\d+)",body)[1]); stack=int(re.search(r"STACK SIZE:(\d+)",body)[1])
+        if stack or regs>256: raise AssertionError("geometry spills/exceeds native register budget")
+        rows.append(dict(row,role="state",algorithm="residual",delivery="geometry",registers=regs,
+                         stack=stack,shared_bytes=46080 if row["V"]==32 else 35840,device="NOT_RUN"))
+    for name in ("gdn_wy_forward_geometry_v32_w8", "gdn_wy_forward_geometry_v32_w4", "gdn_wy_forward_geometry_v16_w4", "gdn_wy_forward_residual_paired_conversion", "gdn_wy_forward_residual_inverse_register", "gdn_wy_forward_residual_mixed_tail", "gdn_wy_forward_residual_first_chunk", "gdn_wy_forward_residual_full_chunk_solve", "gdn_wy_forward_residual_full_chunk_output", "gdn_wy_forward_residual_full_chunk_both", "gdn_wy_forward_residual_full_chunk", "gdn_wy_forward_residual_gate_cache_solve_static", "gdn_wy_forward_residual_gate_cache", "gdn_wy_forward", "gdn_wy_forward_delivery", "gdn_wy_forward_residual",
                  "gdn_wy_forward_residual_prefetch", "gdn_wy_forward_residual_operands", "gdn_wy_forward_residual_v16",
                  "gdn_wy_forward_residual_blayout", "gdn_wy_forward_residual_warps8",
                  "gdn_wy_forward_residual_warps8_blayout", "gdn_wy_forward_residual_warps8_operands",
@@ -792,7 +801,8 @@ def main():
                 print("[WY binary negative] changed-control-resources EXPECTED-RED/PASS")
             else:
                 raise AssertionError("control resource negative escaped")
-        print("[WY binary controls] 44/44 resource records IDENTICAL")
+        count=len(re.findall(r"Func \d+ \S+ RESOURCE INFO:",before))
+        print(f"[WY binary controls] {count}/{count} resource records IDENTICAL")
     print("[WY binary] PASS device_execution=NOT_RUN")
 
 

@@ -144,7 +144,7 @@ def check_linked_host(host):
 def check_linked_binding(host):
     from check_gate_cache_solve import functions, reachable_calls
     bodies = functions(host)
-    entries = [n for n in bodies if "::forward<true, 14u, 5u>(" in n and not n.endswith(" [clone .cold]")]
+    entries = [n for n in bodies if re.search(r"::forward<true, 14u, 5u(?:, 0u)?>\(", n) and not n.endswith(" [clone .cold]")]
     if len(entries) != 1:
         raise AssertionError("mixed-tail Python specialization missing/ambiguous")
     targets = {n for n in reachable_calls(bodies, entries[0]) if n.startswith("gdn_wy_forward")}

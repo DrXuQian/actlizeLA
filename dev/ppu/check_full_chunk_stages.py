@@ -142,8 +142,8 @@ def check_linked_binding(host):
     bodies = functions(host)
     for choice, suffix in enumerate(("", "_solve", "_output", "_both")):
         # Exact template instance, not the library's aggregate symbol list.
-        marker = f"::forward<true, 14u, {choice}u>("
-        entries = [name for name in bodies if marker in name and not name.endswith(" [clone .cold]")]
+        marker = rf"::forward<true, 14u, {choice}u(?:, 0u)?>\("
+        entries = [name for name in bodies if re.search(marker,name) and not name.endswith(" [clone .cold]")]
         if len(entries) != 1:
             raise AssertionError("missing/ambiguous compiled Python forward: " + marker)
         calls = reachable_calls(bodies, entries[0])

@@ -195,7 +195,7 @@ def check_linked_host(host):
 def check_linked_binding(host):
     from check_gate_cache_solve import functions, reachable_calls
     bodies = functions(host)
-    entries = [name for name in bodies if "::forward<true, 14u, 4u>(" in name and not name.endswith(" [clone .cold]")]
+    entries = [name for name in bodies if re.search(r"::forward<true, 14u, 4u(?:, 0u)?>\(", name) and not name.endswith(" [clone .cold]")]
     if len(entries) != 1:
         raise AssertionError("first-chunk compiled Python specialization missing/ambiguous")
     targets = {name for name in reachable_calls(bodies, entries[0]) if name.startswith("gdn_wy_forward")}

@@ -213,7 +213,7 @@ def check_linked(host, binding=False):
     from check_gate_cache_solve import functions,reachable_calls
     bodies=functions(host)
     if binding:
-        roots=[n for n in bodies if "::forward<true, 14u, 7u>(" in n and not n.endswith(" [clone .cold]")]
+        roots=[n for n in bodies if re.search(r"::forward<true, 14u, 7u(?:, 0u)?>\(", n) and not n.endswith(" [clone .cold]")]
         if len(roots)!=1: raise AssertionError("paired Python binding missing/ambiguous")
         targets={n for n in reachable_calls(bodies,roots[0]) if n.startswith("gdn_wy_forward")}
         if targets!={ENTRY}: raise AssertionError("linked Python binding selects wrong C ABI")

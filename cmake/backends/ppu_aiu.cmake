@@ -132,6 +132,7 @@ cutlass_add_library(gdn_wy_ppu SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_paired_conversion_ppu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_geometry_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_solve_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_output_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_full_chunk_stages_ppu.cu
@@ -158,6 +159,7 @@ foreach(_object IN LISTS _wy_objects)
       ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_stage_copy.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/wy_contract.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_mma.cuh
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_geometry.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_delivery.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_tiles.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_state_address.cuh
