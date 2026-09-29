@@ -80,9 +80,43 @@ Use your current SDK via `PPU_SDK=/path/to/PPU_SDK` if it is not installed at
 `/usr/local/PPU_SDK`. ACU defaults to `/sim/eec/shared/junfu.qx/asight/bin/acu`.
 Fresh output directories are created below `/workspace`; the caller's shell
 is not exited. Builds and kernels run sequentially, not concurrently across
-arms. Upload only the printed `geometry.tar.gz`. It contains all12 captures,
-source/binary identity, native resource audit and numerical receipts.
-Failure preserves evidence and prevents performance/default admission.
+arms. The full `geometry.tar.gz` contains all12 captures, source/binary
+identity, native resource audit and numerical receipts. Keep this large
+archive and the original reports on the box. Failure preserves evidence
+and prevents performance/default admission.
+
+### Lightweight upload from an already completed run
+
+Do **not** repeat the build or profiling. Update the scripts, then repack the
+existing evidence:
+
+```bash
+git pull --ff-only
+python3 tools/pack_ppu10_geometry_light.py
+```
+
+With exactly one completed geometry run under `/workspace`, it is selected
+automatically. With zero or several candidates, the script lists them and
+requires an explicit existing run directory, for example:
+
+```bash
+python3 tools/pack_ppu10_geometry_light.py /workspace/YOUR_EXISTING_GEOMETRY_RUN
+```
+
+Upload only the printed `geometry-light.tar.gz`. It retains every cell and
+arm (12/60), complete `details/raw` text exports without metric filtering,
+numeric receipts, device/compiler/binary identities, resource records and
+the original registration. Selected file bytes must match the original
+capture checksum manifests. Missing arms or failed/empty exports are errors,
+not silently omitted results. The measured SHA stays the original run SHA,
+not the current checkout used for repacking.
+
+The light archive omits native reports, binaries, source trees and ISA.
+`LIGHT_INDEX.json` lists each original report's capture-time digest; the
+packer does not reread or rehash those large report bytes. All originals
+remain on the box for targeted follow-up if text evidence is insufficient.
+`LIGHT_SHA256SUMS` covers the actual upload bytes. This changes transport
+only, not the registered decision rules or performance admission.
 
 ## Local verification (not device admission)
 
