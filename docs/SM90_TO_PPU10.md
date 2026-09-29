@@ -17,8 +17,8 @@ also not the same thing as an integrated public/default selector.
 | No-initial first-chunk KH/QH elimination | [Implemented and device-validated](PPU10_FIRST_CHUNK_ACU_20260928.md); both-gate ACU evaluated | Mixed timing (-1: +1.11%, -0.1: -0.41%); keep opt-in, no default promotion. Explicit state/tails unchanged |
 | Keep inverse intermediates with their final owner | [Implemented and device-validated; investigation closed](PPU10_INVERSE_REGISTER_ACU_20260928.md) | Both complete-call captures slightly slower (+0.54%/+0.17%); retain control, candidate opt-in only. BC -8.16%,84->76regs, same shared-limited capacity; lower scratch traffic is not a speed win |
 | Convert NewV before operand rearrangement; paired conversion | [Implemented, device-correct; migration investigation closed](PPU10_PAIRED_CONVERSION_ACU_20260928.md) | Both captures slightly lower (-0.310%/-0.066%), stable gain not established. Pair+extraction replaces the same instruction count; state opcodes -0.270% from other scheduling changes, box registers120->122. Keep opt-in pending repeats, default unchanged |
-| Workload-dependent V tile and warp geometry | [Matched family device-correct and all12 cells/60 arms ACU-audited](PPU10_GEOMETRY_ACU_20260929.md) | V16/4 is a finalist only for two smaller full-chunk shapes (both gates,2.34–2.96% lower single captures); large/tail retain V32/8, V32/4 not selected. Repeated performance admission still needed before public selection. Do not copy H800's winning tile |
-| Unified shape-driven public selection | SM90 integrated; PPU optimized residual variants explicit | PPU numeric/backend selection and non-regression admission remain separate integration work |
+| Workload-dependent V tile and warp geometry | [Matched family device-correct and all12 cells/60 arms ACU-audited](PPU10_GEOMETRY_ACU_20260929.md); tuning closed by user decision | Keep V32/8 and current routing. V16/4 small-shape observations do not justify extra dispatch; repeat campaign and geometry wiring cancelled. Candidates remain opt-in; no unproven default promotion |
+| Unified shape-driven public selection | SM90 integrated; existing PPU entry/dispatch retained | User declined additional geometry-based PPU wiring. This is not a claim that every experimental PPU variant is automatically selected |
 
 ## Measured anchors and limits
 
@@ -96,12 +96,15 @@ are closed. Paired conversion is also device-correct and measured at both
 gates; its sub-percent observations do not establish a stable speed win.
 Matched geometry is now also implemented, device-validated and measured:
 all12 cells/60 arms/276 kernels reconcile. Its architecture-independent
-mechanism is no longer missing. What remains is repeated confirmation of
-the four small full-chunk V16/4 finalist cells, then unified public selection
-with exact measured scope and retained fallback. The larger workloads show
+mechanism is no longer missing. The larger workloads show
 why reducing registers/CTA size is not a universal PPU speedup; see the
 [complete geometry verdict](PPU10_GEOMETRY_ACU_20260929.md).
-Finally integrate admitted PPU selections behind the common API. For each
-item record implemented+validated, already-equivalent, or inapplicable with
-evidence. A correctly tested slower candidate can close the investigation
-without being forced into the shipping path. Do not restart H800 for this.
+
+User decision on2026-09-29 closes this tuning round: retain the existing PPU
+implementation/routing rather than add geometry-specific selection for the
+small observed gains. The proposed four-cell repeat campaign and extra
+selector wiring are cancelled. No new kernel or default edit was started.
+Implemented+validated candidates with no admitted benefit stay opt-in;
+Hopper-only features remain inapplicable rather than emulated on PPU1.0.
+This closes migration/tuning scope, not a claim of global optimality or of
+new real-model integration validation. Do not restart H800 for this.

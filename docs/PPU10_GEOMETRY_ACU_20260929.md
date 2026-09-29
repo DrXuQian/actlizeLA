@@ -163,10 +163,13 @@ The matched-geometry **implementation and migration experiment are closed**:
 it is implemented, locally proven, device-correct and measured over the
 registered space. It is not a universal tile improvement.
 
-Next, confirm only V16/4 versus the retained V32/8 control for the four
-promising full-chunk cells, using repeated same-cell paired ACU captures
-under the existing disjoint-envelope criterion. Do not expand the sweep or
-promote tail/large-workload configurations from these data. Preserve V32/8
-for the other measured shapes. Shape-dependent performance admission and
-the unified public selector remain the integration boundary; existing
-default/public routing is unchanged.
+User decision, 2026-09-29: **retain the existing implementation and end this
+tuning round**. The small observed V16/4 gains do not justify extra shape
+dispatch. Cancel the proposed four-cell repeat campaign and geometry
+selector wiring; keep the retained V32/8 control and existing default/public
+routing unchanged. The opt-in candidates and evidence remain available.
+
+This is a scope/engineering decision, not retrospective performance
+admission. The single-capture observations and original repeat criterion
+are unchanged: no stable V16/4 win or universally optimal geometry is
+claimed. There is no unfinished kernel edit or confirmation runner to ship.
