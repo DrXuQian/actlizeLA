@@ -1,4 +1,9 @@
 # Host ownership/layout checks for the legacy PPU AIU implementation only.
+add_executable(ppu_full_chunk_policy tests/ppu_full_chunk_policy.cpp)
+target_link_libraries(ppu_full_chunk_policy PRIVATE gdn_qsa_backend_headers)
+if(BUILD_TESTING)
+  add_test(NAME ppu_full_chunk_policy COMMAND ppu_full_chunk_policy)
+endif()
 add_executable(l004_ppu_affine_pipeline dev/ppu/l004_affine_pipeline.cpp)
 add_executable(l006_ppu_original_delivery dev/ppu/l006_original_kernel_delivery.cpp)
 target_include_directories(l006_ppu_original_delivery PRIVATE

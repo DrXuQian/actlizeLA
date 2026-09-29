@@ -1,8 +1,11 @@
+// Full-C64 specialization of the immutable gate-cache state control.
+// The source gate admits only removed tail predicates; numerical work is fixed.
 // Exact coefficient reuse on the frozen paired-H/V residual control.
 // Prefix, inverse and output reuse existing kernels; only state is new.
 #include "gdn_wy_common.cuh"
 #include "gdn_wy_state_copy.cuh"
 #include "gdn_qsa/ppu/wy_gate_coefficients.cuh"
+#include "gdn_qsa/ppu/wy_full_chunk.hpp"
 
 namespace gdn_qsa::wy::residual_warps8_hvlayout {
 int configure_hvlayout_output();
@@ -13,12 +16,12 @@ int configure();
 int launch_inverse(Inputs, Workspace, gdn_arch::Stream);
 }
 
-namespace gdn_qsa::wy::gate_cache {
+namespace gdn_qsa::wy::full_chunk {
 using namespace residual_warps8_hvlayout;
 using residual_warps8_hvlayout::StateTile;
 
 __global__ void __launch_bounds__(Plan::Threads)
-gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
+gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
   extern __shared__ __align__(128) unsigned char storage[];
   auto& shared = *reinterpret_cast<gate_cache::Storage*>(storage);
   auto& sm = shared.matrices;
@@ -44,7 +47,7 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
   #pragma unroll 1
   for (int ct = 0; ct < p.shape.chunks(); ++ct) {
     int64_t const group = p.shape.group(b, h, ct);
-    int const first = ct * Chunk, valid = Plan::valid(ct, p.shape.sequence);
+    int const first = ct * Chunk, valid = Chunk;
     Key::stage(sm.k, p.k + p.shape.input(b, first, qh, p.shape.q_heads),
                p.shape.q_heads * Dim, valid);
     Inverse::stage(sm.inverse, ws.w + Plan::inverse_base(group), Chunk, Chunk);
@@ -55,8 +58,7 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
       // from the already completed prefix kernel, including initialized tails.
       coefficients.publish(tid, ws.gates[group * Chunk + tid],
                            ws.gates[group * Chunk + valid - 1]);
-      sm.beta[tid] = tid < unsigned(valid)
-          ? float(p.beta[(int64_t(b) * p.shape.sequence + first + tid) * p.shape.value_heads + h]) : 0.0f;
+      sm.beta[tid] = float(p.beta[(int64_t(b) * p.shape.sequence + first + tid) * p.shape.value_heads + h]);
     }
     CUTE_UNROLL
     for (int k = 0; k < StateTile::KFragments; ++k) {
@@ -100,7 +102,7 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
         // Deliberate new rounding boundary. No exp(-prefix) / growing gate
         // factor: nonpositive log gates cannot overflow on strong decay.
         float const difference = float(sm.value[at]) - factor[half] * kh[r][s];
-        sm.residual[BIntermediate::producer_offset(b_store_base, r, s)] = BF16(row < valid ? beta[half] * difference : 0.0f);
+        sm.residual[BIntermediate::producer_offset(b_store_base, r, s)] = BF16(beta[half] * difference);
       }
     }
     __syncthreads();  // RESIDUAL_READY: P@R ready; all original input-V readers retired.
@@ -122,7 +124,7 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
       for (int s = 0; s < 8; ++s) {
         auto const rc = result_coord(lane, s);
         int const row = StateTile::value_row(warp, r) + rc.row;
-        float const x = row < valid ? value[r][s] : 0.0f;
+        float const x = value[r][s];
         sm.value[PublishedValue::producer_offset(b_store_base, r, s)] = BF16(x);
         sm.scaled[BIntermediate::producer_offset(b_store_base, r, s)] = BF16(x * row_decay[r][StateGateRows::half(s)]);
       }
@@ -163,19 +165,25 @@ gdn_wy_residual_gate_cache_state(Inputs p, Workspace ws, float* final) {
         sm.final_h, final + int64_t(bh) * Dim * Dim + v0, Dim);
   }
 }
-}  // namespace gdn_qsa::wy::gate_cache
+}  // namespace gdn_qsa::wy::full_chunk
 
-namespace {
-// Host-only composition: both arms launch the exact same state/output symbols.
-// StaticSolve chooses the already-proved solve without a device-side branch.
-template <bool StaticSolve>
-int forward_gate_cache(
+extern "C" int gdn_wy_forward_residual_gate_cache_solve_static(
+    void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
+    void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
+    int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream);
+
+extern "C" int gdn_wy_forward_residual_full_chunk(
     void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
     void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
     int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
   using namespace gdn_qsa::wy;
   using namespace residual_warps8_hvlayout;
-  using gate_cache::gdn_wy_residual_gate_cache_state;
+  using full_chunk::gdn_wy_residual_full_chunk_state;
+  if (!gate_cache::full_chunks(sequence)) {
+    return gdn_wy_forward_residual_gate_cache_solve_static(q, k, v, g, beta, initial,
+        output, final, inverse, snapshots, vnew, gates, batch, sequence,
+        q_heads, value_heads, gate_fp32, stream);
+  }
   if (batch <= 0 || sequence <= 0 || q_heads <= 0 || value_heads <= 0 || value_heads % q_heads ||
       !Key::admitted_stride(int64_t(q_heads) * Dim) ||
       !Key::admitted_stride(int64_t(value_heads) * Dim) || inverse == snapshots)
@@ -185,39 +193,20 @@ int forward_gate_cache(
   Workspace ws{static_cast<BF16*>(inverse), nullptr, static_cast<BF16*>(snapshots),
                static_cast<BF16*>(vnew), gates};
   int rc;
-  if constexpr (StaticSolve) rc = solve_static::configure();
-  else rc = configure_split_prepare();
+  rc = solve_static::configure();
   if (rc) return rc;
-  rc = int(hggcFuncSetAttribute(gdn_wy_residual_gate_cache_state,
+  rc = int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
   if (rc) return rc;
   rc = configure_hvlayout_output();
   if (rc) return rc;
   Workspace inverse_ws = ws;
   inverse_ws.snapshots = ws.w;  // old solve writes its padded pitch, NOT the live H workspace.
-  if constexpr (StaticSolve) rc = solve_static::launch_inverse(p, inverse_ws, stream);
-  else rc = launch_split_inverse(p, inverse_ws, stream);
+  rc = solve_static::launch_inverse(p, inverse_ws, stream);
   if (rc) return rc;
   unsigned const grid = unsigned(int64_t(batch) * value_heads * (Dim / ValueTile));
-  gdn_wy_residual_gate_cache_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
+  gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
   rc = int(hggcGetLastError());
   if (rc) return rc;
   return launch_hvlayout_output(p, ws, static_cast<BF16*>(output), stream);
-}
-}  // namespace
-
-extern "C" int gdn_wy_forward_residual_gate_cache(
-    void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
-    void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
-    int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
-  return forward_gate_cache<false>(q, k, v, g, beta, initial, output, final, inverse,
-      snapshots, vnew, gates, batch, sequence, q_heads, value_heads, gate_fp32, stream);
-}
-
-extern "C" int gdn_wy_forward_residual_gate_cache_solve_static(
-    void const* q, void const* k, void const* v, void const* g, void const* beta, float const* initial,
-    void* output, float* final, void* inverse, void* snapshots, void* vnew, float* gates,
-    int batch, int sequence, int q_heads, int value_heads, bool gate_fp32, gdn_arch::Stream stream) {
-  return forward_gate_cache<true>(q, k, v, g, beta, initial, output, final, inverse,
-      snapshots, vnew, gates, batch, sequence, q_heads, value_heads, gate_fp32, stream);
 }

@@ -76,15 +76,19 @@ This is opt-in (PPU alone does not enable it); see [perfmodel usage](docs/PERFMO
 ## PPU and SM80
 
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated
-Hopper instructions. It retains independently selectable original, WY and
-residual algorithms; installing the frontend does not promote an experimental
-path. See [PPU build/API](docs/PPU_BACKEND.md) and
+Hopper instructions. The retained V32/8 tuning is on `main`: static solve,
+gate reuse and full-C64 state with guarded-tail fallback. Use the unified
+entry with `backend="ppu10", algorithm="residual", delivery="full-chunk"`;
+no caller-selected warp geometry is needed. Original and materialized-WY
+remain explicit alternatives, and existing defaults are unchanged. See
+[PPU build/API](docs/PPU_RETAINED_PATH.md),
+[original implementation](docs/PPU_BACKEND.md) and
 [residual formulation](docs/PPU_GDN_RESIDUAL.md).
 
 ```bash
 git submodule update --init --recursive third_party/actlize
 GDN_QSA_TARGET=python python -m pip install --no-build-isolation --no-deps -e .
-# Then build the explicitly selected PPU backend following docs/PPU_BACKEND.md.
+# Then build the PPU backend following docs/PPU_RETAINED_PATH.md.
 ```
 
 The optional original CUDA SM80 operators can be compiled explicitly with
@@ -110,6 +114,9 @@ dispatch latency. Retained H800 evidence is in
 device performance measurement.
 
 ## Provenance
+
+`main` is the only development branch; unselected tuning arms and their
+evidence remain available through [archive tags](docs/BRANCHES.md).
 
 This is a new actlizeLA source history, migrated from the GDN-QSA-sm80 work.
 The old Python package name is not provided. Original code, cuLA derivatives,
