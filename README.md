@@ -1,7 +1,7 @@
 # actlizeLA
 
 Forward linear attention in CUDA C++/CuTe/CUTLASS, with independent execution
-backends for NVIDIA SM80, Hopper SM90a, and PPU1.0. Python supplies the tensor
+backends for NVIDIA SM80, Hopper SM90a, PPU1.0 and ZW890/PPU1.5. Python supplies the tensor
 API, not the compute kernels. Triton/FLA are optional comparison baselines.
 
 ## Install on H100 / H800 (SM90)
@@ -74,6 +74,20 @@ For simulator input, `mode="perfmodel"` with an explicit backend and
 This is opt-in (PPU alone does not enable it); see [perfmodel usage](docs/PERFMODEL.md).
 
 ## PPU and SM80
+
+ZW890 has a separate native PPU1.5 backend using the pinned actlize dependency.
+Build and run its admission suite inside the **matching PPU SDK/PyTorch container**:
+
+```bash
+PPU_SDK=/usr/local/PPU_SDK DEVICE=0 JOBS=8 bash tools/run_ppu15_gdn_box.sh
+```
+
+Then set `GDN_QSA_PPU15_EXTENSION` to the printed `_gdn_residual_ppu15*.so` and
+call `gdn_forward(..., backend="ppu15")`. There is no PPU1.0 binary fallback.
+Native bodies and host layouts are locally checked; **ZW890 numerical and
+performance admission is pending device execution**. The runner tests native
+primitive maps first, then 40 forward cases, then complete-forward timing.
+See [ZW890 support and scope](docs/PPU15_ZW890.md).
 
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated
 Hopper instructions. The retained V32/8 tuning is on `main`: static solve,

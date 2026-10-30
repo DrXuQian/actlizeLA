@@ -1,7 +1,7 @@
 """Common forward contract, without imposing an intermediate/kernel ABI.
 
 SM90 automatically selects a prebuilt configuration from tensor/device metadata.
-Other families retain their original default; WY/residual remain explicit.
+PPU1.5 selects its native residual path; older targets keep their defaults.
 Selection never examines gate values or compiles a kernel during a call.
 """
 from importlib import import_module
@@ -42,7 +42,7 @@ def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
             from .sm90_auto import forward
             return forward(q, k, v, g, beta, initial_state, output_final_state,
                            mode=mode, sm_count=sm_count)
-        algorithm = "original"
+        algorithm = "residual" if backend == "ppu15" else "original"
     if configuration is not None and algorithm != "fused_sm90":
         raise ValueError("named SM90 configurations do not apply to another backend")
     if algorithm == "fused_sm90" and backend is None:
@@ -72,4 +72,4 @@ def gdn_forward(q, k, v, g, beta, initial_state=None, output_final_state=True,
         return call(q, k, v, g, beta, output_final_state=output_final_state)
     return call(q, k, v, g, beta, initial_state=initial_state,
                 output_final_state=output_final_state,
-                delivery="scalar" if delivery is None else delivery)
+                delivery=implementation.get("default_delivery", "scalar") if delivery is None else delivery)

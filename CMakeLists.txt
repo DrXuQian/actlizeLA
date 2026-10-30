@@ -29,6 +29,11 @@ if(GDN_QSA_BUILD_PPU_TESTS)
   include(cmake/backends/ppu_aiu_tests.cmake)
 endif()
 
+option(GDN_QSA_BUILD_PPU15_TESTS "Build native PPU1.5 host layout checks" ${BUILD_TESTING})
+if(GDN_QSA_BUILD_PPU15_TESTS)
+  include(cmake/backends/ppu15_tests.cmake)
+endif()
+
 if(NOT GDN_QSA_RESOLVED_TARGET STREQUAL "none")
   include("${GDN_QSA_BACKEND_ENTRY}")
 endif()

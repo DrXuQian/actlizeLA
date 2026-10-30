@@ -19,8 +19,10 @@
       "family": "ppu_aiu",
       "dependency": "third_party/actlize",
       "build": "cmake",
-      "implemented": false,
-      "reason": "Legacy AIU dependency policy is retained; distinct PPU1.5 GDN target admission is not implemented. Do not substitute PPU1.0."
+      "implemented": true,
+      "build_entry": "cmake/backends/ppu15.cmake",
+      "device_admission": "UNVERIFIED",
+      "scope": "ZW890 forward BF16 D128 C64, native tc02/AIU; explicit target, no PPU1.0 binary fallback"
     },
     "cuda_sm90": {
       "family": "sm90",
@@ -70,10 +72,14 @@
     },
     "residual": {
       "targets": [
-        "ppu10"
+        "ppu10",
+        "ppu15"
       ],
       "module": "gdn_residual_interface",
       "entry": "gdn_chunk_residual",
+      "target_entries": {
+        "ppu15": {"module": "gdn_ppu15_interface", "entry": "gdn_chunk_ppu15", "default_delivery": "native"}
+      },
       "numerical_contract": "gated-inverse-residual-bf16-v1",
       "final_state_dtype": "fp32",
       "gate_dtypes": [

@@ -51,7 +51,7 @@ assert sys.modules['torch'] is None
             for count in (None, 0, -1, True, 20.0, "20"):
                 with self.subTest(count=count), self.assertRaisesRegex(ValueError, "positive integer"):
                     get_device_profile(mode="perfmodel", backend="ppu17", sm_count=count)
-            for backend in (None, "ppu", "unknown", "ppu15"):
+            for backend in (None, "ppu", "unknown"):
                 with self.subTest(backend=backend), self.assertRaises((ValueError, RuntimeError)):
                     get_device_profile(mode="perfmodel", backend=backend, sm_count=20)
 

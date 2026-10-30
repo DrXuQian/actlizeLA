@@ -83,10 +83,11 @@ class Dispatch(unittest.TestCase):
 
     def test_inventory_is_not_mutable_authority_or_device_admission(self):
         inventory = backend_inventory()
-        self.assertFalse(inventory["targets"]["ppu15"]["implemented"])
-        inventory["targets"]["ppu15"]["implemented"] = True
-        with self.assertRaisesRegex(RuntimeError, "not implemented"):
-            require_backend("ppu15")
+        self.assertTrue(inventory["targets"]["ppu15"]["implemented"])
+        inventory["targets"]["ppu15"]["implemented"] = False
+        inventory["targets"]["ppu15"]["device_admission"] = "ADMITTED"
+        self.assertTrue(require_backend("ppu15")["implemented"])
+        self.assertEqual(require_backend("ppu15")["device_admission"], "UNVERIFIED")
         self.assertEqual(require_backend("ppu17")["device_admission"],"UNVERIFIED")
         with self.assertRaises(ValueError):
             require_backend("typo")
@@ -124,7 +125,7 @@ class BuildBoundary(unittest.TestCase):
         self.assertFalse((self.work / "host/actlize").exists())
 
     def test_new_architecture_is_not_successful_legacy_build(self):
-        for target in ("ppu15", "ppu17"):
+        for target in ("ppu17",):
             with self.subTest(target=target):
                 result = self.configure(target, f"-DGDN_QSA_TARGET={target}")
                 self.assertNotEqual(result.returncode, 0)

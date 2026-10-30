@@ -18,7 +18,7 @@ mode = os.environ["HGCC_TEST_MODE"]
 if mode == "broken":
     print("fatal error: hggc_fp16.h: No such file", file=sys.stderr)
     raise SystemExit(1)
-if mode == "neither" or (mode == "legacy" and arch != "ppu001"):
+if mode == "neither" or (mode == "legacy" and arch not in ("ppu001", "ppu0015")):
     print("hgcc error: invalid value '" + arch + "' for option 'gpu-architecture=', valid values are: ppu001,ppu0015,all", file=sys.stderr)
     raise SystemExit(3)
 if mode != "no-output":
@@ -39,13 +39,14 @@ class HgccArchContract(unittest.TestCase):
         self.compiler.write_text(COMPILER.format(python=sys.executable))
         self.compiler.chmod(0o755)
 
-    def configure(self, mode, arch="ppu_10"):
+    def configure(self, mode, arch="ppu_10", logical=None):
         script = self.work / "check.cmake"
         script.write_text(
             f'cmake_minimum_required(VERSION 3.19)\n'
             f'include("{ROOT / "cmake/GdnHgccArch.cmake"}")\n'
-            f'gdn_hgcc_arch_flags(flags contract "{self.compiler}" '
-            f'"-arch={arch}" -x hg -Xllvm -keep-original-option -DGDN_QSA_PPU=1)\n'
+            + (f'gdn_hgcc_target_flags({logical} flags contract "{self.compiler}" ' if logical else
+               f'gdn_hgcc_arch_flags(flags contract "{self.compiler}" ')
+            + f'"-arch={arch}" -x hg -Xllvm -keep-original-option -DGDN_QSA_PPU=1)\n'
             'file(WRITE "selected-flags.txt" "${flags}")\n')
         attempts = self.work / f"attempts-{mode}-{arch}.txt"
         result = subprocess.run(["cmake", "-P", str(script)], cwd=self.work,
@@ -110,6 +111,18 @@ class HgccArchContract(unittest.TestCase):
 
     def test_wrong_logical_architecture_is_red_before_compile(self):
         result, attempts = self.configure("modern", "ppu_15")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(attempts, [])
+
+    def test_ppu15_aliases_do_not_fallback_to_ppu10(self):
+        result, attempts = self.configure("legacy", "ppu_15", "ppu0015")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(attempts, ["ppu_15", "ppu0015"])
+        self.assertIn("logical=ppu0015", (self.work / "gdn_hgcc_arch.txt").read_text())
+        result, attempts = self.configure("broken", "ppu_15", "ppu0015")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(attempts, ["ppu_15"])
+        result, attempts = self.configure("modern", "ppu001", "ppu0015")
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(attempts, [])
 

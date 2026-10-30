@@ -59,6 +59,13 @@ def load_wy():
     return _load("_gdn_wy_ppu", _explicit_path("GDN_QSA_WY_EXTENSION"))
 
 
+def load_ppu15():
+    module = _load("_gdn_residual_ppu15", _explicit_path("GDN_QSA_PPU15_EXTENSION"))
+    if not hasattr(module, "target_arch") or module.target_arch() != 150:
+        raise RuntimeError("GDN_QSA_PPU15_EXTENSION is not a native PPU1.5 image; no fallback")
+    return module
+
+
 def clear_backend_cache():
     """Testing hook; this does not unload native libraries from the process."""
     _load.cache_clear()

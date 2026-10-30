@@ -43,12 +43,14 @@ o, ht = gdn_forward(q, k, v, g, beta, initial_state=h0,
                    delivery="warps8-hvlayout")
 ```
 
-Distinct `ppu15` builds/calls still fail with a reason. `cuda_sm90` and `ppu17`
-have a separate complete `fused_sm90` source graph, never a legacy fallback.
-PPU1.5 retains the actlize dependency policy, but the existing
-compiler gate had only admitted PPU1.0; this refactor does not invent a PPU1.5
-numerical admission. Do not set an `implemented` bit to bypass this: each target
-needs its own registered source graph and native/body/device checks.
+Since 2026-10-30, `ppu15` has an independent native residual source graph in
+`csrc/backends/ppu15`, built by `cmake/backends/ppu15.cmake`. The common entry
+with explicit `backend="ppu15"` selects it without a delivery/configuration
+choice. It uses the pinned actlize PPU0015 atoms, not tc01 or Hopper emulation.
+PPU1.0 and NVIDIA defaults remain unchanged. Its source/native compilation is
+implemented; ZW890 numerical/performance admission remains **UNVERIFIED** until
+the [device suite](PPU15_ZW890.md) passes. `cuda_sm90` and `ppu17` retain their
+separate complete `fused_sm90` source graph, never a legacy fallback.
 
 The original entry rejects a nonzero/explicit initial-state argument because its
 old interface cannot consume it; WY/residual retain theirs. The new wrapper does

@@ -41,4 +41,4 @@ def require_implementation(algorithm, backend):
     implementation = algorithms[algorithm]
     if backend not in implementation["targets"]:
         raise RuntimeError(f"GDN algorithm {algorithm} has no {backend} implementation; no fallback")
-    return implementation
+    return {**implementation, **implementation.get("target_entries", {}).get(backend, {})}
