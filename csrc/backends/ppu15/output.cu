@@ -107,9 +107,10 @@ __global__ void __launch_bounds__(OutputTile::Threads) output_kernel(Inputs p, W
   }
 }
 }  // namespace
+int configure_output() {
+  return int(hggcFuncSetAttribute(output_kernel, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(OutputStorage)));
+}
 int output(Inputs p, Workspace ws, BF16* result, hggcStream_t stream) {
-  auto rc = hggcFuncSetAttribute(output_kernel, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(OutputStorage));
-  if (rc) return int(rc);
   output_kernel<<<unsigned(p.shape.groups()), OutputTile::Threads, sizeof(OutputStorage), stream>>>(p, ws, result);
   return int(hggcGetLastError());
 }

@@ -1,0 +1,64 @@
+cmake_minimum_required(VERSION 3.19)
+project(actlize_la_serving LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+get_filename_component(ALA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+set(ALA_TARGET "" CACHE STRING "Explicit serving target: ppu10, ppu15, cuda_sm120")
+set(_sources "${CMAKE_CURRENT_SOURCE_DIR}/gdn.cu" "${CMAKE_CURRENT_SOURCE_DIR}/prefill.cu"
+             "${CMAKE_CURRENT_SOURCE_DIR}/qsa.cu" "${CMAKE_CURRENT_SOURCE_DIR}/conv_history.cu")
+
+if(ALA_TARGET STREQUAL "cuda_sm120")
+  enable_language(CUDA)
+  add_library(actlize_la_serving SHARED ${_sources})
+  set_target_properties(actlize_la_serving PROPERTIES CUDA_ARCHITECTURES 120 CUDA_STANDARD 17)
+  target_compile_options(actlize_la_serving PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--fmad=false;-lineinfo>)
+elseif(ALA_TARGET STREQUAL "ppu10" OR ALA_TARGET STREQUAL "ppu15")
+  if(NOT PPU_SDK_ROOT)
+    message(FATAL_ERROR "Set PPU_SDK_ROOT to the matching installed SDK")
+  endif()
+  if(ALA_TARGET STREQUAL "ppu15")
+    set(_arch ppu0015)
+    set(_numeric 150)
+    list(APPEND _sources
+      "${ALA_ROOT}/csrc/backends/ppu15/prepare.cu"
+      "${ALA_ROOT}/csrc/backends/ppu15/state.cu"
+      "${ALA_ROOT}/csrc/backends/ppu15/output.cu"
+      "${ALA_ROOT}/csrc/backends/ppu15/launch.cu")
+  else()
+    set(_arch ppu0010)
+    set(_numeric 100)
+  endif()
+  set(CUTLASS_PPU_ARCHS "${_arch}" CACHE STRING "PPU architecture" FORCE)
+  foreach(_option EXAMPLES TOOLS LIBRARY TESTS GTEST_UNIT_TESTS)
+    set(CUTLASS_ENABLE_${_option} OFF CACHE BOOL "" FORCE)
+  endforeach()
+  set(_actlize "${ALA_ROOT}/third_party/actlize")
+  add_subdirectory("${_actlize}" actlize)
+  foreach(_var CUTLASS_PPU_EXTRA_HGCC_FLAGS CUTLASS_PPU_DEV_INCLUDE_FLAGS PPU_DEVICE_HGCC_REAL)
+    get_directory_property(${_var} DIRECTORY "${_actlize}" DEFINITION ${_var})
+  endforeach()
+  include("${ALA_ROOT}/cmake/GdnHgccArch.cmake")
+  gdn_hgcc_target_flags("${_arch}" CUTLASS_PPU_EXTRA_HGCC_FLAGS _arch_contract
+    "${PPU_DEVICE_HGCC_REAL}" ${CUTLASS_PPU_EXTRA_HGCC_FLAGS})
+  # Preserve the native residual kernel's original math flags. Only the
+  # recurrence/commit state seam uses explicit RN intrinsics to prevent an
+  # accidental fused-vs-unfused record replay difference.
+  list(APPEND CUTLASS_PPU_EXTRA_HGCC_FLAGS -std=c++17 -O3 "-DALA_PPU_TARGET=${_numeric}")
+  list(APPEND CUTLASS_PPU_DEV_INCLUDE_FLAGS "-I${ALA_ROOT}/include")
+  cutlass_add_library(actlize_la_serving SHARED ${_sources})
+  target_link_libraries(actlize_la_serving PRIVATE CUTLASS ppu::runtime)
+  file(GLOB_RECURSE _headers CONFIGURE_DEPENDS
+    "${ALA_ROOT}/include/*.hpp" "${ALA_ROOT}/include/*.cuh"
+    "${ALA_ROOT}/csrc/serving/*.h" "${ALA_ROOT}/csrc/serving/*.cuh"
+    "${ALA_ROOT}/csrc/backends/ppu15/*.h" "${ALA_ROOT}/csrc/backends/ppu15/*.cuh"
+    "${_actlize}/include/*.h" "${_actlize}/include/*.hpp" "${_actlize}/include/*.inl")
+  get_target_property(_objects actlize_la_serving SOURCES)
+  foreach(_object IN LISTS _objects)
+    if(_object MATCHES "[.]o$")
+      add_custom_command(OUTPUT "${_object}" APPEND DEPENDS ${_headers} "${_arch_contract}")
+    endif()
+  endforeach()
+else()
+  message(FATAL_ERROR "ALA_TARGET must be ppu10, ppu15 or cuda_sm120; no architecture guessing")
+endif()
+target_link_options(actlize_la_serving PRIVATE -Wl,--no-undefined)

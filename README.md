@@ -110,6 +110,14 @@ The optional original CUDA SM80 operators can be compiled explicitly with
 --no-build-isolation -e .`. PPU1.7 has a separate PPU CUTLASS3.6/10700 source
 graph; CUDA source checks are **not** native PPU1.7 execution evidence.
 
+## Prepared serving interfaces
+
+`actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
+PPU1.5 prefill with explicit state-layout conversion, and paged incremental
+BF16 QSA. Flare preparation bindings, workspace bounds and a box test script
+are documented in [Flare serving](docs/FLARE_SERVING.md). These operators require
+their own device admission; existing public APIs and model routing are unchanged.
+
 ## Layout
 
 - `actlize_la/`: Python contracts, shape policy and verified native loading.

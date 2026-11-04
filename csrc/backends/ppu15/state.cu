@@ -146,13 +146,16 @@ __global__ void __launch_bounds__(StateTile::Threads) state_kernel(Inputs p, Wor
 }
 template <bool FullChunks>
 int launch_state(Inputs p, Workspace ws, float* final, hggcStream_t stream) {
-  auto rc = hggcFuncSetAttribute(state_kernel<FullChunks>, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(StateStorage));
-  if (rc) return int(rc);
   auto const grid = unsigned(int64_t(p.shape.batch) * p.shape.value_heads * (Dim / ValueTile));
   state_kernel<FullChunks><<<grid, StateTile::Threads, sizeof(StateStorage), stream>>>(p, ws, final);
   return int(hggcGetLastError());
 }
 }  // namespace
+int configure_state() {
+  auto rc = hggcFuncSetAttribute(state_kernel<true>, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(StateStorage));
+  if (rc) return int(rc);
+  return int(hggcFuncSetAttribute(state_kernel<false>, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(StateStorage)));
+}
 int state(Inputs p, Workspace ws, float* final, hggcStream_t stream) {
   return p.shape.sequence % Chunk == 0 ? launch_state<true>(p, ws, final, stream)
                                       : launch_state<false>(p, ws, final, stream);
