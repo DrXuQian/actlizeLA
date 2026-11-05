@@ -4,6 +4,19 @@ import math
 import torch
 
 
+def assert_raw_unchanged(actual, snapshot, *, label):
+    """Compare to the SAME execution's pre-call bytes, not its math oracle.
+
+    Harness only: all observation/copies occur outside graph capture/timing.
+    """
+    assert actual.shape == snapshot.shape and actual.dtype == snapshot.dtype
+    bits = {torch.float32: torch.int32, torch.bfloat16: torch.int16}[actual.dtype]
+    left = actual.detach().cpu().contiguous().view(bits)
+    right = snapshot.detach().cpu().contiguous().view(bits)
+    bad = int((left != right).count_nonzero())
+    assert bad == 0, f"{label}: raw_bitdiff={bad}/{left.numel()}"
+
+
 def bf(x):
     return x.to(torch.bfloat16).float()
 

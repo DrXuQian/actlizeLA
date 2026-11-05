@@ -167,7 +167,7 @@ when the framework adopts it; old ABI semantics are intentionally preserved.
 
 ## Validation and box command
 
-Local (2026-11-05): **147 Python tests +29 subtests and27 C++ tests pass**,
+Local (2026-11-05): **150 Python tests +29 subtests and27 C++ tests pass**,
 covering independent CPU references/negative witnesses, native descriptor
 checks and export metadata. SM120 AOT library and native
 example compile/link; PPU1.0/1.5 changed bodies compile with real SDK2.1.1.
@@ -178,11 +178,14 @@ full Flare model export are not yet admitted**. No device result is fabricated.
 git switch feat/flare-gdn-qsa-mtp
 git pull --ff-only
 git submodule update --init third_party/actlize
-TARGET=ppu15 PPU_SDK=/usr/local/PPU_SDK JOBS=8 \
+TARGET=ppu10 PPU_SDK=/usr/local/PPU_SDK JOBS=8 \
   bash tools/run_flare_serving_box.sh
 ```
 
-Use `TARGET=ppu10` for ZW810; for NVIDIA use `TARGET=cuda_sm120 CUDACXX=nvcc`.
+The runner defaults to `ppu10` for ZW810. Use `TARGET=ppu15` only for ZW890;
+for NVIDIA use `TARGET=cuda_sm120 CUDACXX=nvcc`. Before building and again in
+device tests, the measured device must match the requested generation. A
+PPU1.5 binary on PPU1.0 is rejected, not silently re-targeted.
 Install the repository's Python package/dependencies in the matching platform
 Torch environment beforehand; do not overwrite its Torch/FlashInfer artifacts.
 The runner creates a new `/workspace` directory, rebuilds the correct target,
@@ -197,3 +200,11 @@ concurrent independent streams, QSA legacy graph gates, and allocation growth.
 It reports operator/graph event spans, actual captured node types/kernel counts
 and retained storage. These times include launch gaps, are not ACU device-only
 measurements, and do **not** prove absence of GPU idle or full-model speed.
+
+Zero-prefix immutability uses a snapshot of the **actual device state before
+that replay**, compared as raw bits afterward. A separately evolved CPU
+recurrence remains the numerical oracle, but is not the bitwise authority for
+"no write": preceding permitted FP32 rounding differences persist even when
+the zero-prefix operation changes no bytes. Host controls reproduce that old
+false red and require a one-bit accidental write (including signed zero) to
+fail. Kernel arithmetic and the numerical tolerances are unchanged.

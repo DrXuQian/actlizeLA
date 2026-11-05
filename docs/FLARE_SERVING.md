@@ -206,11 +206,13 @@ Workspace upper bounds are returned by `gdn_workspace_specs` /
 
 ```bash
 git submodule update --init third_party/actlize
-TARGET=ppu15 PPU_SDK=/usr/local/PPU_SDK JOBS=8 \
+TARGET=ppu10 PPU_SDK=/usr/local/PPU_SDK JOBS=8 \
   bash tools/run_flare_serving_box.sh
 ```
 
-For NVIDIA validation use `TARGET=cuda_sm120 CUDACXX=/path/to/nvcc` instead.
+Use `TARGET=ppu10` for ZW810, `TARGET=ppu15` for ZW890. The runner checks the
+measured device generation before building. For NVIDIA validation use
+`TARGET=cuda_sm120 CUDACXX=/path/to/nvcc` instead.
 No PPU probe utility or profiler is needed. This builds against the box's
 matching SDK (local PPU runtime libraries may be unavailable), runs host tests,
 then actual device/graph tests. Upload the printed `results.tar.gz`; it contains

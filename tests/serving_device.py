@@ -29,7 +29,10 @@ from serving_reference import (
     attention_reference,
 )
 
+from actlize_la.serving.device import current_device_identity
+
 torch.set_num_threads(1)
+
 RESULTS = []
 
 
@@ -768,6 +771,7 @@ def main():
         report["library_sha256"] = hashlib.sha256(
             Path(args.library).read_bytes()
         ).hexdigest()
+        report["target_admission"] = current_device_identity(args.target)
         lib = NativeLibrary(args.library, target=args.target)
         if args.target == "cuda_sm120" and torch.cuda.get_device_capability() != (
             12,

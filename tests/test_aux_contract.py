@@ -25,9 +25,36 @@ from aux_reference import (
     convolution,
     encoded_history,
     hash_packed,
+    assert_raw_unchanged,
 )
 
 torch.set_num_threads(1)
+
+
+def test_zero_prefix_uses_device_snapshot_not_mathematical_oracle():
+    reference = torch.ones(2, 128, 128, dtype=torch.float32)
+    before = reference.clone()
+    before[0, 0, 0] = torch.nextafter(reference[0, 0, 0], torch.tensor(2.0))
+    after = before.clone()  # the operation did NOT modify any bit
+    torch.testing.assert_close(after, reference, rtol=1e-6, atol=0)
+    # Reproduce the old false red after a previously admitted rounded update.
+    assert not torch.equal(after, reference)
+    assert_raw_unchanged(after, before, label="unchanged FP32 state")
+    after.view(torch.int32)[0, 0, 0] ^= 1
+    # The old CPU-reference equality would now turn GREEN despite this write.
+    assert torch.equal(after, reference)
+    with pytest.raises(AssertionError, match="raw_bitdiff=1/"):
+        assert_raw_unchanged(after, before, label="one-bit accidental state write")
+
+
+def test_raw_snapshot_sees_bf16_and_signed_zero_writes():
+    before = torch.zeros(2, 9, dtype=torch.bfloat16)
+    after = before.clone()
+    assert_raw_unchanged(after, before, label="conv snapshot")
+    after.view(torch.int16)[0, 0] = -32768
+    assert torch.equal(after, before)  # float equality misses this -0.0 bit change
+    with pytest.raises(AssertionError, match="raw_bitdiff=1/"):
+        assert_raw_unchanged(after, before, label="signed-zero mutation")
 
 
 def test_whole_width_is_not_grouped():

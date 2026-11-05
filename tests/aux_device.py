@@ -34,8 +34,10 @@ from aux_reference import (
     convolution,
     encoded_history,
     hash_packed,
+    assert_raw_unchanged,
 )
 from serving_reference import gdn_reference
+from actlize_la.serving.device import current_device_identity
 from serving_device import GdnCase, close
 
 torch.set_num_threads(1)
@@ -709,8 +711,10 @@ def chain_tests(lib):
     for iteration, count in enumerate((0, 1, 4, 8, 2, 0, 8, 3)):
         counts = [count, 8 - count, 0]
         a.selected.copy_(torch.tensor(counts, dtype=torch.int32))
-        before = state.clone()
-        conv_before = conv.clone()
+        # Snapshot the actual device state, NOT the independent CPU recurrence
+        # after earlier rounds. The latter is a numerical, not bitwise, oracle.
+        before = c.state.detach().cpu().clone()
+        conv_before = a.conv_state.detach().cpu().clone()
         expected_outputs = []
         for r, slot in ((0, 2), (1, 4)):
             h = conv[r, :, previous[r] - 1 : previous[r] + 2]
@@ -763,10 +767,19 @@ def chain_tests(lib):
         check_bf(a.normalized[:16], norm_want)
         assert not a.normalized[16:].any().item()
         assert torch.equal(a.conv_state.cpu(), conv)
-        if count == 0:
-            assert torch.equal(c.state[2].cpu(), before[2]) and torch.equal(
-                a.conv_state[0].cpu(), conv_before[0]
-            )
+        for r, slot in ((0, 2), (1, 4)):
+            if counts[r] == 0:
+                label = f"zero-prefix replay={iteration} request={r} slot={slot}"
+                assert_raw_unchanged(
+                    c.state[slot], before[slot], label=label + " recurrent"
+                )
+                assert_raw_unchanged(
+                    a.conv_state[r], conv_before[r], label=label + " convolution"
+                )
+                print(
+                    "[FlashNext zero-prefix] " + label + " raw_bitdiff=0/PASS",
+                    flush=True,
+                )
         a.prev.copy_(torch.tensor(previous, dtype=torch.int32))
         assert torch.cuda.memory_allocated() == memory
     before = c.state.clone()
@@ -1130,6 +1143,7 @@ def main():
         report["binary_sha256"] = hashlib.sha256(
             Path(args.library).read_bytes()
         ).hexdigest()
+        report["target_admission"] = current_device_identity(args.target)
         lib = NativeLibrary(args.library, target=args.target)
         pointwise_tests(lib)
         conv_tests(lib)

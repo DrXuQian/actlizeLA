@@ -2,7 +2,7 @@
 # Run in a child shell: failures do not exit the user's interactive container.
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET="${TARGET:-ppu15}"
+TARGET="${TARGET:-ppu10}"
 PYTHON="${PYTHON:-python}"
 SHA="$(git -C "$ROOT" rev-parse HEAD)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -55,10 +55,12 @@ case "$TARGET" in
     fi
     export LD_LIBRARY_PATH="$SDK/lib:$SDK/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     "$SDK/bin/hgcc" --version | tee -a "$OUT/identity.txt"
+    "$PYTHON" -m actlize_la.serving.device --target "$TARGET" 2>&1 | tee -a "$OUT/identity.txt"
     cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET="$TARGET" \
       -DPPU_SDK_ROOT="$SDK" -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1
     ;;
   cuda_sm120)
+    "$PYTHON" -m actlize_la.serving.device --target "$TARGET" 2>&1 | tee -a "$OUT/identity.txt"
     cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET=cuda_sm120 \
       -DCMAKE_CUDA_COMPILER="${CUDACXX:-nvcc}" -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1
     ;;

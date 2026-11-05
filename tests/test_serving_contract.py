@@ -21,6 +21,24 @@ from serving_reference import (
 torch.set_num_threads(1)
 
 
+def test_target_device_mismatch_before_launch():
+    from actlize_la.serving.device import validate_device_target
+
+    validate_device_target("ppu10", "PPU-ZW810")
+    validate_device_target("ppu15", "PPU-ZW890")
+    validate_device_target("cuda_sm120", "RTX PRO 6000 Blackwell", (12, 0))
+    for target, name, cap in (
+        ("ppu15", "PPU-ZW810", None),
+        ("ppu10", "PPU-ZW890", None),
+        ("ppu15", "unknown PPU", None),
+        ("ppu10", "ZW8100", None),
+        ("cuda_sm120", "PPU-ZW810", (12, 0)),
+        ("cuda_sm120", "H800", (9, 0)),
+    ):
+        with pytest.raises(ValueError):
+            validate_device_target(target, name, cap)
+
+
 @pytest.mark.parametrize("width", [1, 2, 4, 8])
 def test_gdn_all_accepted_prefixes(width):
     torch.manual_seed(10 + width)
