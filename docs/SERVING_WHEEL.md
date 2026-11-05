@@ -1,4 +1,12 @@
-# Complete serving wheel (0.2.0)
+# Complete serving wheel (0.2.1)
+
+Version 0.2.1 fixes fake tracing with symbolic process-local serving handles.
+Flare's Torch 2.9 AOT workers represent a rebound handle as an unbacked SymInt;
+it cannot be used as a weak-registry key. Fake dispatch leaves symbolic handles
+unresolved, while concrete owners still validate tensor metadata and real
+dispatch still requires a live owner. Native kernels and the C ABI are unchanged.
+Rebuild/reseal the complete wheel; editing installed binding files invalidates
+the package manifest. Device and complete-model qualification remain separate.
 
 Distribution `actlize-la`, import `actlize_la`. A complete serving wheel includes
 GDN/transactions/prefill, QSA, ShortConv/history, normalization, HC, PLE and MTP

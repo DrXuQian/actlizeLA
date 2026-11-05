@@ -34,6 +34,10 @@ def _serving_out(
 def _fake_serving_out(inputs, buffers, plan):
     # No pointer access or numerical work in fake mode. A prepared owner can
     # still reject a different static geometry/dtype during capture/export.
+    # A compiler worker may represent the rebound process-local handle as an
+    # unbacked SymInt. It has no owner here and must not be hashed or specialized.
+    if isinstance(plan, torch.SymInt):
+        return
     owner = _plans.get(plan)
     if owner is not None:
         owner.check_metadata(inputs, buffers)
