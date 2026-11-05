@@ -30,6 +30,11 @@ def _serving_out(
 
 @_serving_out.register_fake
 def _fake_serving_out(inputs, buffers, plan):
+    # No pointer access or numerical work in fake mode. A prepared owner can
+    # still reject a different static geometry/dtype during capture/export.
+    owner = _plans.get(plan)
+    if owner is not None:
+        owner.check_metadata(inputs, buffers)
     return None
 
 
@@ -151,7 +156,7 @@ class PreparedNative:
     def __call__(self):
         _serving_out(self.inputs, self.buffers, self.handle)
 
-    def check_operands(self, inputs, buffers):
+    def check_metadata(self, inputs, buffers):
         values = (*inputs, *buffers)
         if len(inputs) != len(self.inputs) or len(buffers) != len(self.buffers):
             raise ValueError("serving operand denominator changed")
@@ -166,7 +171,10 @@ class PreparedNative:
                 raise ValueError(
                     "serving operand shape/dtype/inner layout changed after preparation"
                 )
-        if tuple(t.data_ptr() for t in values) != self.pointers:
+
+    def check_operands(self, inputs, buffers):
+        self.check_metadata(inputs, buffers)
+        if tuple(t.data_ptr() for t in (*inputs, *buffers)) != self.pointers:
             reject_aliases(inputs, buffers)
 
     def stream(self):

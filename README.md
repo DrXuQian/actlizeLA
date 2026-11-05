@@ -118,6 +118,11 @@ BF16 QSA. Flare preparation bindings, workspace bounds and a box test script
 are documented in [Flare serving](docs/FLARE_SERVING.md). These operators require
 their own device admission; existing public APIs and model routing are unchanged.
 
+The serving branch also supplies [FlashNext auxiliary helpers](docs/FLARE_FLASHNEXT_AUX.md):
+rounded Grouped/Gated RMSNorm, HC combine/norm, speculative dilation1/3 ShortConv,
+packed PLE hash/gate and single-use GDN records. C/C++ launch ABIs and a
+Torch-free native graph example accompany the caller-owned Python bindings.
+
 ## Layout
 
 - `actlize_la/`: Python contracts, shape policy and verified native loading.

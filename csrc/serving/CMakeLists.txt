@@ -5,7 +5,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 get_filename_component(ALA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 set(ALA_TARGET "" CACHE STRING "Explicit serving target: ppu10, ppu15, cuda_sm120")
 set(_sources "${CMAKE_CURRENT_SOURCE_DIR}/gdn.cu" "${CMAKE_CURRENT_SOURCE_DIR}/prefill.cu"
-             "${CMAKE_CURRENT_SOURCE_DIR}/qsa.cu" "${CMAKE_CURRENT_SOURCE_DIR}/conv_history.cu")
+             "${CMAKE_CURRENT_SOURCE_DIR}/qsa.cu" "${CMAKE_CURRENT_SOURCE_DIR}/conv_history.cu"
+             "${CMAKE_CURRENT_SOURCE_DIR}/aux_pointwise.cu"
+             "${CMAKE_CURRENT_SOURCE_DIR}/aux_shortconv.cu"
+             "${CMAKE_CURRENT_SOURCE_DIR}/aux_hash.cu")
 
 if(ALA_TARGET STREQUAL "cuda_sm120")
   enable_language(CUDA)
@@ -62,3 +65,20 @@ else()
   message(FATAL_ERROR "ALA_TARGET must be ppu10, ppu15 or cuda_sm120; no architecture guessing")
 endif()
 target_link_options(actlize_la_serving PRIVATE -Wl,--no-undefined)
+install(TARGETS actlize_la_serving LIBRARY DESTINATION lib)
+install(FILES abi.h qsa.h aux_v1.h gdn_transaction_v2.h
+        DESTINATION include/actlize_la/serving)
+
+option(ALA_BUILD_SERVING_EXAMPLE "Build a Torch-free native graph consumer" ON)
+if(ALA_BUILD_SERVING_EXAMPLE)
+  add_executable(actlize_la_native_graph native_graph_example.cpp)
+  target_link_libraries(actlize_la_native_graph PRIVATE actlize_la_serving)
+  if(ALA_TARGET STREQUAL "cuda_sm120")
+    find_package(CUDAToolkit REQUIRED)
+    target_link_libraries(actlize_la_native_graph PRIVATE CUDA::cudart)
+  else()
+    target_compile_definitions(actlize_la_native_graph PRIVATE "ALA_PPU_TARGET=${_numeric}")
+    target_include_directories(actlize_la_native_graph PRIVATE "${PPU_SDK_ROOT}/include")
+    target_link_libraries(actlize_la_native_graph PRIVATE ppu::runtime)
+  endif()
+endif()

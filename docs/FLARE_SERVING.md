@@ -12,7 +12,10 @@ Source contracts checked against Flare `feat/qwen38-gguf` at `51a4f2e`:
 and Qwen38 `attention.py`, `state.py`, `speculative_state.py`, `speculative_model.py`.
 The QSA compression/rounding contract follows b12x's `qsa/reference.py` and
 `qsa/_kernels.py`. Existing actlizeLA online softmax, score ordering and native
-PPU1.5 residual prefill are retained. ShortConv, gated norm, main Q/K norm/RoPE,
+PPU1.5 residual prefill are retained. The additive
+[FlashNext auxiliary interfaces](FLARE_FLASHNEXT_AUX.md) now provide optional
+ShortConv, gated/grouped norm, HC/PLE helpers and checked record transactions.
+They do not automatically replace framework calls. Main Q/K norm/RoPE,
 projections, model scheduling and sampling remain in their original owners.
 
 ## Target and validation boundary
@@ -93,12 +96,15 @@ emitted token remains pending and was not one of those inputs. Pass that
 already-computed tensor; do not recompute sampling/EOS/budget decisions here.
 Records may be consumed only once per verification round, before reuse.
 
-Keep Flare's speculative ShortConv. It stores the first consumed token plus
+Preserve Flare's speculative ShortConv contract (or use the new compatible
+native helper). It stores the first consumed token plus
 the speculative tail; the next call selects history at `previous_accepted-1`.
 For a positive consumed prefix do not also shift that history now, or the
 next call will apply the prefix twice. For a **zero target-consumed prefix**,
-`PreparedConvHistory(restore=False)` snapshots the small convolution row before
-ShortConv, and `restore=True` restores it after acceptance. Flare must retain
+history transport snapshots the small convolution row before ShortConv and
+restores it after acceptance. Use new `PreparedConvHistoryV1` for raw ShortConv
+slots (0 valid, -1 inactive), not legacy `PreparedConvHistory` (0 null).
+Flare must retain
 the prior `previous_accepted` in that zero-count case (its current
 `_commit_hidden` does). This is state transport, not another convolution.
 Zero accepted drafts usually means one target-consumed input, not this case.

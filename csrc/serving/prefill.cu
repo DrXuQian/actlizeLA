@@ -1,4 +1,5 @@
 #include "abi.h"
+#include "gdn_transaction_v2.h"
 #include "runtime.cuh"
 #if ALA_PPU_TARGET == 150
 #include "../backends/ppu15/launch.h"
@@ -7,6 +8,8 @@
 namespace actlize_la::serving {
 bool valid(Gdn const &);
 int prepare(Gdn const &, Stream);
+int prepare_checked(Gdn const &, Stream, ala_gdn_transaction_v2 const &);
+bool valid_dependency(ala_gdn_transaction_v2 const *, int);
 
 #if ALA_PPU_TARGET == 150
 __global__ void pack_prefill(Prefill p) {
@@ -86,10 +89,12 @@ extern "C" int ala_prefill_configure() {
   return 0;
 #endif
 }
-extern "C" int ala_prefill_run(actlize_la::serving::Prefill const *p,
-                               void *stream) {
+static int prefill_impl(actlize_la::serving::Prefill const *p,
+                        ala_gdn_transaction_v2 const *guard, void *stream) {
   using namespace actlize_la::serving;
   if (!p || !valid(p->gdn) || p->gdn.mode != ChunkPrefill)
+    return -1;
+  if (guard && !valid_dependency(guard, p->gdn.requests))
     return -1;
 #if ALA_PPU_TARGET == 150
   if (!p->q || !p->k || !p->v || !p->beta || !p->output || !p->log_g ||
@@ -98,7 +103,7 @@ extern "C" int ala_prefill_run(actlize_la::serving::Prefill const *p,
     return -1;
   auto s = static_cast<Stream>(stream);
   auto const &g = p->gdn;
-  if (int rc = prepare(g, s))
+  if (int rc = guard ? prepare_checked(g, s, *guard) : prepare(g, s))
     return rc;
   pack_prefill<<<dim3(g.requests, 2 * g.hk + g.hv), 128, 0, s>>>(*p);
   if (int rc = last_error())
@@ -116,6 +121,18 @@ extern "C" int ala_prefill_run(actlize_la::serving::Prefill const *p,
 #else
   // Explicit NVIDIA/PPU1.0 semantic-validation path, not a tensor-core
   // performance claim or an automatic PPU1.5 fallback.
-  return ala_gdn_run(&p->gdn, stream);
+  return guard ? ala_gdn_checked_v2(&p->gdn, guard, stream)
+               : ala_gdn_run(&p->gdn, stream);
 #endif
+}
+extern "C" int ala_prefill_run(actlize_la::serving::Prefill const *p,
+                               void *stream) {
+  return prefill_impl(p, nullptr, stream);
+}
+extern "C" int ala_prefill_checked_v2(actlize_la::serving::Prefill const *p,
+                                      ala_gdn_transaction_v2 const *guard,
+                                      void *stream) {
+  if (!guard)
+    return -1;
+  return prefill_impl(p, guard, stream);
 }

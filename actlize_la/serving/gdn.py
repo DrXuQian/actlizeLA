@@ -295,7 +295,7 @@ class PreparedGDN(PreparedNative):
             with torch.cuda.device(self.device):
                 self.check(library.lib.ala_prefill_configure())
 
-    def launch(self, inputs, buffers):
+    def arguments(self, inputs, buffers):
         p = _Gdn(**self.config)
         for name, t in zip(self.input_names, inputs):
             setattr(p, name, t.data_ptr())
@@ -324,6 +324,10 @@ class PreparedGDN(PreparedNative):
                 setattr(args, name, work[key].data_ptr() if key in work else None)
         else:
             args = p
+        return args
+
+    def launch(self, inputs, buffers):
+        args = self.arguments(inputs, buffers)
         self.check(self.fn(C.byref(args), self.stream()))
 
 
@@ -398,7 +402,7 @@ class PreparedGDNCommit(PreparedNative):
         )
         self.fn = library.function("ala_gdn_commit", _Commit, 1)
 
-    def launch(self, inputs, buffers):
+    def arguments(self, inputs, buffers):
         p = _Commit(
             **self.config, state=buffers[0].data_ptr(), errors=buffers[1].data_ptr()
         )
@@ -406,4 +410,8 @@ class PreparedGDNCommit(PreparedNative):
             setattr(p, name, t.data_ptr())
         p.state_stride = buffers[0].stride(0)
         p.slot_stride = inputs[3].stride(0)
+        return p
+
+    def launch(self, inputs, buffers):
+        p = self.arguments(inputs, buffers)
         self.check(self.fn(C.byref(p), self.stream()))

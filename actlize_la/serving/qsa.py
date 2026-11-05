@@ -101,6 +101,31 @@ def qsa_workspace_specs(tokens, requests, query_heads=24):
     }
 
 
+def qsa_cache_specs(pages, slots, *, page_size=64, ring_size=16, kv_heads=2):
+    """Framework-independent allocation shapes/dtypes, not allocations.
+
+    Fresh raw_tags/raw_rope/anchors must be initialized to -1; BF16 payloads
+    may be zeroed during preparation. Page tables are caller-owned int32.
+    Inner dimensions are dense; raw state rows may use larger pool pitches.
+    """
+    if (
+        min(pages, slots, kv_heads) <= 0
+        or page_size not in (64, 128)
+        or ring_size < 12
+        or page_size % ring_size
+    ):
+        raise ValueError("unsupported QSA cache geometry")
+    return {
+        "key_cache": ((pages, page_size, kv_heads, 256), torch.bfloat16),
+        "value_cache": ((pages, page_size, kv_heads, 256), torch.bfloat16),
+        "compressed_cache": ((pages, page_size // 4, 128), torch.bfloat16),
+        "raw_ring": ((slots, ring_size, 128), torch.bfloat16),
+        "raw_tags": ((slots, ring_size), torch.int64),
+        "raw_rope": ((slots, ring_size, 3), torch.int64),
+        "anchors": ((slots,), torch.int64),
+    }
+
+
 class PreparedQSA(PreparedNative):
     """Append → compress completed groups → retain ring → top-k → attention.
 

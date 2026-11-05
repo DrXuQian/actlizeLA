@@ -1,5 +1,6 @@
 # Target-specific build code and moved primitive headers are build dependencies.
 recursive-include csrc/backends *.py *.cuh *.hpp *.h *.cu *.cpp *.md *.json LICENSE*
+recursive-include csrc/serving *.h *.cuh *.cu *.cpp CMakeLists.txt
 recursive-include cmake *.cmake
 include tools/build_gdn_sm90.py
 include tools/build_sm90_bundle.py

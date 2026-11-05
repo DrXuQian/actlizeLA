@@ -3,6 +3,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Flare community contributors
 // SPDX-License-Identifier: Apache-2.0
 #include "abi.h"
+#include "aux_common.cuh"
+#include "gdn_transaction_v2.h"
 #include "runtime.cuh"
 #include <climits>
 
@@ -12,7 +14,7 @@ __device__ bool valid_range(Gdn const &p, int r) {
          p.starts[r + 1] <= p.tokens &&
          p.starts[r + 1] - p.starts[r] <= p.width;
 }
-__global__ void validate_gdn(Gdn p) {
+__global__ void validate_gdn(Gdn p, ala_gdn_transaction_v2 guard) {
   int const r = int(blockIdx.x * blockDim.x + threadIdx.x);
   if (r >= p.requests)
     return;
@@ -53,8 +55,38 @@ __global__ void validate_gdn(Gdn p) {
         }
     }
   }
+  if (!error && r < live && guard.header.version == 2) {
+    for (int j = 0; j < live; ++j)
+      if (j != r && valid_range(p, j) && p.starts[j + 1] > p.starts[j] &&
+          p.starts[r + 1] > p.starts[r] && p.starts[r] < p.starts[j + 1] &&
+          p.starts[j] < p.starts[r + 1])
+        error = Conflict;
+    int dep = guard.upstream_errors.data
+                  ? aux::at<int32_t>(guard.upstream_errors, r)
+                  : 0;
+    if (!error && dep)
+      error = dep > 0 && dep <= Unsupported ? dep : Bounds;
+    else if (!error && guard.epochs.data && p.starts[r + 1] > p.starts[r] &&
+             p.initial_slots[int64_t(r) * p.initial_stride] > 0) {
+      int64_t epoch = aux::at<int64_t>(guard.epochs, r),
+              ready = aux::at<int64_t>(guard.ready_epochs, r),
+              used = aux::at<int64_t>(guard.consumed_epochs, r);
+      if (epoch <= 0 || epoch <= ready || epoch <= used || ready > used)
+        error = History;
+    }
+  }
   p.errors[r] = error;
-  if (p.mode == Verify) {
+  // V2 inactive/empty rows retain any outstanding record window. Clearing its
+  // lengths while leaving ready_epoch pending would make later commit
+  // impossible.
+  bool const keep_records =
+      p.mode == Verify && guard.header.version == 2 &&
+      (error ||
+       ((r >= live || !valid_range(p, r) || p.starts[r + 1] == p.starts[r] ||
+         p.initial_slots[int64_t(r) * p.initial_stride] == 0) &&
+        aux::at<int64_t>(guard.ready_epochs, r) >
+            aux::at<int64_t>(guard.consumed_epochs, r)));
+  if (p.mode == Verify && !keep_records) {
     bool const active = error == Ok && r < live &&
                         p.initial_slots[int64_t(r) * p.initial_stride] > 0;
     p.recorded_lengths[r] = active ? p.starts[r + 1] - p.starts[r] : 0;
@@ -174,7 +206,7 @@ __global__ void recurrent_gdn(Gdn p) {
   }
 }
 
-__global__ void validate_commit(Commit p) {
+__global__ void validate_commit(Commit p, ala_gdn_transaction_v2 guard) {
   int const r = blockIdx.x * blockDim.x + threadIdx.x;
   if (r >= p.requests)
     return;
@@ -193,6 +225,20 @@ __global__ void validate_commit(Commit p) {
       if (j != r && slot > 0 && slot == p.slots[int64_t(j) * p.slot_stride] &&
           count > 0 && p.counts[j] > 0)
         error = Conflict;
+  }
+  if (!error && r < live && guard.header.version == 2) {
+    int dep = guard.upstream_errors.data
+                  ? aux::at<int32_t>(guard.upstream_errors, r)
+                  : 0;
+    if (dep)
+      error = dep > 0 && dep <= Unsupported ? dep : Bounds;
+    else if (p.recorded_lengths[r] > 0) {
+      int64_t epoch = aux::at<int64_t>(guard.epochs, r);
+      if (p.slots[int64_t(r) * p.slot_stride] != p.recorded_slots[r] ||
+          epoch <= 0 || epoch != aux::at<int64_t>(guard.ready_epochs, r) ||
+          epoch <= aux::at<int64_t>(guard.consumed_epochs, r))
+        error = History;
+    }
   }
   p.errors[r] = error;
 }
@@ -233,8 +279,16 @@ bool valid(Gdn const &p) {
           (p.width <= 8 && p.delta && p.recorded_lengths && p.recorded_slots));
 }
 int prepare(Gdn const &p, Stream s) {
-  validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p);
+  validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, {});
   if (auto rc = last_error())
+    return rc;
+  prepare_gdn<<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
+  return last_error();
+}
+int prepare_checked(Gdn const &p, Stream s,
+                    ala_gdn_transaction_v2 const &guard) {
+  validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, guard);
+  if (int rc = last_error())
     return rc;
   prepare_gdn<<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
   return last_error();
@@ -278,9 +332,103 @@ extern "C" int ala_gdn_commit(actlize_la::serving::Commit const *p,
       p->slot_stride < 1)
     return -1;
   auto s = static_cast<Stream>(stream);
-  validate_commit<<<(p->requests + 127) / 128, 128, 0, s>>>(*p);
+  validate_commit<<<(p->requests + 127) / 128, 128, 0, s>>>(*p, {});
   if (auto rc = last_error())
     return rc;
   commit_gdn<<<dim3(p->requests, p->hv, 64), 256, 0, s>>>(*p);
+  return last_error();
+}
+
+namespace actlize_la::serving {
+bool valid_dependency(ala_gdn_transaction_v2 const *p, int requests) {
+  return p && p->header.version == 2 && p->header.struct_bytes == sizeof(*p) &&
+         p->requests == requests &&
+         aux::shape(p->upstream_errors, ALA_I32, {requests}) &&
+         aux::absent(p->epochs) && aux::absent(p->ready_epochs) &&
+         aux::absent(p->consumed_epochs);
+}
+bool valid_transaction(ala_gdn_transaction_v2 const *p, int requests) {
+  if (!p || p->header.version != 2 || p->header.struct_bytes != sizeof(*p) ||
+      p->requests != requests)
+    return false;
+  for (auto t : {p->epochs, p->ready_epochs, p->consumed_epochs})
+    if (!aux::shape(t, ALA_I64, {requests}))
+      return false;
+  return (aux::absent(p->upstream_errors) ||
+          aux::shape(p->upstream_errors, ALA_I32, {requests})) &&
+         aux::disjoint({p->epochs, p->upstream_errors},
+                       {p->ready_epochs, p->consumed_epochs});
+}
+__global__ void stamp_epoch(ala_gdn_transaction_v2 p, int const *live,
+                            int const *errors, int const *lengths,
+                            bool consumed, int const *starts = nullptr,
+                            int64_t const *slots = nullptr,
+                            int64_t slot_stride = 1) {
+  int r = blockIdx.x * blockDim.x + threadIdx.x;
+  if (r < p.requests && r < *live && !errors[r] && lengths[r] > 0 &&
+      (!starts ||
+       (starts[r + 1] > starts[r] && slots[int64_t(r) * slot_stride] > 0)))
+    aux::at<int64_t>(consumed ? p.consumed_epochs : p.ready_epochs, r) =
+        aux::at<int64_t>(p.epochs, r);
+}
+} // namespace actlize_la::serving
+extern "C" int ala_gdn_transaction_v2_size() {
+  return sizeof(ala_gdn_transaction_v2);
+}
+extern "C" int ala_gdn_checked_v2(actlize_la::serving::Gdn const *p,
+                                  ala_gdn_transaction_v2 const *guard,
+                                  void *stream) {
+  using namespace actlize_la::serving;
+  if (!p || !valid(*p) || p->mode == Verify ||
+      !valid_dependency(guard, p->requests))
+    return -1;
+  auto s = static_cast<Stream>(stream);
+  if (int rc = prepare_checked(*p, s, *guard))
+    return rc;
+  recurrent_gdn<<<dim3(p->requests, p->hv, 32), 128, 0, s>>>(*p);
+  return last_error();
+}
+extern "C" int ala_gdn_verify_v2(actlize_la::serving::Gdn const *p,
+                                 ala_gdn_transaction_v2 const *guard,
+                                 void *stream) {
+  using namespace actlize_la::serving;
+  if (!p || !valid(*p) || p->mode != Verify ||
+      !valid_transaction(guard, p->requests))
+    return -1;
+  auto s = static_cast<Stream>(stream);
+  validate_gdn<<<(p->requests + 127) / 128, 128, 0, s>>>(*p, *guard);
+  if (int e = last_error())
+    return e;
+  prepare_gdn<<<dim3(p->requests, 2 * p->hk + p->hv), 32, 0, s>>>(*p);
+  if (int e = last_error())
+    return e;
+  recurrent_gdn<<<dim3(p->requests, p->hv, 32), 128, 0, s>>>(*p);
+  if (int e = last_error())
+    return e;
+  stamp_epoch<<<(p->requests + 127) / 128, 128, 0, s>>>(
+      *guard, p->live, p->errors, p->recorded_lengths, false, p->starts,
+      p->initial_slots, p->initial_stride);
+  return last_error();
+}
+extern "C" int ala_gdn_commit_v2(actlize_la::serving::Commit const *p,
+                                 ala_gdn_transaction_v2 const *guard,
+                                 void *stream) {
+  using namespace actlize_la::serving;
+  if (!p || !p->state || !p->delta || !p->keys || !p->decays || !p->slots ||
+      !p->recorded_slots || !p->counts || !p->live || !p->recorded_lengths ||
+      !p->errors || p->requests <= 0 || p->state_slots < 2 || p->hk <= 0 ||
+      p->hv <= 0 || p->hv > 65535 || p->hv % p->hk || p->width < 1 ||
+      p->width > 8 || p->state_stride < int64_t(p->hv) * 16384 ||
+      p->slot_stride < 1 || !valid_transaction(guard, p->requests))
+    return -1;
+  auto s = static_cast<Stream>(stream);
+  validate_commit<<<(p->requests + 127) / 128, 128, 0, s>>>(*p, *guard);
+  if (int e = last_error())
+    return e;
+  commit_gdn<<<dim3(p->requests, p->hv, 64), 256, 0, s>>>(*p);
+  if (int e = last_error())
+    return e;
+  stamp_epoch<<<(p->requests + 127) / 128, 128, 0, s>>>(
+      *guard, p->live, p->errors, p->recorded_lengths, true);
   return last_error();
 }
