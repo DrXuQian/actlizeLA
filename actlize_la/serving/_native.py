@@ -9,6 +9,8 @@ from weakref import WeakValueDictionary
 
 import torch
 
+from .._serving_contract import TARGET_IDS
+
 _plans = WeakValueDictionary()
 _handles = itertools.count(1)
 
@@ -41,26 +43,20 @@ def _fake_serving_out(inputs, buffers, plan):
 class NativeLibrary:
     """Load once during preparation. The target is explicit, not device-profile selected."""
 
-    def __init__(self, path, *, target):
-        expected = {"ppu10": 100, "ppu15": 150, "cuda_sm120": 1200}
-        if target not in expected:
+    def __init__(self, path=None, *, target):
+        if target not in TARGET_IDS:
             raise ValueError(f"unsupported serving target {target!r}")
+        if path is None:
+            from .._library import get_library_path
+
+            path = get_library_path(target)
         self.path = Path(path).resolve(strict=True)
         self.lib = C.CDLL(str(self.path))
-        for name in (
-            "ala_serving_version",
-            "ala_serving_target",
-            "ala_prefill_configure",
-        ):
-            getattr(self.lib, name).restype = C.c_int
-        self.lib.ala_serving_struct_size.argtypes = [C.c_int]
-        self.lib.ala_serving_struct_size.restype = C.c_int
-        if (
-            self.lib.ala_serving_version() != 1
-            or self.lib.ala_serving_target() != expected[target]
-        ):
-            raise ValueError("serving ABI/target mismatch; no binary fallback")
         self.target = target
+        from ._abi import inspect_abi
+
+        self.abi = inspect_abi(self.lib, target)
+        self.lib.ala_prefill_configure.restype = C.c_int
 
     def function(self, name, struct, which):
         if self.lib.ala_serving_struct_size(which) != C.sizeof(struct):

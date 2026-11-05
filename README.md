@@ -112,6 +112,13 @@ graph; CUDA source checks are **not** native PPU1.7 execution evidence.
 
 ## Prepared serving interfaces
 
+The complete **0.2.0 serving wheel** packages its AOT library and Python bindings.
+Use `actlize_la.get_library_info(target="ppu10")` for file-only discovery and
+`NativeLibrary(target="ppu10")` during preparation; no manual `.so` path is needed.
+Install from the matching target/SDK artifact channel, with platform Torch already
+provided. See [serving wheel installation and qualification](docs/SERVING_WHEEL.md).
+Plain source/host-only installs remain distinct and do not claim native support.
+
 `actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
 PPU1.5 prefill with explicit state-layout conversion, and paged incremental
 BF16 QSA. Flare preparation bindings, workspace bounds and a box test script

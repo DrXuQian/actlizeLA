@@ -12,7 +12,14 @@ _target = os.getenv("GDN_QSA_TARGET", "python")
 if _target == "python":
     # Install the frontend without discovering CUDA or compiling an unrelated
     # architecture. Native backends are built explicitly and loaded by identity.
-    setup()
+    if os.getenv("ACTLIZE_LA_SERVING_BUNDLE"):
+        _wheel = runpy.run_path(str(Path(HERE) / "tools/serving_wheel_build.py"))
+        setup(cmdclass={
+            "build_py": _wheel["ServingBuildPy"],
+            "bdist_wheel": _wheel["ServingWheel"],
+        })
+    else:
+        setup()
 else:
     _catalog = json.loads((Path(HERE) / "actlize_la/backends/targets.json").read_text())
     if _catalog.get("schema") != 1:

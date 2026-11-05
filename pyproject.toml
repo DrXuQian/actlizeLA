@@ -4,13 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "actlize-la"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Forward linear attention with independent CUDA SM80, Hopper SM90 and PPU backends"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "actlizeLA contributors" }]
-dependencies = ["torch"]
+# Torch/runtime are supplied by the platform. Installing an operator wheel must
+# not pull an unrelated NVIDIA Torch/CUDA distribution onto a PPU machine.
+dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest", "numpy"]
@@ -19,6 +21,9 @@ benchmark = ["matplotlib", "pandas"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["actlize_la*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "actlize_la._version.__version__"}
 
 [tool.setuptools.package-data]
 "actlize_la" = ["sm90_policy.json"]
