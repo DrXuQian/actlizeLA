@@ -1,5 +1,6 @@
 """Host-only contract/negative tests; no device, ACU or installed FLA required."""
 import copy
+from contextlib import ExitStack
 import importlib.util
 import hashlib
 import json
@@ -25,7 +26,7 @@ spec.loader.exec_module(collect)
 class ACUContract(unittest.TestCase):
     def test_capture_keeps_moved_backend_sources_and_catalog(self):
         directory = self.directory()
-        status, _, bundle, _ = self.run_mock_capture(directory)
+        status, _, bundle, _ = self.run_mock_capture(directory, full_source_snapshot=True)
         self.assertEqual(status['status'], 'PASS', status['errors'])
         root = bundle / 'sources/ours'
         collect.validate_backend_source_snapshot(root)
@@ -105,7 +106,7 @@ class ACUContract(unittest.TestCase):
         inputs = tuple(torch.zeros(1) for _ in range(5))
         backend = SimpleNamespace(residual=Mock(return_value=('out', 'state')))
         with patch.object(api, '_backend', return_value=backend):
-            with self.assertRaisesRegex(AttributeError, "residual_full_chunk"):
+            with self.assertRaisesRegex(RuntimeError, "residual_full_chunk"):
                 api.gdn_chunk_residual(*inputs)
             self.assertEqual(api.gdn_chunk_residual(*inputs, delivery="scalar"), ('out', 'state'))
         backend.residual.assert_called_once()
@@ -131,7 +132,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs=tuple(torch.zeros(1) for _ in range(5))
         backend=SimpleNamespace(residual=Mock(return_value=('out','state')))
-        with patch.object(api,'_backend',return_value=backend),self.assertRaises(AttributeError):
+        with patch.object(api,'_backend',return_value=backend),self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs,delivery='blayout')
         backend.residual.assert_not_called()
 
@@ -141,7 +142,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs=tuple(torch.zeros(1) for _ in range(5))
         backend=SimpleNamespace(residual=Mock(),residual_warps8_hvlayout=Mock())
-        with patch.object(api,'_backend',return_value=backend),self.assertRaises(AttributeError):
+        with patch.object(api,'_backend',return_value=backend),self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs,delivery='solve-static')
         backend.residual.assert_not_called()
         backend.residual_warps8_hvlayout.assert_not_called()
@@ -163,7 +164,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs=tuple(torch.zeros(1) for _ in range(5))
         backend=SimpleNamespace(residual=Mock(return_value=('out','state')))
-        with patch.object(api,'_backend',return_value=backend),self.assertRaises(AttributeError):
+        with patch.object(api,'_backend',return_value=backend),self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs,delivery='warps8')
         backend.residual.assert_not_called()
 
@@ -173,7 +174,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs = tuple(torch.zeros(1) for _ in range(5))
         backend = SimpleNamespace(residual=Mock(), residual_warps8=Mock())
-        with patch.object(api, '_backend', return_value=backend), self.assertRaises(AttributeError):
+        with patch.object(api, '_backend', return_value=backend), self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs, delivery='warps8-blayout')
         backend.residual.assert_not_called()
         backend.residual_warps8.assert_not_called()
@@ -208,7 +209,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs = tuple(torch.zeros(1) for _ in range(5))
         backend = SimpleNamespace(residual=Mock(), residual_warps8_blayout=Mock())
-        with patch.object(api, '_backend', return_value=backend), self.assertRaises(AttributeError):
+        with patch.object(api, '_backend', return_value=backend), self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs, delivery='warps8-operands')
         backend.residual.assert_not_called()
         backend.residual_warps8_blayout.assert_not_called()
@@ -243,7 +244,7 @@ class ACUContract(unittest.TestCase):
         inputs = tuple(torch.zeros(1) for _ in range(5))
         backend = SimpleNamespace(residual=Mock(), residual_warps8_blayout=Mock(),
                                   residual_warps8_operands=Mock())
-        with patch.object(api, '_backend', return_value=backend), self.assertRaises(AttributeError):
+        with patch.object(api, '_backend', return_value=backend), self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs, delivery='warps8-hlayout')
         for call in vars(backend).values(): call.assert_not_called()
         control, _ = self.records()
@@ -276,7 +277,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs=tuple(torch.zeros(1) for _ in range(5))
         backend=SimpleNamespace(residual=Mock(),residual_warps8_hlayout=Mock())
-        with patch.object(api,'_backend',return_value=backend),self.assertRaises(AttributeError):
+        with patch.object(api,'_backend',return_value=backend),self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs,delivery='warps8-hvlayout')
         for call in vars(backend).values(): call.assert_not_called()
         control,_=self.records()
@@ -309,7 +310,7 @@ class ACUContract(unittest.TestCase):
         from actlize_la import gdn_residual_interface as api
         inputs=tuple(torch.zeros(1) for _ in range(5))
         backend=SimpleNamespace(residual=Mock(),residual_warps8_hvlayout=Mock())
-        with patch.object(api,'_backend',return_value=backend),self.assertRaises(AttributeError):
+        with patch.object(api,'_backend',return_value=backend),self.assertRaisesRegex(RuntimeError, "selected backend has no residual"):
             api.gdn_chunk_residual(*inputs,delivery='warps8-metadata')
         for call in vars(backend).values(): call.assert_not_called()
         control,_=self.records()
@@ -764,7 +765,8 @@ class ACUContract(unittest.TestCase):
                 collect.validate_comparison(comparison, ours | ({key: value} if role == "wy" else {}),
                                              fla | ({key: value} if role == "fla" else {}))
 
-    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None):
+    def run_mock_capture(self, directory, control=None, plant=None, subject_delivery=None,
+                         full_source_snapshot=False):
         """Run the real orchestration with synthetic tool receipts, not a GPU."""
         prior = directory / "preceding"
         prior.mkdir()
@@ -859,8 +861,20 @@ class ACUContract(unittest.TestCase):
                 if "--set" in command and not (is_control and plant == "missing-control-report"):
                     Path(command[command.index("-o") + 1] + ".acurep").write_bytes(b"synthetic report")
             return dict(status="COLLECTED", returncode=0)
-        with patch.object(collect, "run", side_effect=fake_run), \
-                patch.object(collect.shutil, "which", return_value=None):
+        with ExitStack() as patches:
+            patches.enter_context(patch.object(collect, "run", side_effect=fake_run))
+            patches.enter_context(patch.object(collect.shutil, "which", return_value=None))
+            if not full_source_snapshot:
+                # These cells test transport/receipt negatives, not source
+                # archival. The real snapshot plus missing-header negatives run
+                # once in test_capture_keeps_moved_backend_sources_and_catalog.
+                # Avoid hundreds of MiB of redundant source copies per suite.
+                actual_copy = collect.copy_file
+                def fixture_copy(source, destination):
+                    if not destination.is_relative_to(bundle / "sources/ours"):
+                        actual_copy(source, destination)
+                patches.enter_context(patch.object(collect, "copy_file", side_effect=fixture_copy))
+                patches.enter_context(patch.object(collect, "validate_backend_source_snapshot"))
             status = collect.collect(args, bundle, {"PATH": ""})
         self.assertEqual(collect.sha(comparison_path), original_comparison_hash)
         return status, commands, bundle, library
