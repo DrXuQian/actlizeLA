@@ -1,6 +1,6 @@
 # PPU1.0 GDN 性能接线与端到端验收 TODO
 
-updated-at: 2026-11-06 04:22:28 UTC
+updated-at: 2026-11-06 04:39:33 UTC
 
 范围：先闭合已保留的 PPU1.0 GDN 实现与实际调用入口，不重新开展 kernel 调优。
 用户已明确暂停性能工作：P10-06和其他项里的计时要求后排，不作为本轮功能收口门。
@@ -193,13 +193,21 @@ scratch 共享不覆盖尚未消费的 correction records；执行显存稳定�
 
 ### P10-08 — main、源码安装和 wheel 路由统一交付
 
-- [ ] **IMPLEMENTING_RELEASE / 0.2.2默认入口与prepared共用retained库，待新wheel验收/main合入**
+- [ ] **HOST_QUALIFIED_DEVICE_PENDING / 0.2.2源码与wheel已交付，待安装后设备验收/main合入**
 
 已补普通gdn_forward/gdn_chunk_residual到包内C ABI的绑定，无需另设旧扩展路径；
 源码可显式指定同一serving DSO。新增PreparedGDNCore使用processed输入和KV状态，
 不与raw-logit/VK-slot接口混用。已有kernel文件没有改动。安装门补36组默认入口、
 4组zero/nonzero与full/tail图重放，以及实际导出/绑定完整性和错误配置负控。
 新包升级0.2.2，不能覆盖旧0.2.0/0.2.1缓存。旧设备PASS不自动变成新wheel设备PASS。
+
+功能源码`7990565`：259项host回归及57个subtest通过；真实SDK2.2.1编译链接和
+实际DSO ABI检查通过。非editable wheel在两个隔离安装前缀各142项PASS、0 SKIP、
+0 FAIL；隔离环境没有源码/构建目录。Python3.12文件发现及完整性负控也通过。
+wheel SHA256：`00357ce10a1aec9a09b0da16f38d28585c13f9dd946ee9a8b72b4589d1fb07f3`。
+这些是host/安装证据，不是新的PPU数值或Flare设备图证据。
+`tools/run_serving_release_box.sh`负责匹配SDK构建、私有环境安装和四组件验收；
+不跑性能、不修改系统Torch。缺Flare/设备会明确NOT_RUN，不假报完成。
 
 把已验收的最小接线闭包合入 main，更新统一入口及支持范围；不把开发分支整体
 当成准入。源码安装与 wheel 同一输入必须选择同一实现，installed-only 检查
