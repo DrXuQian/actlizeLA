@@ -316,6 +316,67 @@ def subject_receipt(admission, role):
             "public_calls": 1, "warmup": 0}
 
 
+def saved_core_fixture(root, name):
+    """Metadata-only fixture; neither a real DSO nor numerical evidence."""
+    directory = root / name
+    directory.mkdir()
+    library = directory / "metadata.so"
+    library.write_bytes(b"synthetic library identity only")
+    (directory / "operands.pt").write_bytes(b"synthetic payload identity only")
+    admission = admission_receipt()
+    admission.update(shape=dict(B=1, T=8192, Hk=16, Hv=48, K=128, V=128),
+                     library_sha=collect.sha(library),
+                     operands_sha=collect.sha(directory / "operands.pt"),
+                     default_route=default_route(str(library), collect.sha(library)))
+    (directory / "admission.json").write_text(json.dumps(admission))
+    (directory / "core.json").write_text(json.dumps(subject_receipt(admission, "default")))
+    return directory
+
+
+def test_saved_flashnext_operands_unique_selection_and_ambiguity(tmp_path):
+    first = saved_core_fixture(tmp_path, "flashnext-gdn-core-first")
+    assert collect.select_core_input_run(workspace=tmp_path)["directory"] == str(first)
+    saved_core_fixture(tmp_path, "flashnext-gdn-core-second")
+    with pytest.raises(ValueError, match="exactly one"):
+        collect.select_core_input_run(workspace=tmp_path)
+    assert collect.select_core_input_run(first)["directory"] == str(first)
+
+
+@pytest.mark.parametrize("plant", ["shape", "gate", "payload", "library", "no-subject", "subject-device"])
+def test_saved_flashnext_run_cannot_silently_drift(tmp_path, plant):
+    directory = saved_core_fixture(tmp_path, "core")
+    if plant in ("payload", "library"):
+        name = "operands.pt" if plant == "payload" else "metadata.so"
+        (directory / name).write_bytes(b"changed bytes")
+    elif plant == "no-subject":
+        (directory / "core.json").unlink()
+    else:
+        name = "core.json" if plant == "subject-device" else "admission.json"
+        path = directory / name
+        record = json.loads(path.read_text())
+        if plant == "shape":
+            record["shape"]["T"] = 2048
+        elif plant == "gate":
+            record["gate"] = -1.
+        else:
+            record["device"] = {"uuid": "different physical device"}
+        path.write_text(json.dumps(record))
+    with pytest.raises((ValueError, OSError)):
+        collect.core_input_run(directory)
+
+
+def test_core_and_fla_shell_embedded_python_parses():
+    import ast
+    import subprocess
+    script = ROOT / "tools/run_ppu_flashnext_core_acu_box.sh"
+    subprocess.run(["bash", "-n", str(script)], check=True)
+    subprocess.run(["bash", "-n", str(ROOT / "tools/run_ppu_flashnext_fla_acu_box.sh")], check=True)
+    bodies = script.read_text().split("<<'PY'\n")[1:]
+    assert len(bodies) == 2
+    for body in bodies:
+        ast.parse(body.split("\nPY\n", 1)[0])
+
+
 @pytest.mark.parametrize("plant", ["device", "library_sha", "operands_sha", "input_sha", "output_sha",
                                   "status", "public_calls", "warmup"])
 def test_a_fast_report_cannot_replace_a_missing_or_changed_numerical_receipt(plant):

@@ -262,6 +262,38 @@ def validate_receipts(admission, subject, role):
         raise ValueError("subject default route changed")
 
 
+def core_input_run(directory, length=8192):
+    """Reuse one successful core capture's operands, never regenerate inputs."""
+    directory = Path(directory).resolve(strict=True)
+    admission = json.loads((directory / "admission.json").read_text())
+    expected = dict(B=1, T=length, Hk=16, Hv=48, K=128, V=128)
+    if admission.get("shape") != expected or admission.get("gate") != -.1:
+        raise ValueError("require the requested Flash-Next T/Hk16/Hv48/g=-0.1 admission")
+    subject = json.loads((directory / "core.json").read_text())
+    validate_receipts(admission, subject, "default")
+    operands = directory / "operands.pt"
+    library = Path(admission["default_route"]["native_images"][0]["path"]).resolve(strict=True)
+    if sha(operands) != admission["operands_sha"] or sha(library) != admission["library_sha"]:
+        raise ValueError("saved core operands or admitted library changed")
+    return dict(directory=str(directory), library=str(library), shape=expected,
+                operands_sha=admission["operands_sha"], library_sha=admission["library_sha"])
+
+
+def select_core_input_run(explicit=None, *, length=8192, workspace=Path("/workspace")):
+    if explicit is not None:
+        return core_input_run(explicit, length)
+    valid, rejected = [], []
+    for directory in sorted(workspace.glob("flashnext-gdn-core-*")):
+        try:
+            valid.append(core_input_run(directory, length))
+        except (ValueError, KeyError, OSError, TypeError) as error:
+            rejected.append(f"{directory}: {error}")
+    if len(valid) != 1:
+        raise ValueError("need exactly one matching prior core input run; set INPUT_RUN explicitly. "
+                         + json.dumps(dict(valid=valid, rejected=rejected)))
+    return valid[0]
+
+
 def small_archive(out):
     archive = out / "results.tar.gz"
     files = []

@@ -1,7 +1,10 @@
 # PPU1.0 serving prefill: token-parallel transport experiment
 
-Status: experimental build only, **not device/performance admitted**. Main,
-v0.2.2, installed wheels and the GDN core selector are unchanged.
+Status: candidate device numerical and ACU results returned for T2048/Hv32/48;
+still opt-in, **not promoted to release/default**. Main, v0.2.2, installed
+wheels and the GDN core selector are unchanged. The special old/new22-cell
+parity receipt is in the separate candidate bundle, not the uploaded profile
+bundle; do not claim that receipt was independently inspected.
 
 Local checkpoint:265 host tests +38 subtests PASS;2 native ABI tests SKIP
 (no runtime library loaded in that host test process, not counted as PASS).
@@ -98,9 +101,67 @@ Its default is B1/T2048, BF16 QKV/beta, FP32 asymmetric state and synthetic
 g~-0.1. Use `TOKENS=8192` for the longer cell. It prints all four core durations
 and their sum; this one capture does not establish a repeated speed verdict.
 
+To capture FLA on the **identical saved operands** from the T8192 Flash-Next
+core run (no rebuild, no new fixture and no repeated normalization):
+
+```bash
+PPU_SDK=/sim/eec/shared/junfu.qx/ppu-sdk-2.2.1-184ee6/PPU_SDK \
+DEVICE=0 TOKENS=8192 bash tools/run_ppu_flashnext_fla_acu_box.sh
+```
+
+The script selects exactly one successful `/workspace/flashnext-gdn-core-*`
+run matching T8192/Hk16/Hv48. If several exist, it lists candidates and requires
+`INPUT_RUN=/workspace/<the-specific-core-run>`; it never guesses the newest.
+It checks saved operands/library hashes and the original numerical receipt;
+the subject also verifies device UUID and unchanged FLA source identity.
+Original inputs/reports remain untouched, new FLA artifacts go to a new
+`/workspace/flashnext-gdn-fla-*` directory, with a small `results.tar.gz`.
+All FLA kernels, including its zero-fill kernels, contribute to the sum.
+
 This builds into a fresh `/workspace` directory, validates before profiling,
 uses `/sim/eec/shared/junfu.qx/asight/bin/acu` with its own sections, and prints
 small numerical and ACU `results.tar.gz` files. It never installs or overwrites
 a binary. Defaults profile T2048/Hv32 and **Flash-Next Hv48**; add
 `--lengths 2048 8192` for the extension. Missing device, incorrect arm, numerical
 failure or profiler/parser failure cannot be reported as a performance PASS.
+
+## Returned ACU evidence, 2026-11-06
+
+Upload SHA256 `2aa2df873b3461ac0e0b4560e1b4ece3f07c036167cc5dbec8149b7b69eb0b3f`.
+Source9286a2a; box binary SHA256
+`b357179b1048df9f53ec4edc6b408044164485304c8c8bdc22959721e8690f59`.
+PPU-ZW81072CU, SDK2.2.1, site ACU unchanged. All captured CE frequencies1.7GHz.
+Reimported18 CSVs: per-kernel values/identities and numerical receipts match
+the bundle; aggregate floating summation differences are below1e-9us.
+Full serving51 cases and auxiliary42 cases PASS receipts bind this binary;
+native graph receipt included. Each performance arm separately passed8 repeats
+and serving/default output+state RAW-BIT equality.
+
+B1/T2048/Hk16/K=V128, BF16 QKV/beta, FP32 asymmetric state, g~-0.1.
+All table values are **median of three ACU kernel sums**, not API latency:
+
+| Hv | Complete serving | Serving helpers only | Our default core | FLA core incl. fills | Core result |
+|---|---:|---:|---:|---:|---|
+|32|455.83999us|209.94824us|246.43647us|206.84763us|ours19.14% slower|
+|48|566.22412us|260.93235us|305.51176us|288.78118us|ours5.79% slower|
+
+Both core observed envelopes are disjoint: FLA wins. This upload contains
+**no T8192 performance cell**; do not label these results as the user's1ms run.
+For Hv32 the earlier unpaired serving total was3303.09823us, helpers3133.33470us.
+The large helper reduction supports the token-parallel hypothesis, but the
+before was n=1 and a different binary: do not call the ratio a paired win.
+The unchanged core is now ~246us versus the earlier ~170us; frequency alone
+does not explain this because both captures reported1.7GHz. A matched old/new
+core comparison is needed before attributing that difference to code or cache.
+
+Hv48 phase accounting (per-phase medians, not exactly additive medians):
+our output70.79941us vs FLA56.92647us is a13.87us difference. Our residual
+state153.36235us includes inverse-applied residual/value work; FLA's separate
+`recompute_w_u` plus state must be combined within each call, median149.60412us.
+Comparing only FLA state104.13118us would charge the same work to the wrong
+phase. Our solve78.33941us vs FLA70.69235us is another7.65us; FLA's extra fills
+remain included in its complete-call denominator.
+
+Serving still spends~261us in helpers at Hv48: pack125.80176us,
+scatter66.86706us, prepare48.12765us, gather14.61471us, validation5.26118us
+(individual medians). These remain a separate optimization target from core.
