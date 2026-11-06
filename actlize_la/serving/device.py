@@ -6,9 +6,14 @@ import re
 
 
 def validate_device_target(target, name, capability=None):
-    """Fail on mismatches/unknown PPU families; never retarget a binary."""
-    family = re.search(r"ZW(810|890)(?![0-9])", name.upper())
-    measured = {"810": "ppu10", "890": "ppu15"}.get(family[1]) if family else None
+    """Fail on mismatches/unknown PPU families; never retarget a binary.
+
+    PPU1.0 (public ISA ppu001, HGGC -arch=ppu_10/ppu001) covers ZW810 and
+    ZW610 (and their E variants); ZW890 is PPU1.5. Per-SKU bandwidth/CU
+    differences still require their own measurements, never inherited ones.
+    """
+    family = re.search(r"ZW(810|610|890)(?![0-9])", name.upper())
+    measured = {"810": "ppu10", "610": "ppu10", "890": "ppu15"}.get(family[1]) if family else None
     if target in ("ppu10", "ppu15"):
         if measured != target:
             hint = (
