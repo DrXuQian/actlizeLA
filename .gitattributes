@@ -1,0 +1,2 @@
+assets/*.whl filter=lfs diff=lfs merge=lfs -text
+assets/*.tar.gz filter=lfs diff=lfs merge=lfs -text

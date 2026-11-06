@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "HOST_QUALIFIED_DEVICE_NOT_RUN",
+  "source_revision": "6505987ca68fcba7c1a530b054c96388b22b8c01",
+  "version": "0.2.2",
+  "target": "ppu10",
+  "sdk": "2.2.1-184ee6",
+  "wheel_sha256": "7c07ffcbc502d14d5adfac737efb3269bc1211bc1c901f59a5de6133d3092376",
+  "source_host_tests": {
+    "passed": 272,
+    "subtests": 57
+  },
+  "isolated_installed_prefixes": 2,
+  "installed_host_tests_per_prefix": {
+    "passed": 142,
+    "skipped": 0,
+    "failed": 0
+  },
+  "native_abi": "PASS_ON_ACTUAL_PPU_DSO",
+  "source_and_build_access": "ABSENT_IN_CHROOT",
+  "python312": "FILE_ONLY_DISCOVERY_AND_NEGATIVES_PASS",
+  "manifest_sha256": "198c18e7a262b7c2d7e68e77b947d1a250684a6846816d5c7596c72f0b75bf93",
+  "source_ppu_suite": "USER_REPORTED_PASS_ON_INTEGRATION_BRANCH",
+  "installed_ppu_device": "NOT_RUN",
+  "flare_component_device": "NOT_RUN",
+  "full_model_native_replay": "NOT_RUN",
+  "performance": "DEFERRED_NOT_RUN",
+  "publication": "MAINTAINER_AUTHORIZED_WITH_PENDING_DEVICE_QUALIFICATION"
+}

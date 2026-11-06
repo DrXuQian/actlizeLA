@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "tag": "v0.2.2",
+  "version": "0.2.2",
+  "source_revision": "6505987ca68fcba7c1a530b054c96388b22b8c01",
+  "target": "ppu10",
+  "sdk": "2.2.1-184ee6",
+  "validation": "HOST_QUALIFIED_DEVICE_NOT_RUN",
+  "wheel": "actlize_la-0.2.2-1ppu10version221184ee6-py3-none-linux_x86_64.whl",
+  "actlize_revision": "423253c00df333ead6fb72ea623d526f24f56b5a",
+  "manifest_sha256": "198c18e7a262b7c2d7e68e77b947d1a250684a6846816d5c7596c72f0b75bf93",
+  "assets": {
+    "actlize_la-0.2.2-1ppu10version221184ee6-py3-none-linux_x86_64.whl": "7c07ffcbc502d14d5adfac737efb3269bc1211bc1c901f59a5de6133d3092376",
+    "qualification-kit.tar.gz": "7d80696492d71d79892987626b7ad7eb424f06681678921cc3945d78f935acef",
+    "qualification.json": "5220f0667bbc1c34046608d0ae16afa4890666671c94bf559f2f4e91dd72b8be",
+    "host-evidence.tar.gz": "1c06ad4d37f62eb5c91538bf9a15cedbeeb803a079e435900788bfe60b3066bc"
+  }
+}
