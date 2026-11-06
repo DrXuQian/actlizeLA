@@ -68,6 +68,57 @@ def test_wrong_counter_and_duplicate_launch_id_are_red():
         collect.parse_raw(text.replace('"1","123"', '"0","123"'))
 
 
+def metric_csv(rows):
+    stream = io.StringIO()
+    writer = csv.writer(stream, quoting=csv.QUOTE_ALL)
+    writer.writerow(("ID", "Process ID", "Kernel Name", "Grid Size", "Block Size",
+                     "Device", "Context", "Stream", "Section Name", "Metric Name",
+                     "Metric Unit", "Metric Value"))
+    writer.writerows(rows)
+    return stream.getvalue()
+
+
+def metric_row(index, metric="Duration", unit="nsecond", value="1000"):
+    return [str(index), "1739642", "kernel" + str(index), "(1,32,1)", "(128,1,1)",
+            "PPU-ZW810", "1", "7", "PPU Speed Of Light Throughput", metric, unit, value]
+
+
+def test_long_metric_rows_are_one_launch_not_one_launch_per_counter():
+    text = metric_csv([metric_row(0), metric_row(0, "Active Cycles", "cycle", "100000"),
+                       metric_row(1, unit="usecond", value="2")])
+    assert [row["us"] for row in collect.parse_raw(text)] == [1, 2]
+
+
+def test_uploaded_site_csv_regression_not_a_self_generated_schema():
+    # Actual 2026-11-06 upload; Duration/Active Cycles rows retained verbatim.
+    # Archive SHA256 f31c5788f57057c246a030e0d11e666551e21c2930f94987a5c47e2061c06b7a.
+    path = ROOT / "tests/data/serving_acu_long_duration.csv"
+    measured = collect.inventory("serving", collect.parse_raw(path.read_text()))
+    assert len(measured["kernels"]) == 9 and measured["status"] == "ADMITTED"
+    assert measured["total_us"] == pytest.approx(3303.09823)
+    assert measured["core_in_same_call_us"] == pytest.approx(169.76353)
+    assert measured["transport_us"] == pytest.approx(3133.33470)
+
+
+@pytest.mark.parametrize("plant", ["missing", "duplicate", "cycles", "wrong-section", "wrong-kernel", "nonfinite"])
+def test_long_duration_fail_closed(plant):
+    rows = [metric_row(0), metric_row(0, "Active Cycles", "cycle", "100000")]
+    if plant == "missing":
+        rows.append(metric_row(1, "Active Cycles", "cycle", "100000"))
+    elif plant == "duplicate":
+        rows.append(metric_row(0))
+    elif plant == "cycles":
+        rows[0][-2] = "cycle"
+    elif plant == "wrong-section":
+        rows[0][-4] = "unrelated Duration label"
+    elif plant == "wrong-kernel":
+        rows[1][2] = "different kernel under the same launch ID"
+    else:
+        rows[0][-1] = "NaN"
+    with pytest.raises(ValueError):
+        collect.parse_raw(metric_csv(rows))
+
+
 def test_both_winners_overlap_and_scope():
     def captures(core, fla):
         return {"serving": [dict(total_us=200, transport_us=100, status="ADMITTED")] * 3,

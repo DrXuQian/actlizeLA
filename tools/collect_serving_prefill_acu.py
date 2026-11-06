@@ -112,17 +112,21 @@ def select_run(explicit=None, workspace=Path("/workspace")):
 
 
 def parse_raw(text):
-    """ACU raw wide CSV, native duration counter in base nanoseconds.
+    """Native duration from wide counters or the site's long metric rows.
 
-    This format/key is backed by saved real PPU exports and SpeedOfLight.section.
-    Never derive elapsed time from active cycles or drop an unrecognized kernel.
+    SpeedOfLight.section labels ppu__time_duration.sum as Duration. Restrict
+    that alias to its SOL section and require an explicit time unit. Never
+    substitute active cycles, count each metric row as a launch, or drop work.
     """
     lines = text.splitlines()
     start = next((i for i, line in enumerate(lines) if '"ID"' in line
-                  and '"Kernel Name"' in line and '"ppu__time_duration.sum"' in line), None)
+                  and '"Kernel Name"' in line and
+                  ('"ppu__time_duration.sum"' in line or '"Metric Name"' in line)), None)
     if start is None:
         raise ValueError("ACU raw export lacks native ppu__time_duration.sum; no timing verdict")
     reader = csv.DictReader(io.StringIO("\n".join(lines[start:])))
+    if "Metric Name" in reader.fieldnames:
+        return _parse_metric_rows(reader)
     result, seen = [], set()
     for row in reader:
         if not row.get("ID") or not row["ID"].strip().isdigit():
@@ -139,6 +143,46 @@ def parse_raw(text):
     if not result:
         raise ValueError("empty ACU capture")
     return result
+
+
+def _parse_metric_rows(reader):
+    units = {"nsecond": .001, "ns": .001, "usecond": 1., "us": 1.,
+             "µsecond": 1., "µs": 1., "μs": 1., "msecond": 1000.,
+             "ms": 1000., "second": 1e6, "s": 1e6}
+    rows = {}
+    metadata = ("Kernel Name", "Grid Size", "Block Size", "Device", "Context", "Stream")
+    required = {"ID", "Process ID", *metadata, "Section Name", "Metric Name",
+                "Metric Unit", "Metric Value"}
+    if not required.issubset(reader.fieldnames):
+        raise ValueError("incomplete long-form ACU duration schema")
+    for row in reader:
+        if None in row or any(row.get(field) is None for field in required):
+            raise ValueError("malformed ACU metric row")
+        if not row["ID"].isdigit() or not row["Process ID"].isdigit() or not row["Kernel Name"]:
+            raise ValueError("unexpected/non-numeric launch row in raw CSV")
+        key = (row["Process ID"], row["ID"])
+        identity = tuple(row[field] for field in metadata)
+        if key not in rows:
+            rows[key] = dict(identity=identity, duration=None)
+        launch = rows[key]
+        if identity != launch["identity"]:
+            raise ValueError("inconsistent metadata for ACU launch ID")
+        native = row["Metric Name"] == "ppu__time_duration.sum"
+        alias = row["Metric Name"] == "Duration" and row["Section Name"] == "PPU Speed Of Light Throughput"
+        if native or alias:
+            if launch["duration"] is not None:
+                raise ValueError("duplicate duration for ACU launch ID")
+            if row["Metric Unit"] not in units:
+                raise ValueError("unknown duration unit in ACU metric rows")
+            duration = float(row["Metric Value"].replace(",", "")) * units[row["Metric Unit"]]
+            if not math.isfinite(duration) or duration <= 0:
+                raise ValueError("invalid kernel duration")
+            launch["duration"] = duration
+    if not rows or any(row["duration"] is None for row in rows.values()):
+        raise ValueError("missing duration for one or more ACU launches")
+    return [dict(id=key[1], process=key[0], kernel=row["identity"][0],
+                 grid=row["identity"][1], block=row["identity"][2], us=row["duration"])
+            for key, row in rows.items()]
 
 
 def inventory(role, kernels):
