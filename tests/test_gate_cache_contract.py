@@ -15,13 +15,13 @@ class GateCacheContract(unittest.TestCase):
         self.assertEqual(api.RESIDUAL_ENTRYPOINTS["gate-cache"],"residual_gate_cache")
         self.assertIsNone(api.PROFILE_VARIANTS["residual-gate-cache"])
 
-    def test_default_and_candidate_do_not_alias(self):
+    def test_explicit_scalar_control_and_candidate_do_not_alias(self):
         tensors=[Mock() for _ in range(5)]
         for t in tensors: t.contiguous.return_value=t
         control=Mock(return_value=("C","H"))
         candidate=Mock(return_value=("O","H"))
         with patch.object(api,"_backend",return_value=SimpleNamespace(residual=control,residual_gate_cache=candidate)):
-            self.assertEqual(api.gdn_chunk_residual(*tensors),("C","H"))
+            self.assertEqual(api.gdn_chunk_residual(*tensors,delivery="scalar"),("C","H"))
             self.assertEqual(api.gdn_chunk_residual(*tensors,delivery="gate-cache"),("O","H"))
         control.assert_called_once()
         candidate.assert_called_once()

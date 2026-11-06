@@ -92,9 +92,12 @@ See [ZW890 support and scope](docs/PPU15_ZW890.md).
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated
 Hopper instructions. The retained V32/8 tuning is on `main`: static solve,
 gate reuse and full-C64 state with guarded-tail fallback. Use the unified
-entry with `backend="ppu10", algorithm="residual", delivery="full-chunk"`;
-no caller-selected warp geometry is needed. Original and materialized-WY
-remain explicit alternatives, and existing defaults are unchanged. See
+entry with `backend="ppu10"`; the default is the retained residual/full-chunk
+implementation, including its guarded-tail branch. No caller-selected delivery
+or warp geometry is needed. Original, scalar residual and materialized-WY
+remain explicit alternatives. Default final state is FP32, not the old
+original algorithm's BF16. Fresh default-route box admission is pending; the
+historical speed measurements belong to the explicit retained kernel. See
 [PPU build/API](docs/PPU_RETAINED_PATH.md),
 [original implementation](docs/PPU_BACKEND.md) and
 [residual formulation](docs/PPU_GDN_RESIDUAL.md).

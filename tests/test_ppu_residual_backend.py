@@ -27,7 +27,7 @@ def admit(shape, gate, nonzero, *, stress=False, deliveries=()):
     want = oracle(cpu, initial)
     inputs = tuple(t.cuda() for t in cpu)
     state = initial.cuda() if initial is not None else None
-    got = gdn_chunk_residual(*inputs, initial_state=state)
+    got = gdn_chunk_residual(*inputs, initial_state=state, delivery="scalar")
     torch.cuda.synchronize()
     try:
         errs = assert_pair(got, want)
@@ -52,17 +52,17 @@ def admit(shape, gate, nonzero, *, stress=False, deliveries=()):
         if absent is not None or not torch.equal(output.view(torch.uint8),got[0].view(torch.uint8)):
             raise AssertionError(f"{delivery} output-only differs from control")
     for _ in range(7):
-        repeat = gdn_chunk_residual(*inputs, initial_state=state)
+        repeat = gdn_chunk_residual(*inputs, initial_state=state, delivery="scalar")
         assert_pair(repeat, want)
         if digest(repeat) != fingerprint:
             raise AssertionError("residual replay is not RAW-BIT stable")
     q, k, v, g, beta = inputs
     ratio = shape[3] // shape[2]
     expanded = gdn_chunk_residual(q.repeat_interleave(ratio, 2), k.repeat_interleave(ratio, 2),
-                                 v, g, beta, initial_state=state)
+                                 v, g, beta, initial_state=state, delivery="scalar")
     if digest(expanded) != fingerprint:
         raise AssertionError("residual GVA head mapping differs from expansion")
-    out, absent = gdn_chunk_residual(*inputs, initial_state=state, output_final_state=False)
+    out, absent = gdn_chunk_residual(*inputs, initial_state=state, output_final_state=False, delivery="scalar")
     if absent is not None or not torch.equal(out, got[0]):
         raise AssertionError("residual output-only contract differs")
     if digest(inputs) != digest(cpu) or (state is not None and not torch.equal(state.cpu(), initial)):

@@ -1,5 +1,9 @@
 # PPU port of the original optimized GDN
 
+This page documents the explicit legacy original/reset-scan control, not the
+current `gdn_forward(..., backend="ppu10")` default. For the retained default
+and its FP32-state contract, see [PPU retained path](PPU_RETAINED_PATH.md).
+
 New, explicit candidate: [C64 WY weak-path alignment](PPU_WY_ALIGNMENT.md).
 It has a separate API/binding and does not replace the original implementation
 or the reset/scan admission described below. Device performance is pending.

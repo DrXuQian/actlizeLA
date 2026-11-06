@@ -135,7 +135,7 @@ class Forward(unittest.TestCase):
                 if algorithm == "fused_sm90":
                     kwargs["backend"] = target
                 else:
-                    kwargs["delivery"] = "scalar"
+                    kwargs["delivery"] = "full-chunk"
                 call.assert_called_once_with(*args, **kwargs)
 
     def test_invalid_model_call_fails_before_loading_or_launching(self):

@@ -12,6 +12,7 @@ _MODULES = {
     "get_device_profile": "device",
     "load_sm90": "sm90",
     "gdn_forward": "gdn_interface",
+    "get_gdn_route_info": "gdn_route",
     "backend_inventory": "backends",
     "gdn_chunk": "gdn_chunk_interface",
     "gdn_chunk_reference": "gdn_chunk_interface",
@@ -46,6 +47,7 @@ __all__ = [
     "load_sm90",
     # GDN
     "gdn_forward",
+    "get_gdn_route_info",
     "backend_inventory",
     "gdn_chunk",
     "gdn_chunk_twolevel",

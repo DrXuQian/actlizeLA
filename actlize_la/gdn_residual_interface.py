@@ -1,5 +1,10 @@
-"""Explicit non-CP reassociation; not a bit-preserving WY delivery or auto route."""
+"""Residual GDN with the retained PPU1.0 delivery as the public default.
+
+Its BF16 association differs from materialized WY/original; FP32 carried state
+and the independent numerical gate remain part of the public contract.
+"""
 from .gdn_wy_interface import _backend, DELIVERIES
+from .backends.registry import require_implementation
 
 MATH_CONTRACT = "gated-inverse-residual-bf16-v1"
 WY_MATH_CONTRACT = "materialized-wu-bf16-v1"
@@ -50,12 +55,14 @@ def math_contract(variant):
     return MATH_CONTRACT if variant in RESIDUAL_VARIANTS else WY_MATH_CONTRACT
 
 
-def gdn_chunk_residual(q, k, v, g, beta, initial_state=None, output_final_state=True, *, delivery="scalar"):
+def gdn_chunk_residual(q, k, v, g, beta, initial_state=None, output_final_state=True, *, delivery=None):
     """P[beta*(V-exp(prefix)*K@H)] with separate BF16 residual rounding.
 
     Same shape/type/scale contract as WY, FP32 state, no reset/truncation/CP.
     Do not use old-WY RAW-BIT equality to admit this different association.
     """
+    if delivery is None:
+        delivery = require_implementation("residual", "ppu10")["default_delivery"]
     if delivery not in RESIDUAL_ENTRYPOINTS:
         raise ValueError(f"unknown residual delivery: {delivery}")
     inputs = tuple(x.contiguous() for x in (q, k, v, g, beta))
