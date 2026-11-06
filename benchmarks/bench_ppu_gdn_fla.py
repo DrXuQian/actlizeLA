@@ -86,7 +86,7 @@ def load_fla():
     return chunk_gated_delta_rule, identity
 
 
-def fla_call(fn, inputs, head_mode):
+def fla_call(fn, inputs, head_mode, *, initial_state=None):
     q, k, v, g, beta = inputs
     if head_mode == "expanded":
         # Explicit compatibility mode, never a silent retry. Outside timing.
@@ -95,7 +95,7 @@ def fla_call(fn, inputs, head_mode):
     elif head_mode != "native":
         raise ValueError(f"unsupported FLA head mode: {head_mode}")
     params = inspect.signature(fn).parameters
-    kwargs = dict(scale=q.shape[-1] ** -0.5, initial_state=None,
+    kwargs = dict(scale=q.shape[-1] ** -0.5, initial_state=initial_state,
                   output_final_state=True, use_qk_l2norm_in_kernel=False)
     # Older FLA takes head_first; newer versions explicitly reject that kwarg.
     if "head_first" in params:

@@ -1,0 +1,294 @@
+#!/usr/bin/env python3
+"""Bounded three-arm prefill capture; reuse a passed library, never compile."""
+import argparse
+import csv
+from datetime import datetime, timezone
+import io
+import itertools
+import json
+import math
+import os
+from pathlib import Path
+import shutil
+import statistics
+import subprocess
+import sys
+import tarfile
+
+from collect_ppu_gdn_acu import DEFAULT_ACU, ROOT, report_file, run, sha
+
+ROLES = ("serving", "retained", "fla")
+CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
+        "gdn_wy_residual_full_chunk_state", "gdn_wy_residual_warps8_hvlayout_output")
+TRANSPORT = ("validate_gdn", "prepare_gdn", "pack_prefill", "gather_state", "scatter_prefill")
+FLA = ("chunk_local_cumsum_scalar_kernel", "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
+       "recompute_w_u_fwd_kernel", "chunk_gated_delta_rule_fwd_kernel_h", "chunk_fwd_kernel_o")
+
+
+def read_run(directory):
+    """Require the latest full gate's actual receipts, not just a folder name."""
+    directory = directory.resolve(strict=True)
+    binary = json.loads((directory / "binary.json").read_text())
+    native = json.loads((directory / "results.json").read_text())
+    aux = json.loads((directory / "aux-results.json").read_text())
+    library = Path(binary["library"]).resolve(strict=True)
+    if binary["target"] != "ppu10" or not library.is_relative_to(directory):
+        raise ValueError("require a PPU1.0 library in this admitted run")
+    digest = sha(library)
+    if binary["sha256"] != digest or native.get("library_sha256") != digest or aux.get("binary_sha256") != digest:
+        raise ValueError("passed receipts do not bind this exact library")
+    for receipt in (native, aux):
+        if receipt.get("status") != "PASS" or receipt.get("target") != "ppu10":
+            raise ValueError("serving AND auxiliary device gates must have passed")
+    pairs = [c for c in native["cases"] if c.get("case") == "ppu10-prefill-retained-pair"]
+    expected = {(n, f"16:{h}") for n in (64, 65, 129, 8192) for h in (32, 48)}
+    if (len(pairs) != len(expected) or {(c["length"], c["heads"]) for c in pairs} != expected
+            or any(c.get("output_state") != "RAW-BIT/PASS" for c in pairs)):
+        raise ValueError("incomplete retained/prepared numerical denominator")
+    checked = [c for c in aux["cases"] if c.get("case") == "gdn-checked-prefill"]
+    if len(checked) != 1 or checked[0].get("checked_vs_unchecked") != "RAW-BIT/PASS":
+        raise ValueError("missing corrected checked/unchecked prefill gate")
+    if "[FlashNext native] PASS replays=8 fixed-addresses kernel_nodes=1" not in (
+            directory / "native-graph.log").read_text():
+        raise ValueError("native graph gate did not finish")
+    return dict(directory=str(directory), library=str(library), sha256=digest,
+                binary_source_sha=binary["source_sha"],
+                device_receipts={name: sha(directory / name) for name in
+                                 ("binary.json", "results.json", "aux-results.json", "native-graph.log")})
+
+
+def select_run(explicit=None, workspace=Path("/workspace")):
+    if explicit is not None:
+        return read_run(explicit)
+    valid, rejected = [], []
+    for directory in sorted(workspace.glob("actlize-la-flare-ppu10-*")):
+        try:
+            valid.append(read_run(directory))
+        except (ValueError, KeyError, OSError, TypeError) as error:
+            rejected.append(f"{directory}: {error}")
+    if len(valid) != 1:
+        raise ValueError(f"expected exactly one passed serving run; found {len(valid)}. "
+                         "Set --serving-run explicitly. " + json.dumps(dict(valid=valid, rejected=rejected)))
+    return valid[0]
+
+
+def parse_raw(text):
+    """ACU raw wide CSV, native duration counter in base nanoseconds.
+
+    This format/key is backed by saved real PPU exports and SpeedOfLight.section.
+    Never derive elapsed time from active cycles or drop an unrecognized kernel.
+    """
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if '"ID"' in line
+                  and '"Kernel Name"' in line and '"ppu__time_duration.sum"' in line), None)
+    if start is None:
+        raise ValueError("ACU raw export lacks native ppu__time_duration.sum; no timing verdict")
+    reader = csv.DictReader(io.StringIO("\n".join(lines[start:])))
+    result, seen = [], set()
+    for row in reader:
+        if not row.get("ID") or not row["ID"].strip().isdigit():
+            raise ValueError("unexpected/non-numeric launch row in raw CSV")
+        key = (row.get("Process ID"), row["ID"])
+        if key in seen:
+            raise ValueError("duplicate launch ID; cannot silently double-count replay")
+        seen.add(key)
+        duration = float(row["ppu__time_duration.sum"].replace(",", "")) / 1000
+        if not math.isfinite(duration) or duration <= 0 or not row.get("Kernel Name"):
+            raise ValueError("missing/invalid kernel duration")
+        result.append(dict(id=row["ID"], process=row.get("Process ID"), kernel=row["Kernel Name"],
+                           grid=row.get("Grid Size"), block=row.get("Block Size"), us=duration))
+    if not result:
+        raise ValueError("empty ACU capture")
+    return result
+
+
+def inventory(role, kernels):
+    required = CORE + TRANSPORT if role == "serving" else CORE if role == "retained" else FLA
+    counts = {name: 0 for name in required}
+    unknown, helpers, core = [], 0., 0.
+    for row in kernels:
+        matches = [name for name in required if name in row["kernel"]]
+        if len(matches) == 1:
+            name = matches[0]
+            counts[name] += 1
+            if name in TRANSPORT:
+                helpers += row["us"]
+            else:
+                core += row["us"]
+        elif role == "fla" and "FillFunctor<" in row["kernel"]:
+            # FLA-owned zero-fill IS part of its complete core call, not overhead
+            # to subtract. Unknown additional kernels remain unadjudicated.
+            core += row["us"]
+        else:
+            unknown.append(row["kernel"])
+    valid = not unknown and all(count == 1 for count in counts.values())
+    valid = valid and len({row["process"] for row in kernels}) == 1
+    return dict(status="ADMITTED" if valid else "UNADJUDICATED", counts=counts, unknown=unknown,
+                total_us=sum(row["us"] for row in kernels), transport_us=helpers,
+                core_in_same_call_us=core, kernels=kernels)
+
+
+def summarize(captures, repeats):
+    if repeats < 3 or repeats % 3:
+        raise ValueError("need a complete three-role order cycle")
+    for role in ROLES:
+        if len(captures.get(role, [])) != repeats:
+            raise ValueError("missing capture role/repetition")
+    rows = {role: [c["total_us"] for c in captures[role]] for role in ROLES}
+    valid = all(c["status"] == "ADMITTED" for role in ROLES for c in captures[role])
+    if not valid:
+        verdict = "UNADJUDICATED"
+    elif max(rows["retained"]) < min(rows["fla"]):
+        verdict = "RETAINED_CORE_WINS"
+    elif max(rows["fla"]) < min(rows["retained"]):
+        verdict = "FLA_CORE_WINS"
+    else:
+        verdict = "UNRESOLVED"
+    return dict(core_verdict=verdict, rule="disjoint-observed-ACU-envelopes",
+                serving_vs_fla="NOT_COMPARABLE_RAW_SLOT_VS_PROCESSED_CORE",
+                rows={role: dict(median_us=statistics.median(values), min_us=min(values), max_us=max(values),
+                                 samples_us=values) for role, values in rows.items()},
+                serving_transport_us=[c["transport_us"] for c in captures["serving"]],
+                scope="ACU-profiled-kernel-sum-not-uninstrumented-API-latency")
+
+
+def validate_receipts(admission, subject, role):
+    if (admission.get("status") != "PASS" or admission.get("numeric_repeats") != 8
+            or admission.get("serving_core_bits") != "PASS" or set(admission.get("arms", {})) != set(ROLES)):
+        raise ValueError("incomplete three-arm numerical admission")
+    if (subject.get("status") != "PASS" or subject.get("phase") != "subject"
+            or subject.get("role") != role or subject.get("public_calls") != 1 or subject.get("warmup") != 0):
+        raise ValueError("subject is not exactly one admitted public call")
+    for key in ("device", "library_sha", "shape", "gate", "operands_sha"):
+        if key not in admission or subject.get(key) != admission[key]:
+            raise ValueError(f"capture identity mismatch: {key}")
+    for key in ("input_sha", "output_sha"):
+        if not admission["arms"][role].get(key) or subject.get(key) != admission["arms"][role][key]:
+            raise ValueError(f"capture differs from numerical admission: {key}")
+    if (admission["arms"]["retained"]["input_sha"] != admission["arms"]["fla"]["input_sha"]
+            or admission["arms"]["serving"]["output_sha"] != admission["arms"]["retained"]["output_sha"]):
+        raise ValueError("lost same-input core or RAW-BIT serving/retained binding")
+
+
+def small_archive(out):
+    archive = out / "results.tar.gz"
+    files = []
+    for path in sorted(out.rglob("*")):
+        if path.is_symlink():
+            raise ValueError(f"refuse to archive a source link: {path}")
+        if path.is_file() and path.suffix in (".json", ".log", ".csv", ".command", ".py", ".txt"):
+            files.append(path)
+    with tarfile.open(archive, "w:gz", dereference=False) as tar:
+        for path in files:
+            tar.add(path, arcname=path.relative_to(out), recursive=False)
+    return archive
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--serving-run", type=Path, default=os.environ.get("SERVING_RUN"))
+    parser.add_argument("--lengths", type=int, nargs="+", choices=(2048, 8192), default=[2048, 8192])
+    parser.add_argument("--value-heads", type=int, nargs="+", choices=(32, 48), default=[32])
+    parser.add_argument("--gates", type=float, nargs="+", choices=(-.1, -1.), default=[-.1])
+    parser.add_argument("--repeats", type=int, choices=(3, 6), default=3)
+    parser.add_argument("--device", default=os.environ.get("DEVICE", "0"))
+    args = parser.parse_args()
+    if not args.device.isdigit():
+        parser.error("device must be an explicit nonnegative physical ordinal")
+    for values in (args.lengths, args.value_heads, args.gates):
+        if len(values) != len(set(values)):
+            parser.error("duplicate shape/gate is not an independent cell")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out = Path(os.environ.get("OUT", f"/workspace/actlize-la-prefill-acu-{stamp}-{os.getpid()}"))
+    out.mkdir(parents=True, exist_ok=False)
+    sdk = Path(os.environ.get("PPU_SDK", os.environ.get("PPU_SDK_ROOT", "/usr/local/PPU_SDK")))
+    env = os.environ | dict(CUDA_VISIBLE_DEVICES=args.device, PYTHONUNBUFFERED="1",
+                            LD_LIBRARY_PATH=f"{sdk}/lib:{sdk}/lib64:" + os.environ.get("LD_LIBRARY_PATH", ""),
+                            PYTHONPATH=":".join(filter(None, (str(ROOT), str(ROOT / "tests"),
+                                os.environ.get("FLA_ROOT"), os.environ.get("PYTHONPATH")))))
+    status = dict(status="INCOMPLETE", created_utc=stamp, captures={}, device=args.device,
+                  intended_cells=list(itertools.product(args.lengths, args.value_heads, args.gates)),
+                  repeats=args.repeats, errors=[], sdk=str(sdk), acu=str(DEFAULT_ACU))
+    try:
+        if env.get("FLA_ROOT") and not (Path(env["FLA_ROOT"]) / "fla/__init__.py").is_file():
+            raise ValueError("FLA_ROOT is not a valid FLA checkout; no silent installed-package fallback")
+        origin = select_run(args.serving_run)
+        status["binary_origin"] = origin
+        previous = out / "passed-run"
+        previous.mkdir()
+        for name in origin["device_receipts"]:
+            shutil.copyfile(Path(origin["directory"]) / name, previous / name)
+        status["harness_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        status["source_diff"] = subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)
+        if status["source_diff"]:
+            raise ValueError("capture helpers must be committed before box measurement")
+        status["acu_sha256"] = sha(DEFAULT_ACU)
+        run([DEFAULT_ACU, "--version"], out / "acu-version.log", env, console=False)
+        smi = shutil.which("ppu-smi")
+        if smi:
+            status["driver_before"] = run([smi, "-i", args.device, "-q"], out / "device-before.log",
+                                          env, optional=True, console=False, timeout=20)
+        else:
+            status["driver_before"] = dict(status="UNAVAILABLE", reason="ppu-smi not on PATH")
+        for length, hv, gate in status["intended_cells"]:
+            key = f"T{length}-Hk16-Hv{hv}-g{gate}"
+            cell = out / key
+            cell.mkdir()
+            common = [sys.executable, "-u", ROOT / "benchmarks/profile_serving_prefill.py",
+                      "--library", origin["library"], "--directory", cell,
+                      "--length", str(length), "--value-heads", str(hv), "--gate", str(gate)]
+            run([*common, "--phase", "admit", "--receipt", cell / "admission.json"],
+                cell / "admission.log", env, console=False)
+            admission = json.loads((cell / "admission.json").read_text())
+            print(f"[prefill ACU] {key}: numerical admission complete; profiling serially", flush=True)
+            captures = {role: [] for role in ROLES}
+            status["captures"][key] = dict(captures=captures)
+            for repeat in range(args.repeats):
+                shift = repeat % 3
+                roles = ROLES[shift:] + ROLES[:shift]
+                if repeat // 3:
+                    roles = roles[::-1]
+                for role in roles:
+                    base = cell / f"{role}-{repeat}.report"
+                    command = [DEFAULT_ACU, "-f", "-o", base, "--set", "full", "--check-exit-code", "yes",
+                               *common, "--phase", "subject", "--role", role,
+                               "--receipt", cell / f"{role}-{repeat}.json"]
+                    run(command, cell / f"{role}-{repeat}.log", env, console=False)
+                    receipt = json.loads((cell / f"{role}-{repeat}.json").read_text())
+                    validate_receipts(admission, receipt, role)
+                    report = report_file(base)
+                    exported = cell / f"{role}-{repeat}.csv"
+                    # CSV is machine-consumed and packed; user need not paste it.
+                    run([DEFAULT_ACU, "--import", report, "--csv", "--page", "raw"],
+                        exported, env, console=False)
+                    measured = inventory(role, parse_raw(exported.read_text()))
+                    measured["report_sha256"] = sha(report)
+                    captures[role].append(measured)
+                    print(f"[prefill ACU] {key} role={role} repeat={repeat} "
+                          f"kernel_sum={measured['total_us']:.3f}_us inventory={measured['status']}", flush=True)
+            summary = summarize(captures, args.repeats)
+            status["captures"][key]["summary"] = summary
+            print("[prefill ACU summary] " + json.dumps(dict(cell=key, **summary), sort_keys=True), flush=True)
+        if sha(Path(origin["library"])) != origin["sha256"]:
+            raise ValueError("reused admitted library changed during capture")
+        if (subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != status["harness_sha"]
+                or subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)):
+            raise ValueError("capture helper source changed during measurement")
+        if smi:
+            status["driver_after"] = run([smi, "-i", args.device, "-q"], out / "device-after.log",
+                                         env, optional=True, console=False, timeout=20)
+        status["status"] = ("COLLECTED" if all(c["summary"]["core_verdict"] != "UNADJUDICATED"
+                                             for c in status["captures"].values()) else "UNADJUDICATED")
+    except Exception as error:
+        status["errors"].append(f"{type(error).__name__}: {error}")
+        print(f"[prefill ACU] NOT_ADMITTED: {status['errors'][-1]}", file=sys.stderr)
+    finally:
+        (out / "summary.json").write_text(json.dumps(status, indent=2) + "\n")
+        archive = small_archive(out)
+        print(f"[prefill ACU] status={status['status']} artifacts={out} upload={archive}", flush=True)
+        print("[prefill ACU] operand files and original .acurep stay on box; not included in small upload", flush=True)
+    return 0 if status["status"] == "COLLECTED" else 3 if status["status"] == "UNADJUDICATED" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

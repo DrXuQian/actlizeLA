@@ -24,7 +24,7 @@ projections, model scheduling and sampling remain in their original owners.
 |---|---|---|---|
 | `ppu15` (ZW890) | native CUDA-compatible C++ | existing native AIU residual | requires box admission |
 | `cuda_sm120` | independent SM120 binary, same ABI | sequential semantic validation | requires NVIDIA device admission |
-| `ppu10` | native CUDA-compatible C++ | retained AIU full-chunk/guarded-tail residual | new prepared adapter requires box admission |
+| `ppu10` | native CUDA-compatible C++ | retained AIU full-chunk/guarded-tail residual | operator suite user-reported PASS at226355a; performance separate |
 
 The SM120 semantic prefill path is not a tensor-core performance claim. PPU1.0
 now selects the retained residual implementation by default, not the semantic
@@ -41,6 +41,11 @@ bodies, with external scratch and the caller's stream; no allocation, configure,
 device-profile query, synchronization or CPU readback occurs in that adapter.
 PPU1.0's public-default 36-case NUMERIC/RAW-BIT PASS is user-reported; it is not
 admission of this new serving pack/slot/graph path or a new speed measurement.
+The subsequent complete serving/auxiliary/native-graph suite at226355a was also
+reported PASS by the user, after correcting a PPU15-only test predicate. Its raw
+bundle has not yet been independently inspected. The
+[prefill performance handoff](PPU10_PREFILL_PERF.md) verifies that run's binary
+and numerical receipts before reusing it; correctness does not imply speed.
 
 Local compilation, host algebra, device execution, and full-model Flare
 capture/export are distinct gates. The box script tests **operator** graph

@@ -1,12 +1,13 @@
 # PPU1.0 GDN 性能接线与端到端验收 TODO
 
-updated-at: 2026-11-06 03:18:25 UTC
+updated-at: 2026-11-06 03:59:48 UTC
 
 范围：先闭合已保留的 PPU1.0 GDN 实现与实际调用入口，不重新开展 kernel 调优。
 源码核对基线：main `66ec165`；serving 工作分支 `2e107e2`。
 工作分支已实现公共 PPU1.0 默认接线和 route/image 审计，用户已返回36组默认入口
 数值/逐位一致性 PASS；性能未测、完整 bundle 身份未核。新的 serving prefill
-prepared 接线已完成本地编译和回归，待独立 box 准入。retained device kernel
+prepared 接线已完成本地编译和回归，用户已反馈226355a整套box门通过；原始bundle
+身份仍待核验，性能不由这条反馈推定。retained device kernel
 本体不变，仅增加 host launch 接缝；main 与 wheel 尚未更新。
 
 ## 已确认与尚未确认
@@ -95,7 +96,7 @@ exit3，不报 PASS。PPU native kernel/source graph 无改动。
 
 ### P10-04 — PPU1.0 serving prefill 接入 residual prepared/out
 
-- [ ] **LOCAL_VALIDATED / prepared adapter 已实现，待 box 数值与图准入**
+- [x] **USER_REPORTED_NUMERIC_GRAPH_PASS / 226355a整套box通过，原始bundle待核**
 
 真实 SDK2.2.1 的 PPU1.0/PPU1.5 shared library 均编译链接通过；SM120 独立
 shared library 也编译链接通过。306项 host 回归 +143个 subtest 通过，其中 native
@@ -120,7 +121,8 @@ prefill 识别为 chunk，把已接 residual 的 PPU1.0 套到 FP32 recurrence �
 错误清零后，checked/unchecked 的完整输出与状态池还必须 RAW-BIT 相同；
 仅改 checked state 一个bit的负控也必须红。最终本地323项 +143个subtest通过，
 包含17项本次专项回归。CPU控制流 stand-in 不充当设备执行证据。
-这次不修改kernel或生产路由；修正后的完整box套件仍待用户重跑。
+这次不修改kernel或生产路由；用户随后反馈“都pass了”。只记本轮命令的数值、
+状态与算子图门通过，不推定性能、完整模型、main/wheel已完成。
 
 优先复用 `gdn_wy_forward_residual_full_chunk`：它已经接收外部 output、state、
 inverse/snapshots/vnew/gates 和 stream，不重写 kernel。将 configure 等准备动作
@@ -137,7 +139,7 @@ slot、tail 均通过；capture/replay 不分配、不 JIT、不同步、不 CPU
 
 ### P10-05 — decode / verify / commit 与新 prefill 连续运行
 
-- [ ] **OPEN / 已有实现，待新路径联合验收；依赖 P10-04**
+- [ ] **USER_REPORTED_SUITE_PASS / prefill→decode及verify/commit分项通过；性能和完整模型联合证据仍缺**
 
 复用现有增量算子与 compact records，验证 prefill→decode、verify widths1/2/4/8、
 consumed prefix 从0到全部、拒绝后继续生成、ShortConv 历史与 recurrent state
@@ -148,7 +150,17 @@ consumed prefix 从0到全部、拒绝后继续生成、ShortConv 历史与 recu
 
 ### P10-06 — 实际长输入与 FLA 同口径对照
 
-- [ ] **OPEN / 当前目标未建立同路径性能证据；依赖 P10-01/02/03**
+- [ ] **IN_PROGRESS / 准备同输入ACU对照；当前目标未建立性能证据**
+
+已提供[三臂ACU脚本](PPU10_PREFILL_PERF.md)：复用通过226355a整套门的serving库，
+默认T2048/8192、Hk16/Hv32，Hv48和强衰减可选。serving完整raw/slot调用单独列；
+retained和FLA共享实际prepare产出的逐位相同输入，只有core/core判速度输赢。
+每臂3次独立ACU、轮换顺序；原始输入/大报告留box，小型tar上传。没有新kernel
+或生产路由修改。待设备执行，不用host parser/模拟launch测试充当性能证据。
+本地135项相关检查 +8个subtest通过；真实旧ACU报告经SDK2.2.1离线重导入后，
+全部7个kernel（包含两个fill）的时间和与旧导出一致。这仅验证解析器，不是新
+设备性能。无设备subject进程返回SKIP/exit3；匹配库、缺失准入、重复autotune、
+错误指纹、缺阶段与归档链接负控均拒绝或UNADJUDICATED。
 
 先复核 T2048 历史几何，再测 T8192 及调用方真实分块长度；serving 臂在 P10-04/05
 关闭后加入。PPU1.0 同卡同输入、同 dtype/gate/state/output 合同，对照显式保留路径、

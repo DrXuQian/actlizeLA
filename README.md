@@ -130,6 +130,9 @@ their own device admission; model routing is not changed by installing the libra
 PPU1.0 prefill uses the retained full-chunk/guarded-tail implementation, with
 configuration outside capture and caller-owned padded workspace. The new serving
 adapter's device gate is separate from the public-default forward's numerical PASS.
+The [PPU1.0 prefill ACU comparison](docs/PPU10_PREFILL_PERF.md) reuses a passed
+serving library and separates full serving transport from matched retained/FLA
+cores; it does not rebuild kernels or infer a speedup from correctness.
 
 The serving branch also supplies [FlashNext auxiliary helpers](docs/FLARE_FLASHNEXT_AUX.md):
 rounded Grouped/Gated RMSNorm, HC combine/norm, speculative dilation1/3 ShortConv,
