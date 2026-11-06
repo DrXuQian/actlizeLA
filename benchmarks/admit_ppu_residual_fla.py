@@ -39,7 +39,7 @@ def main():
         want = admission.reference(cpu)
         calls = {"wy": lambda: gdn_chunk_wy(*inputs),
                  "wy-state-pipeline": lambda: gdn_chunk_wy(*inputs, delivery="state-pipeline"),
-                 "wy-residual": lambda: gdn_chunk_residual(*inputs),
+                 "wy-residual": lambda: gdn_chunk_residual(*inputs, delivery="scalar"),
                  "fla": fla_call(fn, inputs, "native")}
         for delivery in args.deliveries:
             calls[f"wy-residual-{delivery}"] = lambda delivery=delivery: gdn_chunk_residual(*inputs, delivery=delivery)

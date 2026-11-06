@@ -24,7 +24,8 @@ PPU `residual-solve-static` experiment remains pending device admission.
   builder or silently reuse an existing build directory of another target.
 - `gdn_forward` is the complete-algorithm front end. On NVIDIA SM90 its default
   is an installed shape-dispatched bundle; NVIDIA SM80 retains `original`.
-  PPU generation and WY/residual remain explicit. There is no decay-value
+  PPU generation remains explicit. PPU1.0 defaults to retained residual/full-chunk;
+  PPU1.5 defaults to its independent native residual. There is no decay-value
   heuristic. Native loading is lazy and cached by selected module and path,
   without filesystem checks on every invocation of an unchanged selection.
 - ACU source bundles include the moved primitives, build modules and JSON;
@@ -36,18 +37,17 @@ from actlize_la import backend_inventory, gdn_forward
 print(backend_inventory())  # source availability, not device admission
 o, ht = gdn_forward(q, k, v, g, beta)  # SM90: automatic; SM80: original
 
-# Explicit existing PPU algorithm, not the default. GDN_QSA_WY_EXTENSION must
-# identify the built extension. Dtypes/scale follow the existing residual API.
+# PPU1.0 retained default. GDN_QSA_WY_EXTENSION identifies the built extension.
+# No caller-selected internal delivery/configuration is needed.
 o, ht = gdn_forward(q, k, v, g, beta, initial_state=h0,
-                   algorithm="residual", backend="ppu10",
-                   delivery="warps8-hvlayout")
+                   backend="ppu10")
 ```
 
 Since 2026-10-30, `ppu15` has an independent native residual source graph in
 `csrc/backends/ppu15`, built by `cmake/backends/ppu15.cmake`. The common entry
 with explicit `backend="ppu15"` selects it without a delivery/configuration
 choice. It uses the pinned actlize PPU0015 atoms, not tc01 or Hopper emulation.
-PPU1.0 and NVIDIA defaults remain unchanged. Its source/native compilation is
+NVIDIA defaults remain unchanged. PPU1.5 source/native compilation is
 implemented; ZW890 numerical/performance admission remains **UNVERIFIED** until
 the [device suite](PPU15_ZW890.md) passes. `cuda_sm90` and `ppu17` retain their
 separate complete `fused_sm90` source graph, never a legacy fallback.
@@ -58,8 +58,10 @@ not normalize gates, change precision or drop unsupported arguments. Backend
 names describe the compiled route, not an automatically measured device identity.
 In particular, original returns BF16 final state and accepts BF16 gates; the
 WY/residual contracts return FP32 state and accept BF16 or FP32 gates. The catalog
-exposes those differences. There is no hidden cast or cross-contract automatic
-algorithm choice; that would require a separately agreed precision policy.
+exposes those differences. PPU1.0's default now has the residual FP32-state
+contract, not the legacy original BF16-state contract. No hidden cast is used;
+explicit original remains available. Default-route device admission is recorded
+separately from historical explicit-kernel results in [PPU usage](PPU_RETAINED_PATH.md).
 
 Existing box build commands remain valid. Explicit build selection is:
 

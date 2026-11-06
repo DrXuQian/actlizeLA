@@ -53,9 +53,9 @@ class Dispatch(unittest.TestCase):
                 self.assertEqual(call.call_args.kwargs, dict(initial_state=state,
                     output_final_state=False, delivery=delivery))
 
-    def test_no_candidate_promotion_when_delivery_omitted(self):
+    def test_omitted_residual_delivery_selects_retained_path(self):
         call, _ = self.run_call("residual")
-        self.assertEqual(call.call_args.kwargs["delivery"], "scalar")
+        self.assertEqual(call.call_args.kwargs["delivery"], "full-chunk")
 
     def test_unsupported_and_incompatible_targets_fail_before_import(self):
         with patch.dict(os.environ, {}, clear=True), patch("actlize_la.gdn_interface.import_module") as importer:
@@ -79,7 +79,7 @@ class Dispatch(unittest.TestCase):
     def test_conflicting_explicit_backend_and_legacy_environment_are_red(self):
         for env, requested in (({}, "ppu10"), ({"GDN_QSA_PPU_EXTENSION": "control.so"}, "cuda_sm80")):
             with patch.dict(os.environ, env, clear=True), self.assertRaisesRegex(RuntimeError, "no fallback"):
-                gdn_forward(*self.inputs, backend=requested)
+                    gdn_forward(*self.inputs, algorithm="original", backend=requested)
 
     def test_inventory_is_not_mutable_authority_or_device_admission(self):
         inventory = backend_inventory()
@@ -252,6 +252,17 @@ class BuildBoundary(unittest.TestCase):
 
 
 class LoaderBoundary(unittest.TestCase):
+    def setUp(self):
+        # These tests model Python/pybind module-cache behaviour only. Actual
+        # file hashing/mapped-image negatives live in test_gdn_route.py.
+        snapshot = patch("actlize_la.backends.loading._file_image",
+                         side_effect=lambda path: {"path": path, "sha256": path})
+        remember = patch("actlize_la.backends.loading._remember_image")
+        snapshot.start()
+        remember.start()
+        self.addCleanup(snapshot.stop)
+        self.addCleanup(remember.stop)
+
     def tearDown(self):
         from actlize_la.backends.loading import clear_backend_cache
         clear_backend_cache()

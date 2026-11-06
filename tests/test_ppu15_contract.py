@@ -36,7 +36,7 @@ class Ppu15Contract(unittest.TestCase):
         old = require_implementation("residual","ppu10")
         new = require_implementation("residual","ppu15")
         self.assertEqual(old["module"],"gdn_residual_interface")
-        self.assertNotIn("default_delivery",old)
+        self.assertEqual(old["default_delivery"],"full-chunk")
         self.assertEqual(new["module"],"gdn_ppu15_interface")
         self.assertEqual(old["numerical_contract"],new["numerical_contract"])
 

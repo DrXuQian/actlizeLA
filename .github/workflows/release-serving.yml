@@ -1,0 +1,46 @@
+name: Publish verified serving wheel
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Checkout prebuilt assets
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: artifacts/serving-${{ github.ref_name }}
+          path: prebuilt
+          lfs: true
+          persist-credentials: false
+      - name: Verify immutable identities and qualification boundary
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          python tools/verify_serving_release.py --assets prebuilt/assets --source . \
+            --scratch "$RUNNER_TEMP/serving-wheel-inspection" \
+            --tag "$RELEASE_TAG" --source-sha "$SOURCE_SHA" \
+            --asset-list "$RUNNER_TEMP/serving-release-assets.txt"
+      - name: Create draft, upload verified assets, then publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mapfile -t assets < "$RUNNER_TEMP/serving-release-assets.txt"
+          gh release create "$RELEASE_TAG" "${assets[@]}" --verify-tag --draft \
+            --title "actlizeLA $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
+          gh release edit "$RELEASE_TAG" --draft=false --latest

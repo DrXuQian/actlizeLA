@@ -39,9 +39,18 @@ class RetainedPpuPath(unittest.TestCase):
         self.assertEqual(result, ("output", None))
         self.native.residual_full_chunk.assert_called_once_with(*self.inputs, None, False)
 
-    def test_existing_residual_default_is_unchanged(self):
+    def test_auto_and_both_residual_defaults_select_retained(self):
         with patch.object(residual, "_backend", return_value=self.native):
-            result = gdn_forward(*self.inputs, backend="ppu10", algorithm="residual")
+            for options in ({}, {"algorithm": "residual"}):
+                result = gdn_forward(*self.inputs, backend="ppu10", **options)
+                self.assertEqual(result, ("output", "state"))
+            self.assertEqual(residual.gdn_chunk_residual(*self.inputs), ("output", "state"))
+        self.assertEqual(self.native.residual_full_chunk.call_count, 3)
+        self.native.residual.assert_not_called()
+
+    def test_scalar_control_remains_explicit(self):
+        with patch.object(residual, "_backend", return_value=self.native):
+            result = gdn_forward(*self.inputs, backend="ppu10", algorithm="residual", delivery="scalar")
         self.assertEqual(result, ("scalar-output", "scalar-state"))
         self.native.residual.assert_called_once_with(*self.inputs, None, True)
         self.native.residual_full_chunk.assert_not_called()

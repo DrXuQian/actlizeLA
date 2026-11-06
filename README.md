@@ -92,9 +92,12 @@ See [ZW890 support and scope](docs/PPU15_ZW890.md).
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated
 Hopper instructions. The retained V32/8 tuning is on `main`: static solve,
 gate reuse and full-C64 state with guarded-tail fallback. Use the unified
-entry with `backend="ppu10", algorithm="residual", delivery="full-chunk"`;
-no caller-selected warp geometry is needed. Original and materialized-WY
-remain explicit alternatives, and existing defaults are unchanged. See
+entry with `backend="ppu10"`; the default is the retained residual/full-chunk
+implementation, including its guarded-tail branch. No caller-selected delivery
+or warp geometry is needed. Original, scalar residual and materialized-WY
+remain explicit alternatives. Default final state is FP32, not the old
+original algorithm's BF16. Default-route numerical PASS is user-reported; the
+historical speed measurements belong to the explicit retained kernel. See
 [PPU build/API](docs/PPU_RETAINED_PATH.md),
 [original implementation](docs/PPU_BACKEND.md) and
 [residual formulation](docs/PPU_GDN_RESIDUAL.md).
@@ -109,6 +112,35 @@ The optional original CUDA SM80 operators can be compiled explicitly with
 `GDN_QSA_TARGET=cuda_sm80 GDN_QSA_BUILD_GDN_ONLY=1 python -m pip install
 --no-build-isolation -e .`. PPU1.7 has a separate PPU CUTLASS3.6/10700 source
 graph; CUDA source checks are **not** native PPU1.7 execution evidence.
+
+## Prepared serving interfaces
+
+The complete **0.2.2 serving wheel** packages its AOT library and Python bindings.
+Use `actlize_la.get_library_info(target="ppu10")` for file-only discovery and
+`NativeLibrary(target="ppu10")` during preparation; no manual `.so` path is needed.
+Install from the matching target/SDK artifact channel, with platform Torch already
+provided. See [serving wheel installation and qualification](docs/SERVING_WHEEL.md).
+Plain source/host-only installs remain distinct and do not claim native support.
+The PPU1.0 public default now uses this same packaged retained library; a separate
+legacy `_gdn_wy_ppu.so` is not required. For caller-owned processed QKV/log-g/beta,
+use `PreparedGDNCore`; raw logits and VK slot pools use `PreparedGDN` instead.
+
+`actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
+PPU1.0/PPU1.5 residual prefill with explicit state-layout conversion, and paged incremental
+BF16 QSA. Flare preparation bindings, workspace bounds and a box test script
+are documented in [Flare serving](docs/FLARE_SERVING.md). These operators require
+their own device admission; model routing is not changed by installing the library.
+PPU1.0 prefill uses the retained full-chunk/guarded-tail implementation, with
+configuration outside capture and caller-owned padded workspace. The new serving
+adapter's device gate is separate from the public-default forward's numerical PASS.
+See the [0.2.2 release notes](docs/releases/v0.2.2.md) for the exact binary target,
+SDK requirements and the distinction between source-suite and installed-device
+validation. No new performance admission is claimed by this release.
+
+The package also supplies [serving auxiliary helpers](docs/FLARE_FLASHNEXT_AUX.md):
+rounded Grouped/Gated RMSNorm, HC combine/norm, speculative dilation1/3 ShortConv,
+packed PLE hash/gate and single-use GDN records. C/C++ launch ABIs and a
+Torch-free native graph example accompany the caller-owned Python bindings.
 
 ## Layout
 
@@ -129,7 +161,8 @@ device performance measurement.
 
 ## Provenance
 
-`main` is the only development branch; unselected tuning arms and their
+`main` includes the serving integration and the retained PPU1.0 default.
+Unselected tuning arms and their
 evidence remain available through [archive tags](docs/BRANCHES.md).
 
 This is a new actlizeLA source history, migrated from the GDN-QSA-sm80 work.

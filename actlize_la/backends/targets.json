@@ -78,6 +78,7 @@
       "module": "gdn_residual_interface",
       "entry": "gdn_chunk_residual",
       "target_entries": {
+        "ppu10": {"default_delivery": "full-chunk"},
         "ppu15": {"module": "gdn_ppu15_interface", "entry": "gdn_chunk_ppu15", "default_delivery": "native"}
       },
       "numerical_contract": "gated-inverse-residual-bf16-v1",

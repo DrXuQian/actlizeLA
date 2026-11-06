@@ -8,8 +8,11 @@ and public output layouts are unchanged.
 
 This does not add the experimental V16/4 shape selector. NVIDIA SM80/SM90
 backends and the existing SM90 automatic shape policy remain independent.
-The original, materialized-WY and residual numerical schedules are distinct;
-the consolidation does not silently change the default algorithm.
+The original, materialized-WY and residual numerical schedules are distinct.
+The PPU1.0 public default now selects this retained residual implementation;
+explicit original/WY/scalar calls remain available as controls. This changes
+the old original default's final-state type from BF16 to FP32 and adds carried
+initial-state support. NVIDIA and PPU1.5 routing are unchanged.
 
 ## Build
 
@@ -42,10 +45,16 @@ output, final_state = gdn_forward(
     initial_state=initial_state,
     output_final_state=True,
     backend="ppu10",
-    algorithm="residual",
-    delivery="full-chunk",
 )
 ```
+
+`gdn_forward(..., backend="ppu10", algorithm="residual")` and
+`gdn_chunk_residual(...)` also use the same retained delivery by default.
+For an explicit scalar control specify `algorithm="residual", delivery="scalar"`;
+for the old reset/scan algorithm specify `algorithm="original"` with its own
+`GDN_QSA_PPU_EXTENSION`. An old WY binding without `residual_full_chunk` is an
+error, never a silent scalar fallback. This API is complete forward, including
+T=1 with a guarded tail; it is not the in-place serving decode/commit API.
 
 There is no caller-selected warp geometry. The native entry checks sequence
 length and selects full-chunk or guarded-tail state; it does not inspect gate
@@ -60,6 +69,13 @@ values, reset/truncate the recurrence, repack inputs, or autotune on a call.
   callers perform any required Q/K normalization or gate transformation.
 
 ## Validation boundary
+
+The source default-route and serving suites have user-reported PPU1.0 PASS.
+**Installed-wheel device admission is still pending**; publication does not
+substitute for that gate.
+No native kernel arithmetic or pipeline changed in this routing patch. Existing
+device receipts below remain evidence for the explicit retained implementation,
+not a new performance claim for the default, T8192, or serving prefill.
 
 The retained runtime files are taken unchanged from `41ade14`. Its device
 admission covered 36 cases per delivery, eight repetitions, full/tail chunks,
@@ -92,3 +108,35 @@ To repeat device admission after building in a PPU environment:
 python tests/test_ppu_residual_backend.py \
   --extension "$GDN_QSA_WY_EXTENSION" --deliveries full-chunk
 ```
+
+To build and validate the public default on PPU1.0 (no wheel required):
+
+```bash
+PPU_SDK=/usr/local/PPU_SDK DEVICE=0 JOBS=8 bash tools/run_ppu_default_gdn_box.sh
+```
+
+Or reuse the unchanged native kernel binary with
+`EXTENSION="$GDN_QSA_WY_EXTENSION" bash tools/run_ppu_default_gdn_box.sh`.
+The script runs the retained 36-case gate and a further 36 target-geometry
+default-vs-explicit cases (Hk16/Hv32 or48; T1/63/64/65/127/128/129/2048/8192),
+each with eight repeated launches and an independent recurrence reference.
+It creates a small `results.tar.gz`; no ACU/API timing is presented as part
+of numerical admission. Source-built and wheel serving paths remain separate.
+
+Inspect a running application's exact public route before timing/capture:
+
+```python
+import json
+from actlize_la import get_gdn_route_info
+
+print(json.dumps(get_gdn_route_info(
+    q, k, v, g, beta, initial_state=initial_state, backend="ppu10",
+), indent=2))
+```
+
+Use the same arguments as the actual forward call. This records input metadata,
+numerical contract, native entry, binding hash and the mapped kernel DSO hash.
+It launches no device kernel and does not run inside `gdn_forward`; call it once
+during preparation, not on replay. `load_binary=False` reports policy only and
+explicitly labels native execution/identity unverified. Files replaced after
+loading or ambiguous same-named mapped kernel libraries are rejected.

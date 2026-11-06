@@ -1,8 +1,14 @@
 # Main and archived experiments
 
-`main` is the only development branch. It contains the retained PPU1.0
+`main` is the product branch. It contains the retained PPU1.0
 V32/8 implementation alongside the independent NVIDIA SM80/SM90 backends.
 See [PPU usage](PPU_RETAINED_PATH.md) and [SM90 installation](SM90_INSTALL.md).
+
+The serving runtime, auxiliary operators, default PPU1.0 route and wheel tools
+are integrated into `main` for 0.2.2. The source branch retains diagnostic work
+not needed by the product. See [release validation status](releases/v0.2.2.md):
+publication does not change outstanding installed-device or Flare graph evidence
+into PASS. Performance remains a separate, deferred qualification.
 
 Unselected experiments and their measurement records are preserved, not
 maintained as parallel development branches:

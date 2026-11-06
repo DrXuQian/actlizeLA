@@ -2,12 +2,17 @@
 
 from importlib import import_module
 
+from ._version import __version__
+
 # A GDN-only installation must not need the three unrelated NVIDIA extensions.
 # Import only contracts here; load the selected implementation lazily.
 _MODULES = {
+    "get_library_info": "_library",
+    "get_library_path": "_library",
     "get_device_profile": "device",
     "load_sm90": "sm90",
     "gdn_forward": "gdn_interface",
+    "get_gdn_route_info": "gdn_route",
     "backend_inventory": "backends",
     "gdn_chunk": "gdn_chunk_interface",
     "gdn_chunk_reference": "gdn_chunk_interface",
@@ -34,12 +39,15 @@ def __getattr__(name):
     globals()[name] = value
     return value
 
-__version__ = "0.1.0"
+
 __all__ = [
+    "get_library_info",
+    "get_library_path",
     "get_device_profile",
     "load_sm90",
     # GDN
     "gdn_forward",
+    "get_gdn_route_info",
     "backend_inventory",
     "gdn_chunk",
     "gdn_chunk_twolevel",

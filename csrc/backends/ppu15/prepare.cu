@@ -111,11 +111,12 @@ __global__ void __launch_bounds__(128) solve_kernel(Inputs p, Workspace ws) {
 }
 }  // namespace
 
+int configure_prepare() {
+  return int(hggcFuncSetAttribute(solve_kernel, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(SolveStorage)));
+}
 int prepare(Inputs p, Workspace ws, hggcStream_t stream) {
-  auto rc = hggcFuncSetAttribute(solve_kernel, hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(SolveStorage));
-  if (rc) return int(rc);
   prefix_kernel<<<unsigned(p.shape.groups()), 64, 0, stream>>>(p, ws);
-  rc = hggcGetLastError();
+  auto rc = hggcGetLastError();
   if (rc) return int(rc);
   solve_kernel<<<unsigned(p.shape.groups()), 128, sizeof(SolveStorage), stream>>>(p, ws);
   return int(hggcGetLastError());

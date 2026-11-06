@@ -16,3 +16,10 @@ PPU actlize dependency: third_party/actlize submodule; original notices retained
 
 FLA and FlashInfer/FlashQLA are optional numerical/performance references,
 not dependencies of the installed native forward implementation.
+
+The prepared serving recurrence/recovery and speculative QSA compression
+contracts derive from Flare (DrXuQian/spark-local-inference) and its b12x
+FlashInfer dependency. Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES;
+Copyright (c) 2026 Flare community contributors. Apache License 2.0; root
+LICENSE and source attribution are retained. No Triton dependency is introduced
+into actlizeLA's native serving implementation.

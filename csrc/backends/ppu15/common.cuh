@@ -27,4 +27,7 @@ CUTE_DEVICE float gate(Inputs const& p, int64_t at) {
 int prepare(Inputs, Workspace, hggcStream_t);
 int state(Inputs, Workspace, float*, hggcStream_t);
 int output(Inputs, Workspace, BF16*, hggcStream_t);
+int configure_prepare();
+int configure_state();
+int configure_output();
 }  // namespace actlize_la::ppu15

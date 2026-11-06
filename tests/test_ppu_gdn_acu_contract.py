@@ -98,14 +98,16 @@ class ACUContract(unittest.TestCase):
                 getattr(backend,name).assert_called_once()
             with self.assertRaises(ValueError): api.gdn_chunk_residual(*inputs,delivery='unknown')
 
-    def test_residual_default_accepts_legacy_backend_without_candidates(self):
+    def test_residual_default_rejects_legacy_backend_without_retained_entry(self):
         import torch
         from unittest.mock import Mock
         from actlize_la import gdn_residual_interface as api
         inputs = tuple(torch.zeros(1) for _ in range(5))
         backend = SimpleNamespace(residual=Mock(return_value=('out', 'state')))
         with patch.object(api, '_backend', return_value=backend):
-            self.assertEqual(api.gdn_chunk_residual(*inputs), ('out', 'state'))
+            with self.assertRaisesRegex(AttributeError, "residual_full_chunk"):
+                api.gdn_chunk_residual(*inputs)
+            self.assertEqual(api.gdn_chunk_residual(*inputs, delivery="scalar"), ('out', 'state'))
         backend.residual.assert_called_once()
 
     def test_residual_runner_rejects_bad_selector_or_missing_acu_before_build(self):
