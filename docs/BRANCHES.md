@@ -1,8 +1,14 @@
 # Main and archived experiments
 
-`main` is the only development branch. It contains the retained PPU1.0
+`main` is the product branch. It contains the retained PPU1.0
 V32/8 implementation alongside the independent NVIDIA SM80/SM90 backends.
 See [PPU usage](PPU_RETAINED_PATH.md) and [SM90 installation](SM90_INSTALL.md).
+
+The temporary `feat/flare-gdn-qsa-mtp` branch qualifies Flare/FlashNext serving,
+auxiliary operators and the complete wheel. Its source-level PPU1.0 suite has a
+user-reported PASS; the new installed-wheel and actual Flare component gates are
+separate. Performance is deferred, not a release claim. Main promotion needs
+the declared numerical/graph/install evidence, not a wholesale tuning-branch merge.
 
 Unselected experiments and their measurement records are preserved, not
 maintained as parallel development branches:

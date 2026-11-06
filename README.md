@@ -96,7 +96,7 @@ entry with `backend="ppu10"`; the default is the retained residual/full-chunk
 implementation, including its guarded-tail branch. No caller-selected delivery
 or warp geometry is needed. Original, scalar residual and materialized-WY
 remain explicit alternatives. Default final state is FP32, not the old
-original algorithm's BF16. Fresh default-route box admission is pending; the
+original algorithm's BF16. Default-route numerical PASS is user-reported; the
 historical speed measurements belong to the explicit retained kernel. See
 [PPU build/API](docs/PPU_RETAINED_PATH.md),
 [original implementation](docs/PPU_BACKEND.md) and
@@ -115,12 +115,15 @@ graph; CUDA source checks are **not** native PPU1.7 execution evidence.
 
 ## Prepared serving interfaces
 
-The complete **0.2.0 serving wheel** packages its AOT library and Python bindings.
+The complete **0.2.2 serving wheel** packages its AOT library and Python bindings.
 Use `actlize_la.get_library_info(target="ppu10")` for file-only discovery and
 `NativeLibrary(target="ppu10")` during preparation; no manual `.so` path is needed.
 Install from the matching target/SDK artifact channel, with platform Torch already
 provided. See [serving wheel installation and qualification](docs/SERVING_WHEEL.md).
 Plain source/host-only installs remain distinct and do not claim native support.
+The PPU1.0 public default now uses this same packaged retained library; a separate
+legacy `_gdn_wy_ppu.so` is not required. For caller-owned processed QKV/log-g/beta,
+use `PreparedGDNCore`; raw logits and VK slot pools use `PreparedGDN` instead.
 
 `actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
 PPU1.0/PPU1.5 residual prefill with explicit state-layout conversion, and paged incremental
@@ -158,7 +161,8 @@ device performance measurement.
 
 ## Provenance
 
-`main` is the only development branch; unselected tuning arms and their
+`main` is the product line; the serving integration is being qualified on
+`feat/flare-gdn-qsa-mtp`. Unselected tuning arms and their
 evidence remain available through [archive tags](docs/BRANCHES.md).
 
 This is a new actlizeLA source history, migrated from the GDN-QSA-sm80 work.

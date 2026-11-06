@@ -11,7 +11,7 @@ from pathlib import Path
 def main():
     p = argparse.ArgumentParser()
     p.add_argument(
-        "--phase", choices=("host", "serving", "aux", "flare"), required=True
+        "--phase", choices=("host", "serving", "aux", "public_default", "flare"), required=True
     )
     p.add_argument("--target", required=True)
     p.add_argument("--tests", type=Path, required=True)
@@ -33,6 +33,15 @@ def main():
     sys.path.insert(0, str(args.tests.resolve()))
     if (args.tests / "actlize_la").exists():
         raise RuntimeError("test directory must not contain a production package")
+    from serving_qualification import FLARE_TESTS, HOST_TESTS
+
+    if args.phase == "public_default":
+        if args.target != "ppu10":
+            raise ValueError("installed public residual bridge is PPU1.0-only")
+        entry = args.tests / "test_ppu_default_device.py"
+        sys.argv = [str(entry), "--installed", "--results", str(args.output)]
+        runpy.run_path(str(entry), run_name="__main__")
+        return 0
     if args.phase in ("serving", "aux"):
         entry = args.tests / (
             "serving_device.py" if args.phase == "serving" else "aux_device.py"
@@ -53,10 +62,7 @@ def main():
     # Do not let ambient -k/--lf options silently shrink the admission suite.
     os.environ.pop("PYTEST_ADDOPTS", None)
 
-    files = [
-        args.tests / "test_serving_contract.py",
-        args.tests / "test_aux_contract.py",
-    ]
+    files = [args.tests / (name + ".py") for name in HOST_TESTS]
     os.environ["ALA_SERVING_TEST_LIBRARY"] = library
     if args.phase == "flare":
         if not args.flare or not args.blas or not args.blas.is_file():
@@ -77,12 +83,7 @@ def main():
             FLARE_TEST_BLAS_API="cublas",
         )
         files = [
-            args.flare / "tests/components" / name
-            for name in (
-                "test_actlize_gdn_sequence_cuda.py",
-                "test_actlize_mixing_cuda.py",
-                "test_actlize_ple_cuda.py",
-            )
+            args.flare / "tests/components" / (name + ".py") for name in FLARE_TESTS
         ]
 
     class InstalledOnly:

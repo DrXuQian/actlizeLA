@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import runpy
 import shutil
 import subprocess
 import sys
@@ -17,6 +18,7 @@ import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CHECK_FILES = runpy.run_path(str(ROOT / "tools/serving_qualification.py"))["CHECK_FILES"]
 
 
 def command(*args, **kwargs):
@@ -187,8 +189,12 @@ def main():
     sys.path.insert(0, str(ROOT))
     from actlize_la._version import __version__
     from actlize_la.serving import NativeLibrary
+    from actlize_la._serving_contract import TARGET_PREPARED_EXPORTS
 
     native = NativeLibrary(library, target=args.target)
+    prepared_exports = TARGET_PREPARED_EXPORTS[args.target]
+    for name in prepared_exports:
+        getattr(native.lib, name)  # Old semantic-only PPU10 libraries cannot ship as retained.
     bundle = out / "bundle"
     bundle.mkdir()
     payloads = [
@@ -224,6 +230,7 @@ def main():
                 library=f"_native/{args.target}/{library.name}",
                 native_graph_example=f"_native/{args.target}/{graph.name}",
                 abi=native.abi,
+                prepared_exports=list(prepared_exports),
                 compatibility=compatibility,
             )
         },
@@ -292,12 +299,8 @@ def main():
             "tools/qualify_serving_wheel.py",
             "tools/installed_serving_checks.py",
             "tools/verify_installed_serving.py",
-            "tests/test_serving_contract.py",
-            "tests/test_aux_contract.py",
-            "tests/serving_reference.py",
-            "tests/aux_reference.py",
-            "tests/serving_device.py",
-            "tests/aux_device.py",
+            "tools/serving_qualification.py",
+            *("tests/" + name for name in CHECK_FILES),
         ):
             archive.add(ROOT / name, arcname=name)
     result["qualification_kit"] = dict(path=str(kit), sha256=sha(kit))

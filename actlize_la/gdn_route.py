@@ -58,7 +58,15 @@ def get_gdn_route_info(q, k, v, g, beta, initial_state=None, output_final_state=
         native = module._backend()
         if not callable(getattr(native, native_entry, None)):
             raise RuntimeError(f"selected native entry is missing: {native_entry}; no fallback")
-        dependency = "libgdn_qsa_ppu.so" if route["algorithm"] == "original" else "libgdn_wy_ppu.so"
-        result["native_images"] = loaded_image_info(native, dependency)
+        from ._gdn_ppu10 import PPU10Backend
+        if isinstance(native, PPU10Backend):
+            result["native_images"] = native.image_info()
+            result["native_entry"] = "actlize_la_ppu10_forward_prepared"
+            result["native_provider"] = native.provider
+            result["manifest_sha256"] = native.manifest_sha256
+        else:
+            dependency = "libgdn_qsa_ppu.so" if route["algorithm"] == "original" else "libgdn_wy_ppu.so"
+            result["native_images"] = loaded_image_info(native, dependency)
+            result["native_provider"] = "explicit-extension"
         result["native_status"] = "LOADED_FILES_VERIFIED_NOT_DEVICE_ADMITTED"
     return result

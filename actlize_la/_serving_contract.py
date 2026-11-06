@@ -2,6 +2,11 @@
 
 TARGET_IDS = {"ppu10": 100, "ppu15": 150, "cuda_sm120": 1200}
 ABI_VERSION = 1
+TARGET_PREPARED_EXPORTS = {
+    "ppu10": ("actlize_la_ppu10_configure", "actlize_la_ppu10_forward_prepared"),
+    "ppu15": (),
+    "cuda_sm120": (),
+}
 STRUCT_NAMES = (
     "_Gdn",
     "_Commit",
@@ -44,10 +49,21 @@ REQUIRED_BINDINGS = (
     "_version.py",
     "_library.py",
     "_serving_contract.py",
+    "_gdn_ppu10.py",
+    "gdn_interface.py",
+    "gdn_residual_interface.py",
+    "gdn_route.py",
+    "gdn_wy_interface.py",
+    "device.py",
+    "backends/__init__.py",
+    "backends/loading.py",
+    "backends/registry.py",
+    "backends/targets.json",
     "serving/__init__.py",
     "serving/_native.py",
     "serving/_abi.py",
     "serving/gdn.py",
+    "serving/gdn_core.py",
     "serving/gdn_transaction.py",
     "serving/qsa.py",
     "serving/auxiliary.py",

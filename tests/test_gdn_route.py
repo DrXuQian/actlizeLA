@@ -94,7 +94,7 @@ class Route(unittest.TestCase):
         with patch.object(residual, "_backend", return_value=native):
             with self.assertRaisesRegex(RuntimeError, "missing.*residual_full_chunk"):
                 get_gdn_route_info(*inputs(), backend="ppu10")
-            with self.assertRaisesRegex(AttributeError, "residual_full_chunk"):
+            with self.assertRaisesRegex(RuntimeError, "residual_full_chunk"):
                 gdn_forward(*inputs(), backend="ppu10")
         native.residual.assert_not_called()
 

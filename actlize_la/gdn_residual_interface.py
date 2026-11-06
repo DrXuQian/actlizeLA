@@ -3,8 +3,24 @@
 Its BF16 association differs from materialized WY/original; FP32 carried state
 and the independent numerical gate remain part of the public contract.
 """
-from .gdn_wy_interface import _backend, DELIVERIES
+import os
+from .gdn_wy_interface import _backend as _legacy_backend, DELIVERIES
 from .backends.registry import require_implementation
+
+
+def _backend():
+    # An explicit development extension stays explicit. A broken selected
+    # extension must never silently fall back to the installed wheel.
+    if "GDN_QSA_WY_EXTENSION" in os.environ:
+        if "ACTLIZE_LA_SERVING_LIBRARY" in os.environ:
+            raise ValueError("select only one of GDN_QSA_WY_EXTENSION and ACTLIZE_LA_SERVING_LIBRARY")
+        return _legacy_backend()
+    if "ACTLIZE_LA_SERVING_LIBRARY" in os.environ:
+        from ._gdn_ppu10 import explicit_backend
+        path = os.environ["ACTLIZE_LA_SERVING_LIBRARY"]
+        return explicit_backend(path, "" if os.path.isabs(path) else os.getcwd())
+    from ._gdn_ppu10 import packaged_backend
+    return packaged_backend()
 
 MATH_CONTRACT = "gated-inverse-residual-bf16-v1"
 WY_MATH_CONTRACT = "materialized-wu-bf16-v1"
@@ -68,6 +84,10 @@ def gdn_chunk_residual(q, k, v, g, beta, initial_state=None, output_final_state=
     inputs = tuple(x.contiguous() for x in (q, k, v, g, beta))
     state = initial_state.contiguous() if initial_state is not None else None
     backend = _backend()
-    call = getattr(backend, RESIDUAL_ENTRYPOINTS[delivery])
+    call = getattr(backend, RESIDUAL_ENTRYPOINTS[delivery], None)
+    if call is None:
+        raise RuntimeError(
+            f"selected backend has no {RESIDUAL_ENTRYPOINTS[delivery]}; "
+            "non-default diagnostics require an explicit GDN_QSA_WY_EXTENSION; no fallback")
     output, final = call(*inputs, state, output_final_state)
     return output, final if output_final_state else None

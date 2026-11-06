@@ -1,6 +1,14 @@
-# Complete serving wheel (0.2.1)
+# Complete serving wheel (0.2.2)
 
-Version 0.2.1 fixes fake tracing with symbolic process-local serving handles.
+Version 0.2.2 binds ordinary PPU1.0 `gdn_forward` and `gdn_chunk_residual` to the
+complete wheel's retained full-chunk/guarded-tail library, without another
+`_gdn_wy_ppu.so`. `PreparedGDNCore` exposes the same processed-input launch with
+caller-owned output/state/scratch. No device kernel or numerical schedule changed.
+Installed qualification adds the actual Flare QSA paged/catalog component,
+36 public-default cases and four mutable-input core graphs. Performance remains
+deferred by request, not admitted by correctness.
+
+Version 0.2.1's symbolic process-local serving-handle fix is retained.
 Flare's Torch 2.9 AOT workers represent a rebound handle as an unbacked SymInt;
 it cannot be used as a weak-registry key. Fake dispatch leaves symbolic handles
 unresolved, while concrete owners still validate tensor metadata and real
@@ -10,27 +18,27 @@ the package manifest. Device and complete-model qualification remain separate.
 
 Distribution `actlize-la`, import `actlize_la`. A complete serving wheel includes
 GDN/transactions/prefill, QSA, ShortConv/history, normalization, HC, PLE and MTP
-pointwise helpers. It does not re-route the separate allocating/SM90 APIs.
-No kernel, arithmetic, graph mutation contract or target selection is changed.
+pointwise helpers. The PPU1.0 allocating default and prepared API share one native
+implementation; SM90, PPU1.5 and explicit legacy experiment routes are unchanged.
 
 ## Install and prepare
 
 Use the **matching PPU target and SDK artifact channel**. Linux wheel tags do not
 encode a PPU generation. The filename's build tag and the sealed manifest identify
 the target/SDK; never publish ppu10 and ppu15 wheels in one unfiltered index.
-The 0.2.0 handoff builds **ppu10 / SDK 2.2.1-184ee6 (runtime v3)**. ppu15 and
+The local PPU1.0 build uses **SDK 2.2.1-184ee6 (runtime v3)**. ppu15 and
 cuda_sm120 are separate explicit build targets, not aliases or fallback binaries.
 
 With the platform's Torch/runtime already installed:
 
 ```bash
-python -m pip install --no-deps /path/to/actlize_la-0.2.0-*-py3-none-linux_x86_64.whl
+python -m pip install --no-deps /path/to/actlize_la-0.2.2-*-py3-none-linux_x86_64.whl
 ```
 
 When that exact wheel has been published to the configured PPU artifacts channel:
 
 ```bash
-python -m pip install --only-binary=actlize-la actlize-la==0.2.0
+python -m pip install --only-binary=actlize-la actlize-la==0.2.2
 ```
 
 The wheel declares no dependency that would download/replace platform Torch,
@@ -55,6 +63,20 @@ from actlize_la.serving import NativeLibrary
 library = NativeLibrary(target="ppu10")
 debug_library = NativeLibrary("/explicit/libactlize_la_serving.so", target="ppu10")
 ```
+
+For the allocating API, processed Q/K/V/beta are BF16, natural-log `g` is
+BF16/FP32, and initial/final state is FP32 `[B,Hv,K,V]`. This is not the raw-logit
+and VK-slot contract of `PreparedGDN`. Query scaling remains inside the kernel,
+exactly once. `PreparedGDNCore` has the processed contract and does not allocate
+or configure during replay. Prepare/warm up before capture, and keep its owner
+alive with the graph. `gdn_core_workspace_specs(B,T,Hk,Hv)` returns only inverse,
+snapshots, vnew and gates; it preserves PPU1.0's padded inverse pitch.
+
+Source developers may explicitly set `ACTLIZE_LA_SERVING_LIBRARY` to their built
+PPU1.0 serving DSO and use the same public default; no such variable is needed
+for the complete wheel. `GDN_QSA_WY_EXTENSION` still selects a legacy diagnostic
+extension. Setting both is rejected, and a missing/corrupt selected library
+never falls back to another implementation.
 
 Public signatures are `get_library_info(target=None) -> dict` and
 `get_library_path(target=None) -> pathlib.Path`. They do not import Torch, dlopen,
@@ -115,6 +137,22 @@ discovery API reports that a complete precompiled wheel is absent.
 
 ## Installed-only box qualification
 
+To build on the matching box and test without replacing its existing Python
+installation, use the complete non-performance handoff:
+
+```bash
+TARGET=ppu10 PPU_SDK=/usr/local/PPU_SDK JOBS=8 \
+  FLARE_ROOT=/sim/eec/shared/junfu.qx/qwen4flash-flare \
+  bash tools/run_serving_release_box.sh
+```
+
+It creates a new `/workspace` artifact directory and a `--system-site-packages`
+environment, installs only the newly built wheel there with `--no-deps --no-index`,
+and runs installed qualification. Platform Torch, the existing actlizeLA install,
+and framework sources are not changed. Set `FLARE_ROOT` to the actual checkout;
+omitting it leaves component admission NOT_RUN. Upload its small `results.tar.gz`.
+No timing, ACU or performance comparison runs in this command.
+
 No box compiler is needed. Install the wheel as above and run the test kit (or
 these same test tools from the checkout; production imports still come only from
 the installed package). In the existing Flare environment, with QUactlize's
@@ -138,10 +176,13 @@ The script uses `python -I`, clears PYTHONPATH, copies only tests/oracles to a n
 1. Guarded installed discovery, complete native ABI and corruption/wrong-target negatives.
 2. Existing host contracts, actual fake tracing/export and mutation declarations.
 3. `serving_device.py`, `aux_device.py`, and the installed native graph executable.
-4. The real Flare GDN sequence, HC/MTP mixing and PLE component test files.
+4. PPU1.0 installed public default: 36 recurrent-oracle cases plus four zero/nonzero
+   state, FP32-gate, full/tail graph cases; eight replays and output/state RAW-BIT
+   agreement with the caller-owned core, without legacy extension variables.
+5. The real Flare GDN sequence, HC/MTP mixing, PLE and QSA page/catalog test files.
 
 It reports actual pytest pass/skip/fail counts and requires execution in **all
-three** Flare files. A zero-test/skip/device-absent run is **NOT_RUN**, never
+four** Flare files. A zero-test/skip/device-absent run is **NOT_RUN**, never
 DEVICE_PASS. `HOST_ONLY=1` intentionally leaves device/Flare admission open and
 returns exit 3. Missing Flare also returns exit 3 after operator gates; it is not
 complete component admission. Failed tests return nonzero and remain failures.

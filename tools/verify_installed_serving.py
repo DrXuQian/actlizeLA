@@ -162,6 +162,14 @@ def main():
             library = serving.NativeLibrary(target=args.target)
             explicit = serving.NativeLibrary(info["library_path"], target=args.target)
             assert library.abi == info["abi"] == explicit.abi
+            for symbol in info["prepared_exports"]:
+                getattr(library.lib, symbol)
+            if args.target == "ppu10":
+                from actlize_la._gdn_ppu10 import packaged_backend
+                backend = packaged_backend()
+                assert backend.library.path == library.path
+                assert backend.image_info()[0]["path"] == info["library_path"]
+                report["public_default"] = "PACKAGED_RETAINED_SYMBOL_BOUND_NOT_EXECUTED"
             report.update(
                 torch=torch.__version__,
                 native_abi=library.abi,

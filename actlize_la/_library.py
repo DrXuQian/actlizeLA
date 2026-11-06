@@ -16,6 +16,7 @@ from ._serving_contract import (
     REQUIRED_BINDINGS,
     STRUCT_NAMES,
     TARGET_IDS,
+    TARGET_PREPARED_EXPORTS,
 )
 from ._version import __version__
 
@@ -115,6 +116,8 @@ def _inspect(root, target):
         if _sha(_resource(root, name)) != expected:
             raise LibraryError(f"package resource hash mismatch: {name}")
     for name, record in targets.items():
+        if set(record.get("prepared_exports", ())) != set(TARGET_PREPARED_EXPORTS[name]):
+            raise LibraryError(f"manifest omits retained prepared capability for {name}")
         abi = record["abi"]
         if (
             abi["version"] != ABI_VERSION
@@ -144,6 +147,7 @@ def _inspect(root, target):
         native_graph_example=str(_resource(root, record["native_graph_example"])),
         compatibility=record["compatibility"],
         abi=record["abi"],
+        prepared_exports=record.get("prepared_exports", []),
         source_identity=manifest["source_identity"],
     )
 

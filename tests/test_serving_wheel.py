@@ -4,6 +4,7 @@ import ctypes
 import hashlib
 import importlib.util
 import json
+import runpy
 import shutil
 import subprocess
 import sys
@@ -17,6 +18,7 @@ from actlize_la._serving_contract import (
     HEADERS,
     REQUIRED_BINDINGS,
     STRUCT_NAMES,
+    TARGET_PREPARED_EXPORTS,
 )
 from actlize_la._version import __version__
 
@@ -55,6 +57,7 @@ def metadata_bundle(tmp_path):
                 library="_native/ppu10/lib.so",
                 native_graph_example="_native/ppu10/graph",
                 compatibility=dict(compiler_version="test-only"),
+                prepared_exports=list(TARGET_PREPARED_EXPORTS["ppu10"]),
                 abi=dict(
                     version=1,
                     target=100,
@@ -105,6 +108,7 @@ def test_file_only_manifest_and_non_ascii(metadata_bundle, monkeypatch):
         "path-escape",
         "symlink",
         "missing-size",
+        "missing-prepared-core",
     ],
 )
 def test_fail_closed(metadata_bundle, plant):
@@ -137,6 +141,8 @@ def test_fail_closed(metadata_bundle, plant):
             m["resources"]["../escape"] = "0" * 64
         elif plant == "missing-size":
             del m["targets"]["ppu10"]["abi"]["struct_sizes"]["_Qsa"]
+        elif plant == "missing-prepared-core":
+            del m["targets"]["ppu10"]["prepared_exports"]
         seal(root, m)
     with pytest.raises(_library.LibraryError):
         _library._inspect(root, None)
@@ -185,12 +191,13 @@ def test_real_native_admission_negatives(tmp_path, plant, flags, error, match):
 @pytest.mark.parametrize(
     "count,skip,fail,rc,expected",
     [
-        (3, 0, 0, 0, "PASS"),
-        (3, 1, 0, 0, "NOT_RUN"),
+        (4, 0, 0, 0, "PASS"),
+        (4, 1, 0, 0, "NOT_RUN"),
+        (3, 0, 0, 0, "NOT_RUN"),
         (0, 0, 0, 0, "NOT_RUN"),
         (1, 0, 0, 0, "NOT_RUN"),
-        (3, 0, 1, 1, "FAIL"),
-        (3, 0, 0, 2, "FAIL"),
+        (4, 0, 1, 1, "FAIL"),
+        (4, 0, 0, 2, "FAIL"),
     ],
 )
 def test_pytest_zero_skip_and_missing_component_never_pass(
@@ -218,3 +225,73 @@ def test_pytest_zero_skip_and_missing_component_never_pass(
     got = mod.junit_verdict(report, rc, names)
     assert got["status"] == expected
     assert got["passed"] == count - skip - fail
+
+
+def test_public_default_denominator_and_wrong_route_negatives():
+    from copy import deepcopy
+    check = runpy.run_path(str(Path(__file__).resolve().parents[1] /
+                              "tools/serving_qualification.py"))["public_default_complete"]
+    data = dict(status="PASS", route=dict(native_provider="packaged-serving",
+                native_entry="actlize_la_ppu10_forward_prepared"),
+        cases=[dict(shape=[1, t, 16, h, 128], gate=g, repeats=8, errors=[.001, .002],
+                    oracle="NUMERIC/PASS", default_explicit="RAW-BIT/PASS",
+                    wrong_state_transpose="EXPECTED-RED/PASS")
+               for t in (1, 63, 64, 65, 127, 128, 129, 2048, 8192)
+               for h in (32, 48) for g in (-.1, -1.)],
+        prepared_graphs=[dict(length=t, initial=h, batch=2, replay=8, gate_dtype="fp32",
+                        allocation="STABLE", public_prepared="RAW-BIT/PASS")
+                        for t in (64, 65) for h in (False, True)])
+    assert check(data)
+    for plant in ("missing", "duplicate", "graph", "nan", "bad-output", "route", "repeat", "zero"):
+        wrong = deepcopy(data)
+        if plant == "missing":
+            wrong["cases"].pop()
+        elif plant == "duplicate":
+            wrong["cases"][-1] = wrong["cases"][0]
+        elif plant == "graph":
+            wrong["prepared_graphs"].pop()
+        elif plant == "nan":
+            wrong["cases"][0]["errors"][1] = float("nan")
+        elif plant == "bad-output":
+            wrong["cases"][0]["errors"][0] = .1
+        elif plant == "route":
+            wrong["route"]["native_provider"] = "explicit-extension"
+        elif plant == "repeat":
+            wrong["cases"][0]["repeats"] = 1
+        else:
+            wrong["cases"] = []
+        assert not check(wrong), plant
+
+
+def test_qualification_test_inventory_includes_qsa_and_transitive_oracles():
+    root = Path(__file__).resolve().parents[1]
+    inventory = runpy.run_path(str(root / "tools/serving_qualification.py"))
+    assert "test_actlize_qsa_cuda" in inventory["FLARE_TESTS"]
+    for name in inventory["CHECK_FILES"]:
+        assert (root / "tests" / name).is_file(), name
+    assert {"residual_cpu.py", "wy_cpu.py", "test_ppu_default_device.py"} <= set(inventory["CHECK_FILES"])
+
+
+@pytest.mark.parametrize("plant", [None, "bytes", "outside", "dirty"])
+def test_release_wheel_must_match_clean_build_receipt(tmp_path, plant):
+    functions = runpy.run_path(str(Path(__file__).resolve().parents[1] / "tools/build_install_serving.py"))
+    build = tmp_path / "build"
+    (build / "dist").mkdir(parents=True)
+    path = build / "dist" / "test.whl"
+    path.write_bytes(b"controller-only fixture, not an installable wheel")
+    data = dict(wheel=str(path), source_dirty=False,
+                sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    if plant == "bytes":
+        path.write_bytes(b"changed")
+    elif plant == "outside":
+        outside = tmp_path / "outside.whl"
+        outside.write_bytes(path.read_bytes())
+        data["wheel"] = str(outside)
+    elif plant == "dirty":
+        data["source_dirty"] = True
+    (build / "result.json").write_text(json.dumps(data))
+    if plant is None:
+        assert functions["built_wheel"](build)[0] == path
+    else:
+        with pytest.raises(RuntimeError):
+            functions["built_wheel"](build)

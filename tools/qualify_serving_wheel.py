@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import runpy
 import shutil
 import subprocess
 import sys
@@ -16,11 +17,9 @@ import tarfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-FLARE_TESTS = (
-    "test_actlize_gdn_sequence_cuda",
-    "test_actlize_mixing_cuda",
-    "test_actlize_ple_cuda",
-)
+_inventory = runpy.run_path(str(Path(__file__).with_name("serving_qualification.py")))
+FLARE_TESTS, HOST_TESTS, CHECK_FILES = (_inventory[n] for n in ("FLARE_TESTS", "HOST_TESTS", "CHECK_FILES"))
+public_default_complete = _inventory["public_default_complete"]
 
 
 def junit_verdict(path, returncode, required):
@@ -98,23 +97,16 @@ def main():
     root = Path(__file__).resolve().parents[1]
     checks = out / "checks"
     checks.mkdir()
-    names = (
-        "serving_device.py",
-        "aux_device.py",
-        "serving_reference.py",
-        "aux_reference.py",
-        "test_serving_contract.py",
-        "test_aux_contract.py",
-    )
-    for name in names:
+    for name in CHECK_FILES:
         shutil.copy2(root / "tests" / name, checks / name)
-    for name in ("verify_installed_serving.py", "installed_serving_checks.py"):
+    for name in ("verify_installed_serving.py", "installed_serving_checks.py", "serving_qualification.py"):
         shutil.copy2(root / "tools" / name, checks / name)
     env = dict(os.environ)
     env.pop("PYTHONPATH", None)
     report = dict(
         status="FAIL",
         phases={},
+        performance="DEFERRED_BY_USER_NOT_RUN",
         device_scope="OPERATOR_AND_COMPONENT_NOT_FULL_MODEL_RUST_REPLAY",
         tests_sha256={
             p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in checks.iterdir()
@@ -160,7 +152,7 @@ def main():
                 rc,
                 FLARE_TESTS
                 if name == "flare"
-                else ("test_serving_contract", "test_aux_contract"),
+                else HOST_TESTS,
             )
         elif output.is_file():
             data = json.loads(output.read_text())
@@ -173,6 +165,8 @@ def main():
                 returncode=rc,
                 reason=data.get("reason"),
             )
+            if name == "public_default" and verdict["status"] == "PASS" and not public_default_complete(data):
+                verdict.update(status="FAIL", reason="incomplete installed public/prepared default denominator")
         else:
             verdict = dict(
                 status="FAIL", reason="missing device execution evidence", returncode=rc
@@ -203,7 +197,7 @@ def main():
 
         report.update(torch=torch.__version__, python=sys.version)
         if args.host_only or not torch.cuda.is_available():
-            for name in ("serving", "aux", "native_graph", "flare"):
+            for name in ("serving", "aux", "public_default", "native_graph", "flare"):
                 report["phases"][name] = dict(
                     status="NOT_RUN", reason="host-only requested or no device"
                 )
@@ -214,11 +208,19 @@ def main():
         report["device"] = current_device_identity(args.target)
         if phase("serving") != "PASS" or phase("aux") != "PASS":
             return 1
+        if args.target == "ppu10":
+            if phase("public_default") != "PASS":
+                return 1
+        else:
+            report["phases"]["public_default"] = dict(
+                status="NOT_APPLICABLE", reason="retained allocating wheel bridge is PPU1.0-only")
         rc = run("native_graph", [report["identity"]["native_graph_example"]])
+        graph_log = (out / "native_graph.log").read_text()
+        graph_ok = rc == 0 and "[FlashNext native] PASS replays=8 fixed-addresses kernel_nodes=1" in graph_log
         report["phases"]["native_graph"] = dict(
-            status="PASS" if rc == 0 else "FAIL", returncode=rc
+            status="PASS" if graph_ok else "FAIL", returncode=rc
         )
-        if rc:
+        if not graph_ok:
             return 1
         if not args.flare:
             report["phases"]["flare"] = dict(

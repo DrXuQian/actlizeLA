@@ -32,6 +32,53 @@ def bit_equal(a, b):
                for x, y in zip(a, b))
 
 
+def prepared_admission():
+    """Installed same-DSO core: zero state, FP32 gates and mutable graph inputs."""
+    from actlize_la.serving import NativeLibrary, PreparedGDNCore, gdn_core_workspace_specs
+    library = NativeLibrary(target="ppu10")
+    rows = []
+    for length in (64, 65):
+        for nonzero in (False, True):
+            cpu = list(fixture(2, length, 2, 6, -.1))
+            cpu[3] = cpu[3].float()
+            initial = (torch.randn(2, 6, 128, 128, generator=torch.Generator().manual_seed(742)) * .01
+                       if nonzero else None)
+            inputs = [value.cuda() for value in cpu]
+            state = initial.cuda() if nonzero else None
+            output = torch.empty_like(inputs[2])
+            final = torch.empty(2, 6, 128, 128, device="cuda", dtype=torch.float32)
+            work = {n: torch.empty(s, dtype=d, device="cuda") for n, (s, d)
+                    in gdn_core_workspace_specs(2, length, 2, 6).items()}
+            plan = PreparedGDNCore(library, q=inputs[0], k=inputs[1], v=inputs[2],
+                g=inputs[3], beta=inputs[4], initial_state=state, final_state=final,
+                output=output, workspace=work)
+            plan()
+            torch.cuda.synchronize()
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                plan()
+            for iteration in range(8):
+                current = list(cpu)
+                current[2] = cpu[2] * (-1 if iteration % 2 else 1)
+                inputs[2].copy_(current[2])
+                current_state = (initial * (-1 if iteration % 2 else 1)) if nonzero else None
+                if nonzero:
+                    state.copy_(current_state)
+                before = torch.cuda.memory_stats()["allocation.all.allocated"]
+                graph.replay()
+                torch.cuda.synchronize()
+                if torch.cuda.memory_stats()["allocation.all.allocated"] != before:
+                    raise AssertionError("prepared core graph allocated memory")
+                assert_pair((output, final), oracle(current, current_state))
+                public = gdn_forward(*inputs, initial_state=state, backend="ppu10")
+                if not bit_equal((output, final), public):
+                    raise AssertionError("wheel public and caller-owned core bits differ")
+            graph.reset()
+            rows.append(dict(length=length, batch=2, initial=nonzero, gate_dtype="fp32",
+                             replay=8, public_prepared="RAW-BIT/PASS", allocation="STABLE"))
+    return rows
+
+
 def admit(length, hv, gate):
     cpu = fixture(1, length, 16, hv, gate)
     # Distinct K/V axes, distinct heads: shape equality cannot hide transpose.
@@ -82,10 +129,12 @@ def admit(length, hv, gate):
 @torch.inference_mode()
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--extension", type=Path, required=True)
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument("--extension", type=Path)
+    selection.add_argument("--installed", action="store_true")
     parser.add_argument("--results", type=Path, required=True)
     args = parser.parse_args()
-    if not args.extension.is_file():
+    if args.extension is not None and not args.extension.is_file():
         parser.error("missing _gdn_wy_ppu extension; no scalar fallback")
     torch.set_num_threads(1)
     if not torch.cuda.is_available():
@@ -93,19 +142,29 @@ def main():
         return 3
     torch.cuda.set_device(0)
     identity = current_device_identity("ppu10")
-    os.environ["GDN_QSA_WY_EXTENSION"] = str(args.extension.resolve())
+    if args.installed:
+        # Prove the package default, never an ambient development extension.
+        os.environ.pop("GDN_QSA_WY_EXTENSION", None)
+        os.environ.pop("ACTLIZE_LA_SERVING_LIBRARY", None)
+    else:
+        os.environ["GDN_QSA_WY_EXTENSION"] = str(args.extension.resolve())
     report = dict(schema=1, device=identity, cases=[], status="RUNNING",
                   criterion=MAX_RELATIVE_ERROR, timing="NOT_RUN", scope="PUBLIC_DEFAULT_NOT_SERVING")
     try:
         sample = tuple(t.cuda() for t in fixture(1, 64, 16, 32, -.1))
         report["route"] = get_gdn_route_info(*sample, backend="ppu10")
-        if report["route"]["native_entry"] != "residual_full_chunk":
+        expected = "actlize_la_ppu10_forward_prepared" if args.installed else "residual_full_chunk"
+        if report["route"]["native_entry"] != expected:
             raise AssertionError("the default route is not the retained native entry")
         print("[PPU default route] " + json.dumps(report["route"]), flush=True)
         for row in cases():
             report["cases"].append(admit(*row))
         if len(report["cases"]) != 36:
             raise AssertionError("default admission denominator must be 36")
+        if args.installed:
+            report["prepared_graphs"] = prepared_admission()
+            if len(report["prepared_graphs"]) != 4:
+                raise AssertionError("installed core graph denominator must be four")
         report["status"] = "PASS"
         print("[PPU default GDN] PASS cases=36 repeat=8 numeric+default-bits; performance=NOT_RUN", flush=True)
     except Exception as exc:

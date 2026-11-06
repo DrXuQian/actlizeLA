@@ -2,6 +2,7 @@
 
 from ._native import NativeLibrary
 from .gdn import PreparedGDN, PreparedGDNCommit, gdn_workspace_specs
+from .gdn_core import PreparedGDNCore, gdn_core_workspace_specs
 from .qsa import PreparedQSA, qsa_workspace_specs, qsa_cache_specs
 from .conv_history import PreparedConvHistory
 from .auxiliary import (
@@ -23,6 +24,8 @@ __all__ = [
     "PreparedGDN",
     "PreparedGDNCommit",
     "gdn_workspace_specs",
+    "PreparedGDNCore",
+    "gdn_core_workspace_specs",
     "PreparedQSA",
     "qsa_workspace_specs",
     "PreparedConvHistory",

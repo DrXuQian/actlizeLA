@@ -1,8 +1,10 @@
 # PPU1.0 GDN 性能接线与端到端验收 TODO
 
-updated-at: 2026-11-06 03:59:48 UTC
+updated-at: 2026-11-06 04:22:28 UTC
 
 范围：先闭合已保留的 PPU1.0 GDN 实现与实际调用入口，不重新开展 kernel 调优。
+用户已明确暂停性能工作：P10-06和其他项里的计时要求后排，不作为本轮功能收口门。
+性能状态保持NOT_RUN；这不解除数值、图、安装后的真实调用路径验收。
 源码核对基线：main `66ec165`；serving 工作分支 `2e107e2`。
 工作分支已实现公共 PPU1.0 默认接线和 route/image 审计，用户已返回36组默认入口
 数值/逐位一致性 PASS；性能未测、完整 bundle 身份未核。新的 serving prefill
@@ -139,7 +141,7 @@ slot、tail 均通过；capture/replay 不分配、不 JIT、不同步、不 CPU
 
 ### P10-05 — decode / verify / commit 与新 prefill 连续运行
 
-- [ ] **USER_REPORTED_SUITE_PASS / prefill→decode及verify/commit分项通过；性能和完整模型联合证据仍缺**
+- [x] **USER_REPORTED_OPERATOR_SUITE_PASS / prefill→decode及verify/commit分项通过；完整模型证据归P10-07，性能后排**
 
 复用现有增量算子与 compact records，验证 prefill→decode、verify widths1/2/4/8、
 consumed prefix 从0到全部、拒绝后继续生成、ShortConv 历史与 recurrent state
@@ -150,7 +152,7 @@ consumed prefix 从0到全部、拒绝后继续生成、ShortConv 历史与 recu
 
 ### P10-06 — 实际长输入与 FLA 同口径对照
 
-- [ ] **IN_PROGRESS / 准备同输入ACU对照；当前目标未建立性能证据**
+- [ ] **DEFERRED_BY_USER / 已有ACU脚本保留，本轮不运行，不作功能交付门**
 
 已提供[三臂ACU脚本](PPU10_PREFILL_PERF.md)：复用通过226355a整套门的serving库，
 默认T2048/8192、Hk16/Hv32，Hv48和强衰减可选。serving完整raw/slot调用单独列；
@@ -174,7 +176,11 @@ ACU 完整算子 kernel 时间之和，不漏 fill/pack/transpose/commit。使�
 
 ### P10-07 — Flare / QSA 与完整图集成证据
 
-- [ ] **OPEN / 后排；已有接口不等于模型已接线，依赖 GDN 主线**
+- [ ] **COMPONENT_GATE_READY / 安装包验收补齐Flare QSA，完整模型/Rust仍未执行**
+
+安装后的qualification现在包括四个实际Flare组件文件：GDN sequence、mixing、PLE、
+QSA paged/catalog。QSA文件覆盖分页、因果/接受前缀、同图动态输入、缓存catalog重绑；
+缺文件/零用例/skip均不能报PASS。此处不改Flare框架或MTP调度，不把组件门当成全模型。
 
 核实 Flare 实际调用的是这些 prepared bindings；不重写框架或 sampling。
 复用已有 QSA 分页/增量接口，核对 BF16 KV 配置、page64/128、完整压缩块与尾部、
@@ -187,7 +193,13 @@ scratch 共享不覆盖尚未消费的 correction records；执行显存稳定�
 
 ### P10-08 — main、源码安装和 wheel 路由统一交付
 
-- [ ] **OPEN / 最后；依赖已承诺范围的数值及设备准入**
+- [ ] **IMPLEMENTING_RELEASE / 0.2.2默认入口与prepared共用retained库，待新wheel验收/main合入**
+
+已补普通gdn_forward/gdn_chunk_residual到包内C ABI的绑定，无需另设旧扩展路径；
+源码可显式指定同一serving DSO。新增PreparedGDNCore使用processed输入和KV状态，
+不与raw-logit/VK-slot接口混用。已有kernel文件没有改动。安装门补36组默认入口、
+4组zero/nonzero与full/tail图重放，以及实际导出/绑定完整性和错误配置负控。
+新包升级0.2.2，不能覆盖旧0.2.0/0.2.1缓存。旧设备PASS不自动变成新wheel设备PASS。
 
 把已验收的最小接线闭包合入 main，更新统一入口及支持范围；不把开发分支整体
 当成准入。源码安装与 wheel 同一输入必须选择同一实现，installed-only 检查
