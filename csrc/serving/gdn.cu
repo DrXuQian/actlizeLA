@@ -6,6 +6,7 @@
 #include "aux_common.cuh"
 #include "gdn_transaction_v2.h"
 #include "runtime.cuh"
+#include "prefill_schedule.h"
 #include <climits>
 
 namespace actlize_la::serving {
@@ -95,8 +96,10 @@ __global__ void validate_gdn(Gdn p, ala_gdn_transaction_v2 guard) {
   }
 }
 
+template <bool TokenParallel = false>
 __global__ void prepare_gdn(Gdn p) {
-  int const r = blockIdx.x, h = blockIdx.y, lane = threadIdx.x;
+  int const r = blockIdx.x, h = blockIdx.y,
+            lane = TokenParallel ? threadIdx.x % 32 : threadIdx.x;
   if (r >= *p.live || p.errors[r] || !valid_range(p, r))
     return;
   if (p.mode != ChunkPrefill &&
@@ -105,7 +108,14 @@ __global__ void prepare_gdn(Gdn p) {
   if (p.mode == ChunkPrefill && p.final_slots[int64_t(r) * p.final_stride] == 0)
     return;
   int const first = p.starts[r], length = p.starts[r + 1] - first;
-  for (int t = 0; t < length; ++t) {
+  // A whole warp still owns exactly one normalized head/token, including
+  // the original four elements/lane and XOR reduction order. Only independent
+  // tokens move to other warps/blocks; decode and verify instantiate false.
+  int const begin = TokenParallel ? prefill_schedule::first(
+      blockIdx.z, prefill_schedule::PrepareWarps, int(threadIdx.x) / 32) : 0;
+  int const step = TokenParallel ? prefill_schedule::stride(
+      gridDim.z, prefill_schedule::PrepareWarps) : 1;
+  for (int t = begin; t < length; t += step) {
     int64_t const token = first + t;
     if (h < 2 * p.hk) {
       float x[4], square = 0;
@@ -278,20 +288,30 @@ bool valid(Gdn const &p) {
          (p.mode != Verify ||
           (p.width <= 8 && p.delta && p.recorded_lengths && p.recorded_slots));
 }
+int launch_prepare(Gdn const &p, Stream s) {
+#if ALA_PREFILL_TOKEN_PARALLEL && ALA_PPU_TARGET == 100
+  if (p.mode == ChunkPrefill) {
+    prepare_gdn<true><<<dim3(p.requests, 2 * p.hk + p.hv,
+                            prefill_schedule::blocks(p.width)),
+                         prefill_schedule::PrepareThreads, 0, s>>>(p);
+    return last_error();
+  }
+#endif
+  prepare_gdn<false><<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
+  return last_error();
+}
 int prepare(Gdn const &p, Stream s) {
   validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, {});
   if (auto rc = last_error())
     return rc;
-  prepare_gdn<<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
-  return last_error();
+  return launch_prepare(p, s);
 }
 int prepare_checked(Gdn const &p, Stream s,
                     ala_gdn_transaction_v2 const &guard) {
   validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, guard);
   if (int rc = last_error())
     return rc;
-  prepare_gdn<<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
-  return last_error();
+  return launch_prepare(p, s);
 }
 } // namespace actlize_la::serving
 

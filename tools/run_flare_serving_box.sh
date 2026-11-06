@@ -3,6 +3,17 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${TARGET:-ppu10}"
+PREFILL_TOKEN_PARALLEL="${PREFILL_TOKEN_PARALLEL:-OFF}"
+case "$PREFILL_TOKEN_PARALLEL" in
+  OFF) ;;
+  ON)
+    if [[ "$TARGET" != ppu10 || -z "${BASELINE_SERVING_RUN:-}" ]]; then
+      echo "ERROR: token-parallel experiment requires TARGET=ppu10 and BASELINE_SERVING_RUN" >&2
+      exit 2
+    fi
+    ;;
+  *) echo "ERROR: PREFILL_TOKEN_PARALLEL must be OFF or ON" >&2; exit 2 ;;
+esac
 PYTHON="${PYTHON:-python}"
 SHA="$(git -C "$ROOT" rev-parse HEAD)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -19,7 +30,7 @@ finish() {
   # Small handoff: logs/results/identity only, not the build tree or caches.
   local files=()
   local name
-  for name in identity.txt build.log host-tests.log device-tests.log results.json aux-device.log aux-results.json native-graph.log binary.json; do
+  for name in identity.txt build.log host-tests.log device-tests.log results.json aux-device.log aux-results.json native-graph.log binary.json prefill-parallel.log prefill-parallel.json; do
     if [[ -f "$OUT/$name" ]]; then files+=("$name"); fi
   done
   if ((${#files[@]})); then tar -C "$OUT" -czf "$OUT/results.tar.gz" -- "${files[@]}"; fi
@@ -37,6 +48,7 @@ export PYTHONPATH="$ROOT:$ROOT/tests${PYTHONPATH:+:$PYTHONPATH}"
 {
   echo "utc=$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
   echo "sha=$SHA target=$TARGET"
+  echo "prefill_token_parallel=$PREFILL_TOKEN_PARALLEL"
   git -C "$ROOT" status --short
   git -C "$ROOT" submodule status -- third_party/actlize
   "$PYTHON" -c 'import sys,torch; print("python="+sys.version); print("torch="+torch.__version__); print("runtime="+str(torch.version.cuda))'
@@ -57,7 +69,8 @@ case "$TARGET" in
     "$SDK/bin/hgcc" --version | tee -a "$OUT/identity.txt"
     "$PYTHON" -m actlize_la.serving.device --target "$TARGET" 2>&1 | tee -a "$OUT/identity.txt"
     cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET="$TARGET" \
-      -DPPU_SDK_ROOT="$SDK" -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1
+      -DPPU_SDK_ROOT="$SDK" -DALA_PREFILL_TOKEN_PARALLEL="$PREFILL_TOKEN_PARALLEL" \
+      -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1
     ;;
   cuda_sm120)
     "$PYTHON" -m actlize_la.serving.device --target "$TARGET" 2>&1 | tee -a "$OUT/identity.txt"
@@ -80,3 +93,9 @@ ALA_SERVING_TEST_LIBRARY="$LIB" "$PYTHON" -m pytest -q "$ROOT/tests/test_serving
 "$PYTHON" "$ROOT/tests/aux_device.py" --target "$TARGET" --library "$LIB" \
   --results "$OUT/aux-results.json" 2>&1 | tee "$OUT/aux-device.log"
 "$OUT/build/actlize_la_native_graph" 2>&1 | tee "$OUT/native-graph.log"
+if [[ "$PREFILL_TOKEN_PARALLEL" == ON ]]; then
+  "$PYTHON" "$ROOT/tests/prefill_parallel_device.py" \
+    --baseline-run "${BASELINE_SERVING_RUN:?set the immutable passed serial serving run}" \
+    --candidate "$LIB" --results "$OUT/prefill-parallel.json" \
+    2>&1 | tee "$OUT/prefill-parallel.log"
+fi
