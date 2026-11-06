@@ -93,6 +93,17 @@ Do not select a legacy `GDN_QSA_WY_EXTENSION` for this comparison; if present it
 is rejected rather than silently replaced. `ACTLIZE_LA_SERVING_LIBRARY`, if set,
 must name the same library as the chosen passed serving run.
 
+The collector binds `ASIGHT_HOME` and `--section-folder` to that ACU installation
+for capture AND import, and records executable/section hashes. It validates the
+unchanged `full` set before numerical preparation. This prevents an inherited
+SDK's `ASIGHT_HOME` from silently mixing another section schema with the selected
+binary. An incompatible companion installation still fails; no section/metric
+is deleted or silently dropped. On failure the last60 log lines are printed.
+
+If `MemoryMetricTable` is rejected even with the explicit companion folder,
+inspect `acu-section-check.log` and the selected installation's libraries/version;
+do not modify GDN or infer a numerical failure from a profiler schema error.
+
 Upload the small `results.tar.gz`: summaries, exact commands, prior passed-run
 receipts and their binary identity, current numerical receipts,
 raw counter CSV and FLA source snapshots. The large synthetic `operands.pt` and

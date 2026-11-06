@@ -276,12 +276,44 @@ def test_a_fast_report_cannot_replace_a_missing_or_changed_numerical_receipt(pla
         collect.validate_receipts(admitted, subject, "default")
 
 
-@pytest.mark.parametrize("plant", [None, "wrong-receipt", "duplicate-math"])
+def fake_profiler(tmp_path):
+    home = tmp_path / "site-asight"
+    (home / "bin").mkdir(parents=True)
+    (home / "sections").mkdir()
+    (home / "sections/fixture.section").write_text("synthetic section, not PPU evidence\n")
+    tool = home / "bin/acu"
+    tool.write_bytes(b"not executable; test replaces child process transport")
+    return tool
+
+
+def test_profiler_layout_hashes_sections_and_rejects_missing(tmp_path):
+    tool = fake_profiler(tmp_path)
+    before = collect.profiler_layout(tool)
+    sections = tool.parent.parent / "sections"
+    (sections / "fixture.section").write_text("changed schema")
+    assert collect.profiler_layout(tool) != before
+    broken = tmp_path / "broken/bin/acu"
+    broken.parent.mkdir(parents=True)
+    broken.write_bytes(b"no companion sections")
+    with pytest.raises(ValueError, match="companion sections"):
+        collect.profiler_layout(broken)
+
+
+def test_failed_process_prints_original_parser_error(tmp_path, capsys):
+    log = tmp_path / "parse.log"
+    with pytest.raises(RuntimeError, match="rc=101"):
+        collect.run([sys.executable, "-c", "import sys; print('MemoryMetricTable schema mismatch'); sys.exit(101)"],
+                    log, {}, console=False)
+    assert "MemoryMetricTable schema mismatch" in capsys.readouterr().err
+    assert "MemoryMetricTable schema mismatch" in log.read_text()
+
+
+@pytest.mark.parametrize("plant", [None, "wrong-receipt", "duplicate-math", "section-schema"])
 def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plant):
     origin = make_metadata_run(tmp_path, "admitted")
-    tool = tmp_path / "acu"
-    tool.write_bytes(b"not executable; test replaces child process transport")
+    tool = fake_profiler(tmp_path)
     out = tmp_path / "output"
+    monkeypatch.setenv("ASIGHT_HOME", "/different-sdk/asight")
     monkeypatch.setenv("OUT", str(out))
     monkeypatch.setattr(collect, "DEFAULT_ACU", tool)
     monkeypatch.setattr(collect.shutil, "which", lambda name: None)
@@ -292,7 +324,13 @@ def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plan
     def transport(command, log, env, **kwargs):
         command = [str(value) for value in command]
         commands.append(command)
+        assert env["ASIGHT_HOME"] == str(tool.parent.parent)
+        if "--list-sections" in command or "--set" in command or "--import" in command:
+            assert command[command.index("--section-folder") + 1] == str(tool.parent.parent / "sections")
         log.write_text("synthetic transport; no device ran\n")
+        if plant == "section-schema" and "--list-sections" in command:
+            log.write_text("MemoryMetricTable schema mismatch; synthetic negative\n")
+            raise RuntimeError("command failed (rc=101); synthetic schema negative")
         if "--phase" in command:
             phase = command[command.index("--phase") + 1]
             path = Path(command[command.index("--receipt") + 1])
@@ -320,8 +358,10 @@ def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plan
     monkeypatch.setattr(collect, "run", transport)
     monkeypatch.setattr(sys, "argv", ["collect", "--serving-run", str(origin), "--lengths", "2048"])
     result = collect.main()
-    assert result == (1 if plant == "wrong-receipt" else 3 if plant == "duplicate-math" else 0)
+    assert result == (1 if plant in ("wrong-receipt", "section-schema") else 3 if plant == "duplicate-math" else 0)
     assert (out / "results.tar.gz").is_file(), "failure must preserve the small handoff"
+    if plant == "section-schema":
+        assert not any("--phase" in command for command in commands), "bad profiler ran numerical/device work"
     if plant is None:
         subjects = [command for command in commands if "--phase" in command
                     and command[command.index("--phase") + 1] == "subject"]

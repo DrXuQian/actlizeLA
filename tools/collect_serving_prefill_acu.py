@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bounded three-arm prefill capture; reuse a passed library, never compile."""
 import argparse
+from collections import deque
 import csv
 from datetime import datetime, timezone
 import io
@@ -15,7 +16,7 @@ import subprocess
 import sys
 import tarfile
 
-from collect_ppu_gdn_acu import DEFAULT_ACU, ROOT, report_file, run, sha
+from collect_ppu_gdn_acu import DEFAULT_ACU, ROOT, report_file, run as run_process, sha
 
 ROLES = ("serving", "default", "fla")
 CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
@@ -23,6 +24,30 @@ CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
 TRANSPORT = ("validate_gdn", "prepare_gdn", "pack_prefill", "gather_state", "scatter_prefill")
 FLA = ("chunk_local_cumsum_scalar_kernel", "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
        "recompute_w_u_fwd_kernel", "chunk_gated_delta_rule_fwd_kernel_h", "chunk_fwd_kernel_o")
+
+
+def run(command, log, env, **kwargs):
+    try:
+        return run_process(command, log, env, **kwargs)
+    except Exception:
+        if log.is_file():
+            with log.open(errors="replace") as stream:
+                print(f"[prefill ACU] failed command log: {log}\n" +
+                      "".join(deque(stream, maxlen=60)), file=sys.stderr, flush=True)
+        raise
+
+
+def profiler_layout(acu):
+    """A fixed executable must not inherit another installation's sections."""
+    executable = Path(acu).resolve(strict=True)
+    home = executable.parent.parent
+    sections = home / "sections"
+    files = sorted(sections.glob("*.section"))
+    if not files:
+        raise ValueError(f"selected ACU has no companion sections: {sections}")
+    return dict(executable=str(executable), executable_sha256=sha(executable),
+                home=str(home), sections=str(sections),
+                section_sha256={p.name: sha(p) for p in files})
 
 
 def validate_default_route(route, library, digest):
@@ -250,8 +275,16 @@ def main():
         status["source_diff"] = subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)
         if status["source_diff"]:
             raise ValueError("capture helpers must be committed before box measurement")
-        status["acu_sha256"] = sha(DEFAULT_ACU)
+        status["profiler"] = profiler_layout(DEFAULT_ACU)
+        status["inherited_asight_home"] = env.get("ASIGHT_HOME")
+        env["ASIGHT_HOME"] = status["profiler"]["home"]
+        section_flags = ["--section-folder", status["profiler"]["sections"]]
+        status["acu_sha256"] = status["profiler"]["executable_sha256"]
         run([DEFAULT_ACU, "--version"], out / "acu-version.log", env, console=False)
+        # Parse the unchanged full-set section schema BEFORE fixture/reference
+        # work. A bad tool installation stays FAIL, never a reduced-metric PASS.
+        run([DEFAULT_ACU, *section_flags, "--set", "full", "--list-sections"],
+            out / "acu-section-check.log", env, console=False)
         smi = shutil.which("ppu-smi")
         if smi:
             status["driver_before"] = run([smi, "-i", args.device, "-q"], out / "device-before.log",
@@ -278,7 +311,7 @@ def main():
                     roles = roles[::-1]
                 for role in roles:
                     base = cell / f"{role}-{repeat}.report"
-                    command = [DEFAULT_ACU, "-f", "-o", base, "--set", "full", "--check-exit-code", "yes",
+                    command = [DEFAULT_ACU, *section_flags, "-f", "-o", base, "--set", "full", "--check-exit-code", "yes",
                                *common, "--phase", "subject", "--role", role,
                                "--receipt", cell / f"{role}-{repeat}.json"]
                     run(command, cell / f"{role}-{repeat}.log", env, console=False)
@@ -287,7 +320,7 @@ def main():
                     report = report_file(base)
                     exported = cell / f"{role}-{repeat}.csv"
                     # CSV is machine-consumed and packed; user need not paste it.
-                    run([DEFAULT_ACU, "--import", report, "--csv", "--page", "raw"],
+                    run([DEFAULT_ACU, *section_flags, "--import", report, "--csv", "--page", "raw"],
                         exported, env, console=False)
                     measured = inventory(role, parse_raw(exported.read_text()))
                     measured["report_sha256"] = sha(report)
@@ -299,6 +332,8 @@ def main():
             print("[prefill ACU summary] " + json.dumps(dict(cell=key, **summary), sort_keys=True), flush=True)
         if sha(Path(origin["library"])) != origin["sha256"]:
             raise ValueError("reused admitted library changed during capture")
+        if profiler_layout(DEFAULT_ACU) != status["profiler"]:
+            raise ValueError("ACU executable or section files changed during capture")
         if (subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != status["harness_sha"]
                 or subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)):
             raise ValueError("capture helper source changed during measurement")
