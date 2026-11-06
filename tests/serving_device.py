@@ -308,7 +308,8 @@ def test_ppu10_prefill_retained_pair(lib):
     legacy = lib.lib.gdn_wy_forward_residual_full_chunk
     legacy.argtypes = [C.c_void_p] * 12 + [C.c_int] * 4 + [C.c_bool, C.c_void_p]
     legacy.restype = C.c_int
-    for hv in (32, 48):
+    # 16:64 is Qwen3.5-122B-A10B's 4:1 grouped mapping (value_head / 4).
+    for hv in (32, 48, 64):
         for length in (64, 65, 129, 8192):
             c = GdnCase(lib, length, "prefill", hv=hv)
             c.work["packed_output"].fill_(float("nan"))

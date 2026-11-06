@@ -1,0 +1,793 @@
+{
+  "acceptance": {
+    "confirm_rule": "if 0.78 <= median ratio <= 0.82, or any arm spread (max-min)/median > 0.05: add 3 more captures per role (6 total), all samples kept",
+    "denominator": "all 54 registered cells; missing or relabeled cells make the summary FAIL",
+    "equivalent_speedup": ">= 1.25x (1.20x is NOT a pass)",
+    "metric": "ACU --set full kernel-sum of the complete forward incl. FLA fills (not API latency)",
+    "min_captures_per_role": 3,
+    "rotation": "role order rotated per repeat",
+    "rule": "per cell: median(t_ours_core) <= 0.80 * median(t_FLA_core) AND max(ours) < min(fla)",
+    "statuses": [
+      "TARGET_MET",
+      "TARGET_NOT_MET",
+      "UNRESOLVED",
+      "UNADJUDICATED",
+      "NOT_RUN",
+      "SKIP"
+    ]
+  },
+  "cells": [
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B1-T512-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B1-T512-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B1-T2048-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B1-T2048-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B1-T4096-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B1-T4096-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B1-T8192-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B1-T8192-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B1-T16384-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B1-T16384-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B2-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B2-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B2-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B2-T8192-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B4-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B4-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G32",
+      "id": "G32-B4-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G32",
+      "id": "G32-B4-T8192-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B1-T512-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B1-T512-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B1-T2048-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B1-T2048-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B1-T4096-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B1-T4096-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B1-T8192-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B1-T8192-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B1-T16384-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B1-T16384-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B2-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B2-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B2-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B2-T8192-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B4-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B4-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G48",
+      "id": "G48-B4-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G48",
+      "id": "G48-B4-T8192-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B1-T512-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 512,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B1-T512-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B1-T2048-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B1-T2048-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B1-T4096-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 4096,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B1-T4096-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B1-T8192-g-0.1",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B1-T8192-g-1.0",
+      "phase": 1
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B1-T16384-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 1,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 16384,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B1-T16384-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B2-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B2-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B2-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 2,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B2-T8192-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B4-T2048-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 2048,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B4-T2048-g-1.0",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -0.1,
+      "geometry": "G64",
+      "id": "G64-B4-T8192-g-0.1",
+      "phase": 2
+    },
+    {
+      "B": 4,
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "T": 8192,
+      "V": 128,
+      "gate": -1.0,
+      "geometry": "G64",
+      "id": "G64-B4-T8192-g-1.0",
+      "phase": 2
+    }
+  ],
+  "device_scope": "PPU1.0 / PPU-ZW610 (user-authorized substitute for ZW810); results are not ZW810 evidence",
+  "gates": [
+    -0.1,
+    -1.0
+  ],
+  "geometries": {
+    "G32": {
+      "Hk": 16,
+      "Hv": 32,
+      "K": 128,
+      "V": 128,
+      "models": [
+        {
+          "config_sha256": "5e4d7f74fec2f360eb9cfbfcd6ec0c4c76e684d3a11caaed259d9fd9bfbc7944",
+          "linear": {
+            "Hk": 16,
+            "Hv": 32,
+            "K": 128,
+            "V": 128
+          },
+          "repo": "Qwen/Qwen3.5-35B-A3B",
+          "revision": "325f0eec2a7e4b4c79f83177c4576bae89e29996",
+          "source": "modelscope.cn (Qwen official org)"
+        },
+        {
+          "config_sha256": "2d483c7cabad7c8704478ed4038fa7e7b2eff840bc00a118eccbe38e2b488303",
+          "linear": {
+            "Hk": 16,
+            "Hv": 32,
+            "K": 128,
+            "V": 128
+          },
+          "repo": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+          "revision": "d602f6c193642688e425ce2d95b94a3cccbc0c24",
+          "source": "modelscope.cn (Qwen official org)"
+        }
+      ],
+      "note": "35B-A3B and Next-80B-A3B share this GDN geometry: one synthetic cell, not two"
+    },
+    "G48": {
+      "Hk": 16,
+      "Hv": 48,
+      "K": 128,
+      "V": 128,
+      "models": [
+        {
+          "config_sha256": null,
+          "linear": {
+            "Hk": 16,
+            "Hv": 48,
+            "K": 128,
+            "V": 128
+          },
+          "repo": "Qwen3.8-Flash-Next (Flare project / user contract)",
+          "revision": null,
+          "source": "user contract 2026-11-06; local recipe /root/autodl-tmp/qwen4flash-flare/ignition/recipes/qwen38/ and /root/actlizeLA-flashnext-prompt.txt are NOT available on this host"
+        }
+      ],
+      "note": "geometry from the project contract; not re-verified against a local model config"
+    },
+    "G64": {
+      "Hk": 16,
+      "Hv": 64,
+      "K": 128,
+      "V": 128,
+      "models": [
+        {
+          "config_sha256": "af07d0423658865afb52bd0d6fd3c2cc45d988425b76193467fd19129655cecd",
+          "linear": {
+            "Hk": 16,
+            "Hv": 64,
+            "K": 128,
+            "V": 128
+          },
+          "repo": "Qwen/Qwen3.5-122B-A10B",
+          "revision": "f4f963ea3f452fb1ecf5ddd05d39ef7067f6000a",
+          "source": "modelscope.cn (Qwen official org)"
+        }
+      ],
+      "note": ""
+    }
+  },
+  "phase1": [
+    "G32-B1-T2048-g-0.1",
+    "G32-B1-T2048-g-1.0",
+    "G32-B1-T8192-g-0.1",
+    "G32-B1-T8192-g-1.0",
+    "G48-B1-T2048-g-0.1",
+    "G48-B1-T2048-g-1.0",
+    "G48-B1-T8192-g-0.1",
+    "G48-B1-T8192-g-1.0",
+    "G64-B1-T2048-g-0.1",
+    "G64-B1-T2048-g-1.0",
+    "G64-B1-T8192-g-0.1",
+    "G64-B1-T8192-g-1.0"
+  ],
+  "real_traces": "NOT_AVAILABLE on this host: results are model-geometry synthetic operator results",
+  "registered_utc": "2026-11-06T14:00Z",
+  "regression": {
+    "extra": [
+      "ragged multi-request prefill",
+      "empty request",
+      "inactive/null-slot rows"
+    ],
+    "lengths": [
+      1,
+      2,
+      4,
+      8,
+      31,
+      32,
+      33,
+      63,
+      64,
+      65,
+      127,
+      128,
+      129,
+      2049,
+      8193
+    ],
+    "note": "correctness/regression only; T=1/2/4/8 decode/MTP are not part of the prefill ranking"
+  },
+  "schema": "actlize-la-gdn-prefill-matrix/1"
+}

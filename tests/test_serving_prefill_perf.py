@@ -149,7 +149,7 @@ def make_metadata_run(root, name):
     digest = collect.sha(library)
     binary = dict(library=str(library), target="ppu10", sha256=digest, source_sha="6" * 40)
     cases = [dict(case="ppu10-prefill-retained-pair", length=n, heads=f"16:{h}", output_state="RAW-BIT/PASS")
-             for n in (64, 65, 129, 8192) for h in (32, 48)]
+             for n in (64, 65, 129, 8192) for h in collect.RETAINED_PAIR_HEADS]
     native = dict(target="ppu10", status="PASS", library_sha256=digest, cases=cases)
     aux = dict(target="ppu10", status="PASS", binary_sha256=digest,
                cases=[dict(case="gdn-checked-prefill", checked_vs_unchecked="RAW-BIT/PASS")])
@@ -302,9 +302,10 @@ def test_different_loaded_binary_is_red(field):
         collect.validate_default_route(route, "/synthetic/library.so", "binary")
 
 
-def admission_receipt():
+def admission_receipt(measured=None):
     return dict(status="PASS", numeric_repeats=8, serving_default_bits="PASS", device={"uuid": "fixture-only"},
                 library_sha="binary", shape={"T": 2048}, gate=-.1, operands_sha="payload",
+                measured_shape=measured or dict(B=1, T=2048, Hk=16, Hv=32, K=128, V=128),
                 default_route=default_route(),
                 arms={role: dict(input_sha="raw" if role == "serving" else "packed",
                                  output_sha="same-native" if role != "fla" else "fla-output")
@@ -420,13 +421,15 @@ def test_failed_process_prints_original_parser_error(tmp_path, capsys):
     assert "MemoryMetricTable schema mismatch" in log.read_text()
 
 
-@pytest.mark.parametrize("plant", [None, "wrong-receipt", "duplicate-math", "section-schema"])
+@pytest.mark.parametrize("plant", [None, "wrong-receipt", "duplicate-math", "section-schema",
+                                   "relabeled-shape", "confirm"])
 def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plant):
     origin = make_metadata_run(tmp_path, "admitted")
     tool = fake_profiler(tmp_path)
     out = tmp_path / "output"
     monkeypatch.setenv("ASIGHT_HOME", "/different-sdk/asight")
     monkeypatch.setenv("OUT", str(out))
+    monkeypatch.delenv("ACU", raising=False)
     monkeypatch.setattr(collect, "DEFAULT_ACU", tool)
     monkeypatch.setattr(collect.shutil, "which", lambda name: None)
     monkeypatch.setattr(collect.subprocess, "check_output", lambda command, **kwargs:
@@ -446,7 +449,11 @@ def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plan
         if "--phase" in command:
             phase = command[command.index("--phase") + 1]
             path = Path(command[command.index("--receipt") + 1])
-            admission = admission_receipt()
+            hv = int(command[command.index("--value-heads") + 1])
+            measured = dict(B=int(command[command.index("--batch") + 1]),
+                            T=int(command[command.index("--length") + 1]), Hk=16,
+                            Hv=48 if plant == "relabeled-shape" else hv, K=128, V=128)
+            admission = admission_receipt(measured)
             if phase == "admit":
                 path.write_text(json.dumps(admission))
             else:
@@ -464,19 +471,207 @@ def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plan
                 names += collect.TRANSPORT
             if plant == "duplicate-math":
                 names += names[:1]
-            log.write_text(raw_csv(names))
+            # default core = 10 us; FLA = 12.5 us puts the ratio at 0.80 exactly.
+            durations = [2500] * len(names) if plant == "confirm" and role == "fla" else None
+            log.write_text(raw_csv(names, durations))
         return dict(status="COLLECTED", returncode=0)
 
     monkeypatch.setattr(collect, "run", transport)
-    monkeypatch.setattr(sys, "argv", ["collect", "--serving-run", str(origin), "--lengths", "2048"])
+    argv = ["collect", "--serving-run", str(origin), "--lengths", "2048"]
+    if plant == "relabeled-shape":
+        argv += ["--value-heads", "64"]
+    monkeypatch.setattr(sys, "argv", argv)
     result = collect.main()
-    assert result == (1 if plant in ("wrong-receipt", "section-schema") else 3 if plant == "duplicate-math" else 0)
+    failing = ("wrong-receipt", "section-schema", "relabeled-shape")
+    assert result == (1 if plant in failing else 3 if plant == "duplicate-math" else 0)
     assert (out / "results.tar.gz").is_file(), "failure must preserve the small handoff"
     if plant == "section-schema":
         assert not any("--phase" in command for command in commands), "bad profiler ran numerical/device work"
+    if plant == "relabeled-shape":
+        assert not any("--phase" in command and command[command.index("--phase") + 1] == "subject"
+                       for command in commands), "relabeled cell reached device timing"
+    subjects = [command for command in commands if "--phase" in command
+                and command[command.index("--phase") + 1] == "subject"]
     if plant is None:
-        subjects = [command for command in commands if "--phase" in command
-                    and command[command.index("--phase") + 1] == "subject"]
         assert len(subjects) == 9
         for position in range(3):
             assert {command[command.index("--role") + 1] for command in subjects[position::3]} == set(collect.ROLES)
+    if plant == "confirm":
+        summary = json.loads((out / "summary.json").read_text())
+        cell = summary["captures"]["T2048-Hk16-Hv32-g-0.1"]["summary"]
+        assert len(subjects) == 18 and cell["repeats"] == 6 and cell["confirmation_round"]
+        assert cell["median_ratio_default_over_fla"] == pytest.approx(0.8)
+
+
+matrix = importlib.import_module("summarize_gdn_matrix")
+REGISTERED = ROOT / "benchmarks/gdn_prefill_matrix.json"
+REGISTERED_SHA = "48a7aa907067cf2a966594c899da9b9882316950ddd09d39a292e4810f5d7402"
+
+
+def legacy_raw_fixture(length, hv, gate):
+    """Verbatim pre-extension fixture (fece3fd), kept to pin B=1 bytes."""
+    import math
+    generator = torch.Generator().manual_seed(1931 + length + hv)
+    mixed = torch.randn(length, (32 + hv) * 128, generator=generator).bfloat16()
+    a = torch.full((length, hv), math.log(math.expm1(-gate))).bfloat16()
+    b = torch.randn(length, hv, generator=generator).bfloat16()
+    state = torch.zeros(3, hv, 128, 128, dtype=torch.float32)
+    state[1] = torch.randn(hv, 128, 128, generator=generator) * .02
+    return dict(mixed=mixed, a=a, b=b, a_log=torch.zeros(hv, dtype=torch.float32),
+                bias=torch.zeros(hv, dtype=torch.float32),
+                state=state, starts=torch.tensor([0, length], dtype=torch.int32),
+                live=torch.tensor([1], dtype=torch.int32),
+                initial_slots=torch.tensor([1]), final_slots=torch.tensor([2]))
+
+
+@pytest.mark.parametrize("hv,gate", [(32, -.1), (48, -1.)])
+def test_b1_fixture_bytes_unchanged_by_the_extension(hv, gate):
+    new, old = profile.raw_fixture(64, hv, gate), legacy_raw_fixture(64, hv, gate)
+    assert new.keys() == old.keys()
+    for name in old:
+        assert new[name].dtype == old[name].dtype and torch.equal(new[name], old[name]), name
+
+
+@pytest.mark.parametrize("batch", [2, 4])
+def test_batched_fixture_is_really_batched_not_a_label(batch):
+    raw = profile.raw_fixture(16, 64, -.1, batch)
+    assert raw["mixed"].shape == (batch * 16, (32 + 64) * 128)
+    assert raw["starts"].tolist() == [16 * r for r in range(batch + 1)]
+    assert raw["live"].tolist() == [batch] and profile.request_geometry(raw) == (batch, 16)
+    assert raw["initial_slots"].tolist() == list(range(1, batch + 1))
+    assert raw["final_slots"].tolist() == list(range(batch + 1, 2 * batch + 1))
+    assert raw["state"].shape[0] == 2 * batch + 1 and not raw["state"][0].any()
+    initial = raw["state"][1:batch + 1]
+    assert all(not torch.equal(initial[0], initial[r]) for r in range(1, batch)), "distinct request states"
+    assert not raw["state"][batch + 1:].any()
+
+
+def test_batched_raw_reference_is_independent_per_request():
+    raw = profile.raw_fixture(9, 32, -1., 2)
+    output, state = profile.raw_reference(raw)
+    assert output.shape == (2, 9, 32, 128) and state.shape == (2, 32, 128, 128)
+    for row in range(2):
+        lo, hi = 9 * row, 9 * row + 9
+        want, final, *_ = profile.gdn_reference(raw["mixed"][lo:hi], raw["a"][lo:hi], raw["b"][lo:hi],
+                                               raw["a_log"], raw["bias"], raw["state"][1 + row], 16)
+        assert torch.equal(output[row], want)
+        assert torch.equal(state[row], final.transpose(-1, -2).contiguous()), "explicit VK->KV transpose"
+
+
+def test_unsupported_or_mislabeled_fixture_is_red():
+    for args in ((64, 40, -.1), (64, 32, -.5), (64, 32, -.1, 3), (0, 32, -.1)):
+        with pytest.raises(ValueError):
+            profile.raw_fixture(*args)
+    raw = profile.raw_fixture(8, 32, -.1, 2)
+    raw["starts"] = torch.tensor([0, 8, 15], dtype=torch.int32)
+    with pytest.raises(ValueError, match="equal-length"):
+        profile.request_geometry(raw)
+
+
+def test_core_shape_is_measured_from_tensors():
+    packed = (torch.empty(2, 64, 16, 128), torch.empty(2, 64, 16, 128), torch.empty(2, 64, 64, 128),
+              torch.empty(2, 64, 64), torch.empty(2, 64, 64))
+    assert profile.core_shape(packed) == dict(B=2, T=64, Hk=16, Hv=64, K=128, V=128)
+    with pytest.raises(ValueError):
+        profile.core_shape((*packed[:2], torch.empty(2, 64, 48, 128), *packed[3:]))
+
+
+def test_collector_and_fixture_registered_axes_agree():
+    for name in ("BATCHES", "LENGTHS", "VALUE_HEADS", "GATES"):
+        assert getattr(collect, name) == getattr(profile, name), name
+
+
+@pytest.mark.parametrize("default,fla,want", [
+    ([70, 71, 72], [100, 101, 102], "TARGET_MET"),        # 0.70 and disjoint
+    ([79, 80, 101], [100, 101, 102], "UNRESOLVED"),      # passing median, overlapping envelope
+    ([81, 82, 83], [100, 101, 102], "TARGET_NOT_MET"),   # 1.23x: faster than FLA, not 20% less time
+    ([83, 83.3, 83.5], [100, 100, 100], "TARGET_NOT_MET"),  # the 1.20x speed-ratio trap
+    ([110, 111, 112], [100, 101, 102], "TARGET_NOT_MET"),
+])
+def test_registered_target_is_time_reduction_not_speed_ratio(default, fla, want):
+    assert collect.target_verdict(default, fla, True)[0] == want
+    assert collect.target_verdict(default, fla, False)[0] == "UNADJUDICATED"
+
+
+@pytest.mark.parametrize("default,fla,confirm", [
+    ([80, 80, 80], [100, 100, 100], True),     # ratio 0.80 is inside the pre-registered band
+    ([70, 70, 70], [100, 106, 100], True),     # FLA spread 6% > 5%
+    ([70, 71, 70], [100, 101, 100], False),
+])
+def test_pre_registered_confirmation_rule(default, fla, confirm):
+    rows = dict(serving=[1, 1, 1], default=default, fla=fla)
+    ratio = collect.target_verdict(default, fla, True)[1]
+    assert collect.needs_confirmation(rows, ratio)[0] is confirm
+
+
+def test_registered_manifest_denominator_and_hash():
+    assert collect.sha(REGISTERED) == REGISTERED_SHA
+    data = json.loads(REGISTERED.read_text())
+    cells = data["cells"]
+    assert len(cells) == 54 and len({c["id"] for c in cells}) == 54
+    assert len({(c["geometry"], c["B"], c["T"]) for c in cells}) == 27
+    assert {c["Hv"] for c in cells} == {32, 48, 64} and {c["B"] for c in cells} == {1, 2, 4}
+    phase1, _ = collect.registered_cells(REGISTERED, "1", expected_sha=REGISTERED_SHA)
+    assert len(phase1) == 12 and all(c["B"] == 1 and c["T"] in (2048, 8192) for c in phase1)
+    assert len(collect.registered_cells(REGISTERED, "all")[0]) == 54
+
+
+def test_edited_or_unknown_denominator_is_red(tmp_path):
+    with pytest.raises(ValueError, match="changed"):
+        collect.registered_cells(REGISTERED, "1", expected_sha="0" * 64)
+    with pytest.raises(ValueError):
+        collect.registered_cells(REGISTERED, ids=["G64-B1-T2048-g-0.1", "G99-B1-T1-g-0.1"])
+    edited = tmp_path / "edited.json"
+    data = json.loads(REGISTERED.read_text())
+    data["cells"] = [c for c in data["cells"] if c["id"] != "G64-B1-T8192-g-1.0"]   # drop a losing cell
+    edited.write_text(json.dumps(data))
+    with pytest.raises(ValueError):
+        matrix.matrix(edited, REGISTERED_SHA, [])
+
+
+def collected(tmp_path, entries, name="run.json"):
+    """Synthetic collector summary for matrix logic only; not device evidence."""
+    captures = {}
+    for key, measured, verdict in entries:
+        cell = next(c for c in json.loads(REGISTERED.read_text())["cells"] if c["id"] == key)
+        spec = {k: cell[k] for k in ("B", "T", "Hk", "Hv", "K", "V", "gate")}
+        rows = {role: dict(median_us=v, min_us=v, max_us=v, samples_us=[v] * 3)
+                for role, v in (("serving", 300.), ("default", 70.), ("fla", 100.))}
+        captures[key] = dict(cell=spec, device_uuid="uuid-fixture",
+                             measured_shape=measured or {k: cell[k] for k in ("B", "T", "Hk", "Hv", "K", "V")},
+                             summary=dict(target_verdict=verdict, rows=rows, repeats=3, core_verdict="DEFAULT_CORE_WINS",
+                                          median_ratio_default_over_fla=.7, speedup_fla_over_default=1 / .7,
+                                          gap_to_target_us=-10.))
+    path = tmp_path / name
+    path.write_text(json.dumps(dict(manifest_sha256=REGISTERED_SHA, captures=captures)))
+    return path
+
+
+def test_matrix_keeps_every_registered_cell_and_never_averages(tmp_path):
+    run = collected(tmp_path, [("G32-B1-T2048-g-0.1", None, "TARGET_MET"),
+                               ("G64-B1-T2048-g-0.1", None, "TARGET_NOT_MET")])
+    result = matrix.matrix(REGISTERED, REGISTERED_SHA, [run], "uuid-fixture")
+    assert result["denominator"] == 54 and len(result["cells"]) == 54
+    assert result["counts"]["NOT_RUN"] == 52 and result["counts"]["TARGET_MET"] == 1
+    assert not result["phase1_complete"] and not result["all_met"]
+    assert "mean" not in json.dumps({k: v for k, v in result.items() if k != "cells"})
+
+
+@pytest.mark.parametrize("plant", ["hv64-as-hv48", "b2-label-only", "unregistered", "duplicate", "device"])
+def test_matrix_relabel_duplicate_or_foreign_device_is_red(tmp_path, plant):
+    key = "G64-B1-T8192-g-0.1" if plant == "hv64-as-hv48" else "G32-B2-T2048-g-1.0"
+    measured = None
+    if plant == "hv64-as-hv48":
+        measured = dict(B=1, T=8192, Hk=16, Hv=48, K=128, V=128)
+    elif plant == "b2-label-only":
+        measured = dict(B=1, T=2048, Hk=16, Hv=32, K=128, V=128)
+    runs = [collected(tmp_path, [(key, measured, "TARGET_MET")])]
+    if plant == "unregistered":
+        data = json.loads(runs[0].read_text())
+        data["captures"]["G32-B8-T2048-g-1.0"] = data["captures"].pop(key)
+        runs[0].write_text(json.dumps(data))
+    elif plant == "duplicate":
+        runs.append(collected(tmp_path, [(key, None, "TARGET_MET")], "again.json"))
+    uuid = "other-device" if plant == "device" else "uuid-fixture"
+    with pytest.raises(ValueError):
+        matrix.matrix(REGISTERED, REGISTERED_SHA, runs, uuid)

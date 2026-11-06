@@ -24,6 +24,18 @@ CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
 TRANSPORT = ("validate_gdn", "prepare_gdn", "pack_prefill", "gather_state", "scatter_prefill")
 FLA = ("chunk_local_cumsum_scalar_kernel", "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
        "recompute_w_u_fwd_kernel", "chunk_gated_delta_rule_fwd_kernel_h", "chunk_fwd_kernel_o")
+# Registered acceptance: time reduction of at least 20% (speedup >= 1.25x), not 1.20x.
+TARGET_RATIO = 0.80
+# Pre-registered confirmation rule (manifest/shapes.json): near-threshold or noisy
+# three-sample cells get three more captures per role; every sample is kept.
+CONFIRM_RATIO = (0.78, 0.82)
+CONFIRM_SPREAD = 0.05
+RETAINED_PAIR_HEADS = (32, 48, 64)
+# Must equal benchmarks/profile_serving_prefill.py (host test enforces it).
+BATCHES = (1, 2, 4)
+LENGTHS = (512, 2048, 4096, 8192, 16384)
+VALUE_HEADS = (32, 48, 64)
+GATES = (-.1, -1.)
 
 
 def run(command, log, env, **kwargs):
@@ -80,7 +92,7 @@ def read_run(directory):
         if receipt.get("status") != "PASS" or receipt.get("target") != "ppu10":
             raise ValueError("serving AND auxiliary device gates must have passed")
     pairs = [c for c in native["cases"] if c.get("case") == "ppu10-prefill-retained-pair"]
-    expected = {(n, f"16:{h}") for n in (64, 65, 129, 8192) for h in (32, 48)}
+    expected = {(n, f"16:{h}") for n in (64, 65, 129, 8192) for h in RETAINED_PAIR_HEADS}
     if (len(pairs) != len(expected) or {(c["length"], c["heads"]) for c in pairs} != expected
             or any(c.get("output_state") != "RAW-BIT/PASS" for c in pairs)):
         raise ValueError("incomplete retained/prepared numerical denominator")
@@ -213,6 +225,27 @@ def inventory(role, kernels):
                 core_in_same_call_us=core, kernels=kernels)
 
 
+def target_verdict(default, fla, valid):
+    """Registered per-cell acceptance; never inferred from a single winner sample.
+
+    TARGET_MET requires BOTH median(default) <= 0.80 * median(fla) AND disjoint
+    envelopes. A passing median with overlapping envelopes stays UNRESOLVED; a
+    failing median is TARGET_NOT_MET with its gap reported, never dropped.
+    """
+    if not valid:
+        return "UNADJUDICATED", None
+    ratio = statistics.median(default) / statistics.median(fla)
+    if ratio > TARGET_RATIO:
+        return "TARGET_NOT_MET", ratio
+    return ("TARGET_MET" if max(default) < min(fla) else "UNRESOLVED"), ratio
+
+
+def needs_confirmation(rows, ratio):
+    spread = max((max(v) - min(v)) / statistics.median(v) for v in rows.values())
+    near = ratio is not None and CONFIRM_RATIO[0] <= ratio <= CONFIRM_RATIO[1]
+    return bool(near or spread > CONFIRM_SPREAD), spread
+
+
 def summarize(captures, repeats):
     if repeats < 3 or repeats % 3:
         raise ValueError("need a complete three-role order cycle")
@@ -229,7 +262,14 @@ def summarize(captures, repeats):
         verdict = "FLA_CORE_WINS"
     else:
         verdict = "UNRESOLVED"
+    target, ratio = target_verdict(rows["default"], rows["fla"], valid)
+    confirm, spread = needs_confirmation(rows, ratio)
     return dict(core_verdict=verdict, rule="disjoint-observed-ACU-envelopes",
+                target_verdict=target, target_rule="median(default)<=0.80*median(fla) AND max(default)<min(fla)",
+                median_ratio_default_over_fla=ratio,
+                speedup_fla_over_default=(1 / ratio if ratio else None),
+                gap_to_target_us=(statistics.median(rows["default"]) - TARGET_RATIO * statistics.median(rows["fla"])),
+                needs_confirmation=confirm, max_relative_spread=spread, repeats=repeats,
                 serving_vs_fla="NOT_COMPARABLE_RAW_SLOT_VS_PROCESSED_CORE",
                 rows={role: dict(median_us=statistics.median(values), min_us=min(values), max_us=max(values),
                                  samples_us=values) for role, values in rows.items()},
@@ -244,7 +284,7 @@ def validate_receipts(admission, subject, role):
     if (subject.get("status") != "PASS" or subject.get("phase") != "subject"
             or subject.get("role") != role or subject.get("public_calls") != 1 or subject.get("warmup") != 0):
         raise ValueError("subject is not exactly one admitted public call")
-    for key in ("device", "library_sha", "shape", "gate", "operands_sha"):
+    for key in ("device", "library_sha", "shape", "measured_shape", "gate", "operands_sha"):
         if key not in admission or subject.get(key) != admission[key]:
             raise ValueError(f"capture identity mismatch: {key}")
     for key in ("input_sha", "output_sha"):
@@ -308,20 +348,57 @@ def small_archive(out):
     return archive
 
 
+def registered_cells(manifest, phase="1", ids=None, expected_sha=None):
+    """Cells from the hash-registered matrix; an edited denominator is red."""
+    manifest = Path(manifest).resolve(strict=True)
+    digest = sha(manifest)
+    if expected_sha is not None and digest != expected_sha:
+        raise ValueError("registered shape manifest changed; a new denominator needs a new registration")
+    cells = json.loads(manifest.read_text())["cells"]
+    if ids:
+        known = {c["id"] for c in cells}
+        if set(ids) - known or len(ids) != len(set(ids)):
+            raise ValueError("requested cells must be unique registered ids")
+        cells = [c for c in cells if c["id"] in ids]
+    elif phase != "all":
+        cells = [c for c in cells if str(c["phase"]) == str(phase)]
+    if not cells:
+        raise ValueError("no registered cells selected")
+    return [dict(id=c["id"], B=c["B"], T=c["T"], Hk=c["Hk"], Hv=c["Hv"], K=c["K"], V=c["V"], gate=c["gate"])
+            for c in cells], digest
+
+
+def legacy_cells(batches, lengths, value_heads, gates):
+    cells = []
+    for b, t, hv, gate in itertools.product(batches, lengths, value_heads, gates):
+        key = f"T{t}-Hk16-Hv{hv}-g{gate}" if b == 1 else f"B{b}-T{t}-Hk16-Hv{hv}-g{gate}"
+        cells.append(dict(id=key, B=b, T=t, Hk=16, Hv=hv, K=128, V=128, gate=gate))
+    return cells
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serving-run", type=Path, default=os.environ.get("SERVING_RUN"))
-    parser.add_argument("--lengths", type=int, nargs="+", choices=(2048, 8192), default=[2048, 8192])
-    parser.add_argument("--value-heads", type=int, nargs="+", choices=(32, 48), default=[32])
-    parser.add_argument("--gates", type=float, nargs="+", choices=(-.1, -1.), default=[-.1])
+    parser.add_argument("--manifest", type=Path, help="hash-registered shape matrix (manifest/shapes.json)")
+    parser.add_argument("--manifest-sha256", default=os.environ.get("MANIFEST_SHA256"))
+    parser.add_argument("--manifest-phase", choices=("1", "2", "all"), default="1")
+    parser.add_argument("--cells", nargs="+", help="explicit registered cell ids")
+    parser.add_argument("--batches", type=int, nargs="+", choices=BATCHES, default=[1])
+    parser.add_argument("--lengths", type=int, nargs="+", choices=LENGTHS, default=[2048, 8192])
+    parser.add_argument("--value-heads", type=int, nargs="+", choices=VALUE_HEADS, default=[32])
+    parser.add_argument("--gates", type=float, nargs="+", choices=GATES, default=[-.1])
     parser.add_argument("--repeats", type=int, choices=(3, 6), default=3)
+    parser.add_argument("--no-confirm", action="store_true",
+                        help="disable the pre-registered near-threshold/noise confirmation round")
+    parser.add_argument("--acu", type=Path, default=os.environ.get("ACU"))
     parser.add_argument("--device", default=os.environ.get("DEVICE", "0"))
     args = parser.parse_args()
     if not args.device.isdigit():
         parser.error("device must be an explicit nonnegative physical ordinal")
-    for values in (args.lengths, args.value_heads, args.gates):
+    for values in (args.batches, args.lengths, args.value_heads, args.gates):
         if len(values) != len(set(values)):
             parser.error("duplicate shape/gate is not an independent cell")
+    acu = Path(args.acu) if args.acu else DEFAULT_ACU
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = Path(os.environ.get("OUT", f"/workspace/actlize-la-prefill-acu-{stamp}-{os.getpid()}"))
     out.mkdir(parents=True, exist_ok=False)
@@ -331,9 +408,19 @@ def main():
                             PYTHONPATH=":".join(filter(None, (str(ROOT), str(ROOT / "tests"),
                                 os.environ.get("FLA_ROOT"), os.environ.get("PYTHONPATH")))))
     status = dict(status="INCOMPLETE", created_utc=stamp, captures={}, device=args.device,
-                  intended_cells=list(itertools.product(args.lengths, args.value_heads, args.gates)),
-                  repeats=args.repeats, errors=[], sdk=str(sdk), acu=str(DEFAULT_ACU))
+                  intended_cells=[], repeats=args.repeats, errors=[], sdk=str(sdk), acu=str(acu),
+                  target_ratio=TARGET_RATIO, confirm=dict(enabled=not args.no_confirm, ratio=CONFIRM_RATIO,
+                                                          spread=CONFIRM_SPREAD))
     try:
+        if args.manifest is not None:
+            cells, status["manifest_sha256"] = registered_cells(
+                args.manifest, args.manifest_phase, args.cells, args.manifest_sha256)
+            status["manifest"] = str(args.manifest)
+        elif args.cells:
+            raise ValueError("--cells requires the registered --manifest")
+        else:
+            cells = legacy_cells(args.batches, args.lengths, args.value_heads, args.gates)
+        status["intended_cells"] = cells
         if env.get("FLA_ROOT") and not (Path(env["FLA_ROOT"]) / "fla/__init__.py").is_file():
             raise ValueError("FLA_ROOT is not a valid FLA checkout; no silent installed-package fallback")
         origin = select_run(args.serving_run)
@@ -351,15 +438,15 @@ def main():
         status["source_diff"] = subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)
         if status["source_diff"]:
             raise ValueError("capture helpers must be committed before box measurement")
-        status["profiler"] = profiler_layout(DEFAULT_ACU)
+        status["profiler"] = profiler_layout(acu)
         status["inherited_asight_home"] = env.get("ASIGHT_HOME")
         env["ASIGHT_HOME"] = status["profiler"]["home"]
         section_flags = ["--section-folder", status["profiler"]["sections"]]
         status["acu_sha256"] = status["profiler"]["executable_sha256"]
-        run([DEFAULT_ACU, "--version"], out / "acu-version.log", env, console=False)
+        run([acu, "--version"], out / "acu-version.log", env, console=False)
         # Parse the unchanged full-set section schema BEFORE fixture/reference
         # work. A bad tool installation stays FAIL, never a reduced-metric PASS.
-        run([DEFAULT_ACU, *section_flags, "--set", "full", "--list-sections"],
+        run([acu, *section_flags, "--set", "full", "--list-sections"],
             out / "acu-section-check.log", env, console=False)
         smi = shutil.which("ppu-smi")
         if smi:
@@ -367,48 +454,65 @@ def main():
                                           env, optional=True, console=False, timeout=20)
         else:
             status["driver_before"] = dict(status="UNAVAILABLE", reason="ppu-smi not on PATH")
-        for length, hv, gate in status["intended_cells"]:
-            key = f"T{length}-Hk16-Hv{hv}-g{gate}"
+        for spec in cells:
+            key = spec["id"]
+            expected_shape = {name: spec[name] for name in ("B", "T", "Hk", "Hv", "K", "V")}
             cell = out / key
             cell.mkdir()
             common = [sys.executable, "-u", ROOT / "benchmarks/profile_serving_prefill.py",
-                      "--library", origin["library"], "--directory", cell,
-                      "--length", str(length), "--value-heads", str(hv), "--gate", str(gate)]
+                      "--library", origin["library"], "--directory", cell, "--batch", str(spec["B"]),
+                      "--length", str(spec["T"]), "--value-heads", str(spec["Hv"]), "--gate", str(spec["gate"])]
             run([*common, "--phase", "admit", "--receipt", cell / "admission.json"],
                 cell / "admission.log", env, console=False)
             admission = json.loads((cell / "admission.json").read_text())
+            if admission.get("measured_shape") != expected_shape or admission.get("gate") != spec["gate"]:
+                raise ValueError(f"{key}: admitted operands {admission.get('measured_shape')} / gate "
+                                 f"{admission.get('gate')} are not the registered cell")
             print(f"[prefill ACU] {key}: numerical admission complete; profiling serially", flush=True)
             captures = {role: [] for role in ROLES}
-            status["captures"][key] = dict(captures=captures)
-            for repeat in range(args.repeats):
-                shift = repeat % 3
-                roles = ROLES[shift:] + ROLES[:shift]
-                if repeat // 3:
-                    roles = roles[::-1]
-                for role in roles:
-                    base = cell / f"{role}-{repeat}.report"
-                    command = [DEFAULT_ACU, *section_flags, "-f", "-o", base, "--set", "full", "--check-exit-code", "yes",
-                               *common, "--phase", "subject", "--role", role,
-                               "--receipt", cell / f"{role}-{repeat}.json"]
-                    run(command, cell / f"{role}-{repeat}.log", env, console=False)
-                    receipt = json.loads((cell / f"{role}-{repeat}.json").read_text())
-                    validate_receipts(admission, receipt, role)
-                    report = report_file(base)
-                    exported = cell / f"{role}-{repeat}.csv"
-                    # CSV is machine-consumed and packed; user need not paste it.
-                    run([DEFAULT_ACU, *section_flags, "--import", report, "--csv", "--page", "raw"],
-                        exported, env, console=False)
-                    measured = inventory(role, parse_raw(exported.read_text()))
-                    measured["report_sha256"] = sha(report)
-                    captures[role].append(measured)
-                    print(f"[prefill ACU] {key} role={role} repeat={repeat} "
-                          f"kernel_sum={measured['total_us']:.3f}_us inventory={measured['status']}", flush=True)
+            status["captures"][key] = dict(cell=spec, captures=captures,
+                                           measured_shape=admission["measured_shape"],
+                                           operands_sha=admission.get("operands_sha"),
+                                           library_sha=admission.get("library_sha"),
+                                           device_uuid=admission.get("device", {}).get("uuid"))
+
+            def capture_round(first, stop):
+                for repeat in range(first, stop):
+                    shift = repeat % 3
+                    roles = ROLES[shift:] + ROLES[:shift]
+                    if repeat // 3:
+                        roles = roles[::-1]
+                    for role in roles:
+                        base = cell / f"{role}-{repeat}.report"
+                        command = [acu, *section_flags, "-f", "-o", base, "--set", "full", "--check-exit-code", "yes",
+                                   *common, "--phase", "subject", "--role", role,
+                                   "--receipt", cell / f"{role}-{repeat}.json"]
+                        run(command, cell / f"{role}-{repeat}.log", env, console=False)
+                        receipt = json.loads((cell / f"{role}-{repeat}.json").read_text())
+                        validate_receipts(admission, receipt, role)
+                        report = report_file(base)
+                        exported = cell / f"{role}-{repeat}.csv"
+                        # CSV is machine-consumed and packed; user need not paste it.
+                        run([acu, *section_flags, "--import", report, "--csv", "--page", "raw"],
+                            exported, env, console=False)
+                        measured = inventory(role, parse_raw(exported.read_text()))
+                        measured["report_sha256"] = sha(report)
+                        captures[role].append(measured)
+                        print(f"[prefill ACU] {key} role={role} repeat={repeat} "
+                              f"kernel_sum={measured['total_us']:.3f}_us inventory={measured['status']}", flush=True)
+
+            capture_round(0, args.repeats)
             summary = summarize(captures, args.repeats)
+            if summary["needs_confirmation"] and args.repeats == 3 and not args.no_confirm:
+                print(f"[prefill ACU] {key}: pre-registered confirmation round (3 more per role)", flush=True)
+                capture_round(3, 6)
+                summary = summarize(captures, 6)
+                summary["confirmation_round"] = True
             status["captures"][key]["summary"] = summary
             print("[prefill ACU summary] " + json.dumps(dict(cell=key, **summary), sort_keys=True), flush=True)
         if sha(Path(origin["library"])) != origin["sha256"]:
             raise ValueError("reused admitted library changed during capture")
-        if profiler_layout(DEFAULT_ACU) != status["profiler"]:
+        if profiler_layout(acu) != status["profiler"]:
             raise ValueError("ACU executable or section files changed during capture")
         if (subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != status["harness_sha"]
                 or subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)):
