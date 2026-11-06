@@ -3,6 +3,8 @@
 #include "runtime.cuh"
 #if ALA_PPU_TARGET == 150
 #include "../backends/ppu15/launch.h"
+#elif ALA_PPU_TARGET == 100
+#include "../backends/ppu10/launch.h"
 #endif
 
 namespace actlize_la::serving {
@@ -11,7 +13,7 @@ int prepare(Gdn const &, Stream);
 int prepare_checked(Gdn const &, Stream, ala_gdn_transaction_v2 const &);
 bool valid_dependency(ala_gdn_transaction_v2 const *, int);
 
-#if ALA_PPU_TARGET == 150
+#if ALA_PPU_TARGET == 100 || ALA_PPU_TARGET == 150
 __global__ void pack_prefill(Prefill p) {
   auto const &g = p.gdn;
   int const r = blockIdx.x, h = blockIdx.y;
@@ -85,6 +87,8 @@ __global__ void scatter_prefill(Prefill p) {
 extern "C" int ala_prefill_configure() {
 #if ALA_PPU_TARGET == 150
   return actlize_la_ppu15_configure();
+#elif ALA_PPU_TARGET == 100
+  return actlize_la_ppu10_configure();
 #else
   return 0;
 #endif
@@ -96,7 +100,7 @@ static int prefill_impl(actlize_la::serving::Prefill const *p,
     return -1;
   if (guard && !valid_dependency(guard, p->gdn.requests))
     return -1;
-#if ALA_PPU_TARGET == 150
+#if ALA_PPU_TARGET == 100 || ALA_PPU_TARGET == 150
   if (!p->q || !p->k || !p->v || !p->beta || !p->output || !p->log_g ||
       !p->initial_kv || !p->final_kv || !p->inverse || !p->snapshots ||
       !p->vnew || !p->gates)
@@ -111,7 +115,12 @@ static int prefill_impl(actlize_la::serving::Prefill const *p,
   gather_state<<<dim3(g.requests, g.hv), 256, 0, s>>>(*p);
   if (int rc = last_error())
     return rc;
-  if (int rc = actlize_la_ppu15_forward_prepared(
+#if ALA_PPU_TARGET == 100
+  auto forward = actlize_la_ppu10_forward_prepared;
+#else
+  auto forward = actlize_la_ppu15_forward_prepared;
+#endif
+  if (int rc = forward(
           p->q, p->k, p->v, p->log_g, p->beta, p->initial_kv, p->output,
           p->final_kv, p->inverse, p->snapshots, p->vnew, p->gates, g.requests,
           g.width, g.hk, g.hv, true, stream))
@@ -119,8 +128,8 @@ static int prefill_impl(actlize_la::serving::Prefill const *p,
   scatter_prefill<<<dim3(g.requests, g.hv), 256, 0, s>>>(*p);
   return last_error();
 #else
-  // Explicit NVIDIA/PPU1.0 semantic-validation path, not a tensor-core
-  // performance claim or an automatic PPU1.5 fallback.
+  // Explicit SM120 semantic-validation path, not a tensor-core performance
+  // claim or a fallback for either native PPU generation.
   return guard ? ala_gdn_checked_v2(&p->gdn, guard, stream)
                : ala_gdn_run(&p->gdn, stream);
 #endif

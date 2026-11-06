@@ -5,8 +5,10 @@ No fake CUDA/PPU backend. References execute on CPU outside graph capture.
 
 from __future__ import annotations
 import argparse
+import ctypes as C
 import hashlib
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -42,11 +44,25 @@ def record(name, **fields):
     print("[serving device] " + json.dumps(entry, sort_keys=True), flush=True)
 
 
-def allocate(specs, device):
-    return {
-        name: torch.empty(shape, dtype=dtype, device=device)
-        for name, (shape, dtype) in specs.items()
-    }
+def allocate(specs, device, guards=None):
+    result = {}
+    for name, (shape, dtype) in specs.items():
+        if guards is None:
+            result[name] = torch.empty(shape, dtype=dtype, device=device)
+        else:
+            count = math.prod(shape)
+            backing = torch.empty(count + 256, dtype=dtype, device=device)
+            before, after = backing[:128], backing[-128:]
+            before.fill_(37)
+            after.fill_(37)
+            guards.extend(((name + "-before", before), (name + "-after", after)))
+            result[name] = backing[128:128 + count].view(shape)
+    return result
+
+
+def raw_equal(a, b):
+    return a.dtype == b.dtype and a.shape == b.shape and torch.equal(
+        a.contiguous().view(torch.uint8), b.contiguous().view(torch.uint8))
 
 
 def close(got, want, *, chunk=False):
@@ -107,9 +123,11 @@ class GdnCase:
         )
         self.checkpoint_slots = torch.zeros(r, dtype=torch.int64, device=self.device)
         self.checkpoint_offsets = torch.zeros(r, dtype=torch.int32, device=self.device)
+        self.guards = []
         self.work = allocate(
             gdn_workspace_specs(r, width, hk, hv, mode=mode, target=lib.target),
             self.device,
+            self.guards if mode == "prefill" else None,
         )
         self.plan = PreparedGDN(
             lib,
@@ -165,6 +183,8 @@ class GdnCase:
     def ok(self):
         torch.cuda.synchronize()
         assert not self.work["errors"].any().item(), self.work["errors"].cpu().tolist()
+        for name, guard in self.guards:
+            assert bool((guard == 37).all()), f"workspace canary modified: {name}"
 
 
 def test_gdn(lib):
@@ -274,8 +294,56 @@ def test_gdn(lib):
             "gdn-prefill-decode",
             length=length,
             initial="zero+asymmetric-nonzero",
-            native_chunk=lib.target == "ppu15",
+            native_chunk=lib.target in ("ppu10", "ppu15"),
         )
+
+
+def test_ppu10_prefill_retained_pair(lib):
+    """Compare the prepared launch with the original retained C entry.
+
+    Both consume the same already-normalized/packed operands; the independent
+    recurrence tests separately check pack, scale, slot transpose and scatter.
+    The old entry configures itself, the prepared path must not do so on replay.
+    """
+    legacy = lib.lib.gdn_wy_forward_residual_full_chunk
+    legacy.argtypes = [C.c_void_p] * 12 + [C.c_int] * 4 + [C.c_bool, C.c_void_p]
+    legacy.restype = C.c_int
+    for hv in (32, 48):
+        for length in (64, 65, 129, 8192):
+            c = GdnCase(lib, length, "prefill", hv=hv)
+            c.work["packed_output"].fill_(float("nan"))
+            c.work["final_kv"].fill_(float("nan"))
+            c.plan()
+            c.ok()
+            assert bool(torch.isfinite(c.work["packed_output"]).all())
+            assert bool(torch.isfinite(c.work["final_kv"]).all())
+            reference = allocate(gdn_workspace_specs(3, length, 16, hv, mode="prefill", target="ppu10"), c.device)
+            arguments = [c.work[name].data_ptr() for name in ("q", "k", "v", "log_g", "beta", "initial_kv")]
+            arguments += [reference[name].data_ptr() for name in
+                          ("packed_output", "final_kv", "inverse", "snapshots", "vnew", "gates")]
+            assert legacy(*arguments, 3, length, 16, hv, True,
+                          torch.cuda.current_stream().cuda_stream) == 0
+            torch.cuda.synchronize()
+            assert raw_equal(c.work["packed_output"], reference["packed_output"])
+            assert raw_equal(c.work["final_kv"], reference["final_kv"])
+            for row in (0, 1):
+                want, state, *_ = c.golden(row)
+                close(c.out[row * length:(row + 1) * length], want, chunk=True)
+                close(c.state[int(c.final_slots[row].cpu())], state, chunk=True)
+            # A real write into either guard must be recognized by the checker.
+            name, guard = c.guards[0]
+            guard[0] = 0
+            try:
+                c.ok()
+            except AssertionError as exc:
+                assert name in str(exc)
+            else:
+                raise AssertionError("workspace overwrite negative escaped")
+            guard[0] = 37
+            c.ok()
+            record("ppu10-prefill-retained-pair", length=length, heads=f"16:{hv}",
+                   output_state="RAW-BIT/PASS", independent_reference="NUMERIC/PASS",
+                   inverse_pitch=16384, workspace_guards="PASS", negative="EXPECTED_RED")
 
 
 def test_gdn_graph(lib):
@@ -342,15 +410,16 @@ def test_gdn_graph(lib):
     )
 
 
-def test_prefill_graph(lib):
-    c = GdnCase(lib, 65, "prefill")
+def test_prefill_graph(lib, capacity=65):
+    c = GdnCase(lib, capacity, "prefill")
     c.plan()
     torch.cuda.synchronize()
     graph = torch.cuda.CUDAGraph()
     with torch.cuda.graph(graph):
         c.plan()
     memory = torch.cuda.memory_allocated()
-    for iteration, length in enumerate((63, 64, 65, 64, 63, 65, 64, 63)):
+    lengths = (63, 64, 65, 64, 63, 65, 64, 63) if capacity == 65 else (62, 63, 64, 63, 62, 64, 63, 64)
+    for iteration, length in enumerate(lengths):
         c.state.copy_(c.initial)
         c.starts.copy_(
             torch.tensor(
@@ -359,27 +428,35 @@ def test_prefill_graph(lib):
                 device=c.device,
             )
         )
-        c.live.fill_(2)
+        live = 1 + iteration % 2
+        c.live.fill_(live)
         c.slots[0] = 0 if iteration % 2 else 2
+        destinations = [1 + iteration % 2, 3 + iteration % 2, 0]
+        c.final_slots.copy_(torch.tensor(destinations, dtype=torch.int64, device=c.device))
         graph.replay()
         c.ok()
-        for row in (0, 1):
+        for row in range(live):
             first = int(c.starts[row].cpu())
             end = int(c.starts[row + 1].cpu())
             want, state, *_ = c.golden(row)
             close(c.out[first:end], want, chunk=True)
             close(c.state[int(c.final_slots[row].cpu())], state, chunk=True)
+        for slot in set(range(5)) - set(destinations[:live]):
+            assert raw_equal(c.state[slot].cpu(), c.initial[slot]), "inactive slot mutated"
         assert torch.cuda.memory_allocated() == memory
     before = c.state.clone()
     c.checkpoint_slots[0] = 1
     graph.replay()
     torch.cuda.synchronize()
     assert c.work["errors"][0].item() == 7
-    assert torch.equal(c.state[2], before[2])
+    destination = int(c.final_slots[0].cpu())
+    assert raw_equal(c.state[destination], before[destination])
     record(
         "prefill-graph",
         replays=8,
-        boundaries="63/64/65",
+        capacity=capacity,
+        boundaries="63/64/65" if capacity == 65 else "62/63/64",
+        variable_metadata="length/live/initial-slot/final-slot",
         checkpoint_negative="EXPECTED_RED",
     )
 
@@ -781,8 +858,11 @@ def main():
                 "SM120 validation requires an SM120 device, not SM90a or another architecture"
             )
         test_gdn(lib)
+        if args.target == "ppu10":
+            test_ppu10_prefill_retained_pair(lib)
         test_gdn_graph(lib)
-        test_prefill_graph(lib)
+        test_prefill_graph(lib, 64)
+        test_prefill_graph(lib, 65)
         test_shared_scratch(lib)
         test_conv_transaction(lib)
         test_qsa(lib)

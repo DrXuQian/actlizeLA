@@ -123,7 +123,7 @@ def gdn_workspace_specs(requests, width, key_heads=16, value_heads=48, *, mode, 
             recorded_lengths=((r,), i),
             recorded_slots=((r,), torch.int64),
         )
-    if mode == "prefill" and target == "ppu15":
+    if mode == "prefill" and target in ("ppu10", "ppu15"):
         groups = r * hv * ((w + 63) // 64)
         specs.update(
             q=((r, w, hk, 128), b),
@@ -134,7 +134,9 @@ def gdn_workspace_specs(requests, width, key_heads=16, value_heads=48, *, mode, 
             packed_output=((r, w, hv, 128), b),
             initial_kv=((r, hv, 128, 128), f),
             final_kv=((r, hv, 128, 128), f),
-            inverse=((groups, 64, 64), b),
+            # PPU10's retained solver uses the padded 128x128 group pitch.
+            # PPU15's independent native solver uses compact 64x64 planes.
+            inverse=((groups, 128, 128) if target == "ppu10" else (groups, 64, 64), b),
             snapshots=((groups, 128, 128), b),
             vnew=((groups, 128, 64), b),
             gates=((groups, 64), f),
@@ -147,6 +149,16 @@ def _workspace(workspace, specs, device):
         raise ValueError(f"workspace keys mismatch: expected {sorted(specs)}")
     for name, (shape, dtype) in specs.items():
         tensor(workspace[name], shape=shape, dtype=dtype, device=device, name=name)
+
+
+def _require_native_prefill(library):
+    if library.target == "ppu10":
+        for symbol in ("actlize_la_ppu10_configure", "actlize_la_ppu10_forward_prepared"):
+            if not callable(getattr(library.lib, symbol, None)):
+                raise RuntimeError(
+                    f"PPU1.0 prefill missing {symbol}: rebuild the retained prepared residual backend; "
+                    "no semantic fallback"
+                )
 
 
 def _state(state, hv, device):
@@ -292,6 +304,7 @@ class PreparedGDN(PreparedNative):
             2 if mode == "prefill" else 0,
         )
         if mode == "prefill":
+            _require_native_prefill(library)
             with torch.cuda.device(self.device):
                 self.check(library.lib.ala_prefill_configure())
 

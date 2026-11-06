@@ -73,6 +73,7 @@ sha256sum "$LIB" | tee -a "$OUT/identity.txt"
 "$PYTHON" "$ROOT/tools/describe_serving_binary.py" --library "$LIB" --target "$TARGET" \
   --source-sha "$SHA" --output "$OUT/binary.json" | tee -a "$OUT/identity.txt"
 ALA_SERVING_TEST_LIBRARY="$LIB" "$PYTHON" -m pytest -q "$ROOT/tests/test_serving_contract.py" "$ROOT/tests/test_aux_contract.py" \
+  "$ROOT/tests/test_ppu10_prefill_contract.py" \
   2>&1 | tee "$OUT/host-tests.log"
 "$PYTHON" "$ROOT/tests/serving_device.py" --target "$TARGET" --library "$LIB" \
   --results "$OUT/results.json" 2>&1 | tee "$OUT/device-tests.log"

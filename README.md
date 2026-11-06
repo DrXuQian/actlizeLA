@@ -123,10 +123,13 @@ provided. See [serving wheel installation and qualification](docs/SERVING_WHEEL.
 Plain source/host-only installs remain distinct and do not claim native support.
 
 `actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
-PPU1.5 prefill with explicit state-layout conversion, and paged incremental
+PPU1.0/PPU1.5 residual prefill with explicit state-layout conversion, and paged incremental
 BF16 QSA. Flare preparation bindings, workspace bounds and a box test script
 are documented in [Flare serving](docs/FLARE_SERVING.md). These operators require
-their own device admission; existing public APIs and model routing are unchanged.
+their own device admission; model routing is not changed by installing the library.
+PPU1.0 prefill uses the retained full-chunk/guarded-tail implementation, with
+configuration outside capture and caller-owned padded workspace. The new serving
+adapter's device gate is separate from the public-default forward's numerical PASS.
 
 The serving branch also supplies [FlashNext auxiliary helpers](docs/FLARE_FLASHNEXT_AUX.md):
 rounded Grouped/Gated RMSNorm, HC combine/norm, speculative dilation1/3 ShortConv,

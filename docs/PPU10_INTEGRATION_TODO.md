@@ -1,11 +1,13 @@
 # PPU1.0 GDN 性能接线与端到端验收 TODO
 
-updated-at: 2026-11-06 02:18:44 UTC
+updated-at: 2026-11-06 02:57:43 UTC
 
 范围：先闭合已保留的 PPU1.0 GDN 实现与实际调用入口，不重新开展 kernel 调优。
 源码核对基线：main `66ec165`；serving 工作分支 `2e107e2`。
-工作分支已实现公共 PPU1.0 默认接线和 route/image 审计；native kernel、serving
-prefill 和 wheel 仍未修改。默认接线的 box 数值与性能证据尚未返回，不能写完成。
+工作分支已实现公共 PPU1.0 默认接线和 route/image 审计，用户已返回36组默认入口
+数值/逐位一致性 PASS；性能未测、完整 bundle 身份未核。新的 serving prefill
+prepared 接线已完成本地编译和回归，待独立 box 准入。retained device kernel
+本体不变，仅增加 host launch 接缝；main 与 wheel 尚未更新。
 
 ## 已确认与尚未确认
 
@@ -13,8 +15,8 @@ prefill 和 wheel 仍未修改。默认接线的 box 数值与性能证据尚未
 - 旧 main 已确认：显式 `algorithm="residual"` 但省略 `delivery`，仍选择 `scalar`。
 - 已保留：`algorithm="residual", delivery="full-chunk"` 是历史胜出实现；
   full-C64 和 guarded-tail 由 native 入口选择，代码没有丢失。
-- 已确认：serving 的 PPU1.0 prefill 是 sequential semantic-validation 路径；
-  PPU1.5 native residual 已接入，不能把它算作 PPU1.0 接线完成。
+- 旧 serving 的 PPU1.0 prefill 是 sequential semantic-validation 路径；本次已接
+  retained residual，但没有把 PPU1.5 的准入或公共默认 PASS 算成新 adapter 的 PASS。
 - 未确认：用户当前源码安装测试实际调用了哪条路径；不能把当前慢因归到 wheel。
 - 既有 decode/verify/commit/auxiliary 不是待从零实现；已有用户反馈的正确性 PASS，
   但不等于新 residual 接线、完整模型集成或真实性能均已验收。
@@ -47,7 +49,7 @@ full-chunk residual 或 serving recurrence 中的哪一条，并把 prefill/deco
 
 ### P10-02 — 固定数值、状态和支持范围的准入合同
 
-- [ ] **LOCAL_VALIDATED / 数学与负控通过，新增目标几何仍待设备运行**
+- [ ] **LOCAL_VALIDATED + USER_REPORTED_DEFAULT36_PASS / 待完整设备 bundle 核验**
 
 既有 61-case residual 独立数学检查及4个算法负控通过；新增非对称 state
 转置、重复 query scale、错 head 映射和缺失测试分母负控。box 脚本保留原36-case
@@ -65,7 +67,11 @@ natural-log gate 与 exp(g)、beta 的 BF16 舍入、head 映射。
 
 ### P10-03 — 公共入口接到已保留的 PPU1.0 实现
 
-- [ ] **IMPLEMENTED / 本地回归通过，待 box 准入后合入 main；依赖 P10-01/02**
+- [ ] **USER_REPORTED_NUMERIC_PASS / 待原始身份核验与 main 集成；依赖 P10-01/02**
+
+用户返回：`[PPU default GDN] PASS cases=36 repeat=8 numeric+default-bits; performance=NOT_RUN`。
+对应已交付的 d4b4713 命令；尚未独立读取完整 bundle/SHA。仅记公共默认数值与逐位
+一致性通过，不把它写成性能、serving 或完整模型的 PASS。
 
 工作分支的 PPU1.0 `auto`、显式 residual 省略 delivery、直接
 `gdn_chunk_residual` 三个入口均已选择 retained full-chunk。旧 scalar benchmark
@@ -89,7 +95,20 @@ exit3，不报 PASS。PPU native kernel/source graph 无改动。
 
 ### P10-04 — PPU1.0 serving prefill 接入 residual prepared/out
 
-- [ ] **OPEN / 已确认的 serving 接线缺口；依赖 P10-02**
+- [ ] **LOCAL_VALIDATED / prepared adapter 已实现，待 box 数值与图准入**
+
+真实 SDK2.2.1 的 PPU1.0/PPU1.5 shared library 均编译链接通过；SM120 独立
+shared library 也编译链接通过。306项 host 回归 +143个 subtest 通过，其中 native
+ABI 边界使用实际 SM120 DSO，不冒充 PPU 设备执行。两处 retained TU 只新增 host
+configure/launch 函数，device bodies 与 d4b4713 逐字相同；其余 retained TU/headers
+无差异。
+
+box gate 新增 Hv32/48、capacity64/65/129/8192 的 prepared/retained-C-entry 输出
+和 FP32 final state RAW-BIT 配对、独立 recurrence、workspace canary 负控，以及
+capacity64/65 的同图8次更换 length/live/initial-slot/final-slot。已有连续 prefill、
+prefill→decode、verify/commit 和辅助算子门继续运行。使用
+`TARGET=ppu10 bash tools/run_flare_serving_box.sh`，上传 `results.tar.gz`。
+本轮未测新 adapter 的性能；prepare/pack/state transpose 必须计入后续完整算子计时。
 
 优先复用 `gdn_wy_forward_residual_full_chunk`：它已经接收外部 output、state、
 inverse/snapshots/vnew/gates 和 stream，不重写 kernel。将 configure 等准备动作

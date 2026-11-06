@@ -30,6 +30,14 @@ elseif(ALA_TARGET STREQUAL "ppu10" OR ALA_TARGET STREQUAL "ppu15")
   else()
     set(_arch ppu0010)
     set(_numeric 100)
+    # Minimal existing residual dependency closure, not all WY experiments.
+    list(APPEND _sources
+      "${ALA_ROOT}/csrc/backends/ppu10/launch.cu"
+      "${ALA_ROOT}/csrc/gdn_chunk/gdn_wy_split_prepare_ppu.cu"
+      "${ALA_ROOT}/csrc/gdn_chunk/gdn_wy_solve_static_ppu.cu"
+      "${ALA_ROOT}/csrc/gdn_chunk/gdn_wy_residual_warps8_hvlayout_ppu.cu"
+      "${ALA_ROOT}/csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu"
+      "${ALA_ROOT}/csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu")
   endif()
   set(CUTLASS_PPU_ARCHS "${_arch}" CACHE STRING "PPU architecture" FORCE)
   foreach(_option EXAMPLES TOOLS LIBRARY TESTS GTEST_UNIT_TESTS)
@@ -47,6 +55,9 @@ elseif(ALA_TARGET STREQUAL "ppu10" OR ALA_TARGET STREQUAL "ppu15")
   # recurrence/commit state seam uses explicit RN intrinsics to prevent an
   # accidental fused-vs-unfused record replay difference.
   list(APPEND CUTLASS_PPU_EXTRA_HGCC_FLAGS -std=c++17 -O3 "-DALA_PPU_TARGET=${_numeric}")
+  if(ALA_TARGET STREQUAL "ppu10")
+    list(APPEND CUTLASS_PPU_EXTRA_HGCC_FLAGS -DGDN_QSA_PPU=1)
+  endif()
   list(APPEND CUTLASS_PPU_DEV_INCLUDE_FLAGS "-I${ALA_ROOT}/include")
   cutlass_add_library(actlize_la_serving SHARED ${_sources})
   target_link_libraries(actlize_la_serving PRIVATE CUTLASS ppu::runtime)
@@ -54,6 +65,8 @@ elseif(ALA_TARGET STREQUAL "ppu10" OR ALA_TARGET STREQUAL "ppu15")
     "${ALA_ROOT}/include/*.hpp" "${ALA_ROOT}/include/*.cuh"
     "${ALA_ROOT}/csrc/serving/*.h" "${ALA_ROOT}/csrc/serving/*.cuh"
     "${ALA_ROOT}/csrc/backends/ppu15/*.h" "${ALA_ROOT}/csrc/backends/ppu15/*.cuh"
+    "${ALA_ROOT}/csrc/backends/ppu10/*.h" "${ALA_ROOT}/csrc/backends/ppu10/*.cuh"
+    "${ALA_ROOT}/csrc/gdn_chunk/*.cuh"
     "${_actlize}/include/*.h" "${_actlize}/include/*.hpp" "${_actlize}/include/*.inl")
   get_target_property(_objects actlize_la_serving SOURCES)
   foreach(_object IN LISTS _objects)

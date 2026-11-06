@@ -12,7 +12,7 @@ Source contracts checked against Flare `feat/qwen38-gguf` at `51a4f2e`:
 and Qwen38 `attention.py`, `state.py`, `speculative_state.py`, `speculative_model.py`.
 The QSA compression/rounding contract follows b12x's `qsa/reference.py` and
 `qsa/_kernels.py`. Existing actlizeLA online softmax, score ordering and native
-PPU1.5 residual prefill are retained. The additive
+PPU1.0/PPU1.5 residual prefill are retained. The additive
 [FlashNext auxiliary interfaces](FLARE_FLASHNEXT_AUX.md) now provide optional
 ShortConv, gated/grouped norm, HC/PLE helpers and checked record transactions.
 They do not automatically replace framework calls. Main Q/K norm/RoPE,
@@ -24,13 +24,23 @@ projections, model scheduling and sampling remain in their original owners.
 |---|---|---|---|
 | `ppu15` (ZW890) | native CUDA-compatible C++ | existing native AIU residual | requires box admission |
 | `cuda_sm120` | independent SM120 binary, same ABI | sequential semantic validation | requires NVIDIA device admission |
-| `ppu10` | native CUDA-compatible C++ | sequential semantic validation | requires box admission |
+| `ppu10` | native CUDA-compatible C++ | retained AIU full-chunk/guarded-tail residual | new prepared adapter requires box admission |
 
-The SM120 and PPU1.0 semantic prefill paths are not tensor-core performance
-claims. Neither an SM90a binary nor an SM90 performance result is reused.
-PPU1.5 prefill's existing BF16 intermediate rounding differs from sequential
+The SM120 semantic prefill path is not a tensor-core performance claim. PPU1.0
+now selects the retained residual implementation by default, not the semantic
+recurrence. An old serving binary lacking the prepared PPU1.0 entry is rejected
+at preparation rather than silently falling back. Neither an SM90a binary nor
+an SM90 performance result is reused. Both PPU prefill implementations' BF16
+intermediate rounding differs from sequential
 FP32 recurrence; the original 2% relative-L2 gate is retained. Incremental
 decode/commit use FP32 live state and compact records, not BF16 partial state.
+
+The PPU1.0 adapter configures both full/tail state kernels and the static solve
+and output kernels during preparation. Replay launches the same retained device
+bodies, with external scratch and the caller's stream; no allocation, configure,
+device-profile query, synchronization or CPU readback occurs in that adapter.
+PPU1.0's public-default 36-case NUMERIC/RAW-BIT PASS is user-reported; it is not
+admission of this new serving pack/slot/graph path or a new speed measurement.
 
 Local compilation, host algebra, device execution, and full-model Flare
 capture/export are distinct gates. The box script tests **operator** graph
@@ -192,7 +202,9 @@ Workspace upper bounds are returned by `gdn_workspace_specs` /
   slot/length stamps. At W8, all36 layers retain about9.05 MiB per request.
 - Transient GDN queries+beta: **8,288 R W bytes** plus error flags.
 - Prefill: let `J=R*Hv*ceil(W/64)`. Native inverse/snapshots/vnew/gates total
-  `57,600 J` bytes; add packed q/k/v/beta/log_g/output and two FP32 KV states
+  `82,176 J` bytes for PPU1.0 or `57,600 J` for PPU1.5. PPU1.0 inverse planes
+  have a **128x128 padded group pitch**, despite writing only64x64 logical values;
+  never substitute PPU1.5's compact inverse buffer. Add packed q/k/v/beta/log_g/output and two FP32 KV states
   exactly as the returned specs declare. These can be shared between layers.
 - QSA K/V+compressed keys: **2,112 bytes per cached token per layer** for
   Hkv2/D256; 24.75 KiB/token across12 layers. BF16 main KV is twice Flare's
