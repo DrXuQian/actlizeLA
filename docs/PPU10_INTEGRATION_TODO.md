@@ -1,6 +1,6 @@
 # PPU1.0 GDN 性能接线与端到端验收 TODO
 
-updated-at: 2026-11-06 02:57:43 UTC
+updated-at: 2026-11-06 03:18:25 UTC
 
 范围：先闭合已保留的 PPU1.0 GDN 实现与实际调用入口，不重新开展 kernel 调优。
 源码核对基线：main `66ec165`；serving 工作分支 `2e107e2`。
@@ -109,6 +109,18 @@ capacity64/65 的同图8次更换 length/live/initial-slot/final-slot。已有�
 prefill→decode、verify/commit 和辅助算子门继续运行。使用
 `TARGET=ppu10 bash tools/run_flare_serving_box.sh`，上传 `results.tar.gz`。
 本轮未测新 adapter 的性能；prepare/pack/state transpose 必须计入后续完整算子计时。
+
+**box 反馈后的辅助门修正：** `checked_gdn_tests` 遗留的两处条件只将 `ppu15`
+prefill 识别为 chunk，把已接 residual 的 PPU1.0 套到 FP32 recurrence 的逐元素门。
+用户报告 state 的118,699/786,432个元素失败；同seed/几何的独立 CPU residual
+参考复现118,697个逐元素失败、整体 relative L2=0.2941%，但不是设备逐位复现。
+改为两代 PPU prefill 使用既有2% residual门；`close()` 原阈值、decode/SM120
+严格门、retained-entry RAW-BIT gate均不改。补测实际辅助测试控制流的三目标
+分类与误写/数值错误负控，并在box结果记录实际 relative L2及算法合同。
+错误清零后，checked/unchecked 的完整输出与状态池还必须 RAW-BIT 相同；
+仅改 checked state 一个bit的负控也必须红。最终本地323项 +143个subtest通过，
+包含17项本次专项回归。CPU控制流 stand-in 不充当设备执行证据。
+这次不修改kernel或生产路由；修正后的完整box套件仍待用户重跑。
 
 优先复用 `gdn_wy_forward_residual_full_chunk`：它已经接收外部 output、state、
 inverse/snapshots/vnew/gates 和 stream，不重写 kernel。将 configure 等准备动作

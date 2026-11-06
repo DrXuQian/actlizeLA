@@ -850,6 +850,10 @@ def chain_tests(lib):
 
 def checked_gdn_tests(lib):
     for mode, width in (("decode", 1), ("prefill", 65)):
+        # Both PPU generations now use residual prefill with BF16 intermediate
+        # boundaries. Decode and the SM120 semantic path retain the strict
+        # recurrence comparison; do not change the tolerances in close().
+        chunk = mode == "prefill" and lib.target in ("ppu10", "ppu15")
         c = GdnCase(lib, width, mode)
         dep = gpu(torch.tensor([2, 0, 0], dtype=torch.int32))
         checked_plan = PreparedGDNCheckedV2(
@@ -877,25 +881,41 @@ def checked_gdn_tests(lib):
         assert c.work["errors"].cpu().tolist() == [2, 0, 0]
         assert torch.equal(c.state[2].cpu(), c.initial[2])
         # A bad request does not suppress a different valid request.
-        close(
-            c.state[4],
-            c.golden(1)[1],
-            chunk=(mode == "prefill" and lib.target == "ppu15"),
-        )
+        relative_l2 = {
+            "valid_state_with_other_request_failed": close(
+                c.state[4], c.golden(1)[1], chunk=chunk,
+            )
+        }
         dep.zero_()
         c.state.copy_(c.initial)
         checked_plan()
         c.ok()
         for r in (0, 1):
-            close(
+            want, state, *_ = c.golden(r)
+            relative_l2[f"output_{r}"] = close(
                 c.out[r * width : (r + 1) * width],
-                c.golden(r)[0],
-                chunk=(mode == "prefill" and lib.target == "ppu15"),
+                want,
+                chunk=chunk,
             )
+            relative_l2[f"state_{r}"] = close(
+                c.state[int(c.final_slots[r].cpu())], state, chunk=chunk,
+            )
+        # With upstream errors cleared, checked/unchecked entries must execute
+        # identical arithmetic. This raw-bit gate is independent of the
+        # cross-algorithm residual-vs-recurrence tolerance above.
+        checked_output, checked_state = c.out.clone(), c.state.clone()
+        c.state.copy_(c.initial)
+        c.plan()
+        c.ok()
+        assert_raw_unchanged(c.out, checked_output, label="checked-vs-unchecked-output")
+        assert_raw_unchanged(c.state, checked_state, label="checked-vs-unchecked-state")
         record(
             "gdn-checked-" + mode,
             upstream_error="PROPAGATED/STATE_UNTOUCHED",
             other_request="CONTINUES",
+            numerical_contract="residual-prefill" if chunk else "fp32-recurrence",
+            relative_l2=relative_l2,
+            checked_vs_unchecked="RAW-BIT/PASS",
         )
 
 
