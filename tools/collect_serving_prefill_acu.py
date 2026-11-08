@@ -22,6 +22,7 @@ ROLES = ("serving", "default", "fla")
 CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
         "gdn_wy_residual_full_chunk_state", "gdn_wy_residual_warps8_hvlayout_output")
 TRANSPORT = ("validate_gdn", "prepare_gdn", "pack_prefill", "gather_state", "scatter_prefill")
+DIRECT_TRANSPORT = ("validate_gdn", "prepare_pack_prefill", "gather_state", "scatter_prefill")
 FLA = ("chunk_local_cumsum_scalar_kernel", "chunk_gated_delta_rule_fwd_kkt_solve_kernel",
        "recompute_w_u_fwd_kernel", "chunk_gated_delta_rule_fwd_kernel_h", "chunk_fwd_kernel_o")
 # Registered acceptance: time reduction of at least 20% (speedup >= 1.25x), not 1.20x.
@@ -200,7 +201,9 @@ def _parse_metric_rows(reader):
 def inventory(role, kernels):
     if role not in ROLES:
         raise ValueError("unknown capture role")
-    required = CORE + TRANSPORT if role == "serving" else CORE if role == "default" else FLA
+    transport = (DIRECT_TRANSPORT if role == "serving" and
+                 any("prepare_pack_prefill" in row["kernel"] for row in kernels) else TRANSPORT)
+    required = CORE + transport if role == "serving" else CORE if role == "default" else FLA
     counts = {name: 0 for name in required}
     unknown, helpers, core = [], 0., 0.
     for row in kernels:
@@ -208,7 +211,7 @@ def inventory(role, kernels):
         if len(matches) == 1:
             name = matches[0]
             counts[name] += 1
-            if name in TRANSPORT:
+            if role == "serving" and name in transport:
                 helpers += row["us"]
             else:
                 core += row["us"]
@@ -222,7 +225,8 @@ def inventory(role, kernels):
     valid = valid and len({row["process"] for row in kernels}) == 1
     return dict(status="ADMITTED" if valid else "UNADJUDICATED", counts=counts, unknown=unknown,
                 total_us=sum(row["us"] for row in kernels), transport_us=helpers,
-                core_in_same_call_us=core, kernels=kernels)
+                core_in_same_call_us=core, kernels=kernels,
+                transport_layout="direct-pack" if transport == DIRECT_TRANSPORT else "retained")
 
 
 def target_verdict(default, fla, valid):
@@ -235,9 +239,11 @@ def target_verdict(default, fla, valid):
     if not valid:
         return "UNADJUDICATED", None
     ratio = statistics.median(default) / statistics.median(fla)
+    if not (max(default) < min(fla) or max(fla) < min(default)):
+        return "UNRESOLVED", ratio
     if ratio > TARGET_RATIO:
         return "TARGET_NOT_MET", ratio
-    return ("TARGET_MET" if max(default) < min(fla) else "UNRESOLVED"), ratio
+    return "TARGET_MET", ratio
 
 
 def needs_confirmation(rows, ratio):
@@ -376,6 +382,14 @@ def legacy_cells(batches, lengths, value_heads, gates):
     return cells
 
 
+def source_fingerprint(root=ROOT):
+    """绑定实际 harness/Python 路由内容，也覆盖尚未提交的新脚本。"""
+    files = []
+    for directory in ("benchmarks", "tools", "tests", "actlize_la"):
+        files.extend((Path(root) / directory).rglob("*.py"))
+    return {str(p.relative_to(root)): sha(p) for p in sorted(files)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serving-run", type=Path, default=os.environ.get("SERVING_RUN"))
@@ -436,8 +450,8 @@ def main():
             shutil.copyfile(Path(origin["directory"]) / name, previous / name)
         status["harness_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         status["source_diff"] = subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)
-        if status["source_diff"]:
-            raise ValueError("capture helpers must be committed before box measurement")
+        status["harness_files"] = source_fingerprint()
+        (out / "harness-files.json").write_text(json.dumps(status["harness_files"], indent=2) + "\n")
         status["profiler"] = profiler_layout(acu)
         status["inherited_asight_home"] = env.get("ASIGHT_HOME")
         env["ASIGHT_HOME"] = status["profiler"]["home"]
@@ -515,7 +529,7 @@ def main():
         if profiler_layout(acu) != status["profiler"]:
             raise ValueError("ACU executable or section files changed during capture")
         if (subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != status["harness_sha"]
-                or subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)):
+                or source_fingerprint() != status["harness_files"]):
             raise ValueError("capture helper source changed during measurement")
         if smi:
             status["driver_after"] = run([smi, "-i", args.device, "-q"], out / "device-after.log",

@@ -71,6 +71,8 @@ int ala_serving_struct_size(int which);
 int ala_gdn_run(actlize_la::serving::Gdn const *, void *stream);
 int ala_gdn_commit(actlize_la::serving::Commit const *, void *stream);
 int ala_prefill_configure();
+// 准备阶段查询immutable descriptor对应的默认transport，0=保留路径，1=H1。
+int ala_prefill_direct_pack_route(int requests, int width, int hk, int hv);
 int ala_prefill_run(actlize_la::serving::Prefill const *, void *stream);
 int ala_conv_capture(actlize_la::serving::ConvHistory const *, void *stream);
 int ala_conv_rollback_zero(actlize_la::serving::ConvHistory const *,

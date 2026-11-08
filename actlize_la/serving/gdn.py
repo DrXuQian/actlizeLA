@@ -303,8 +303,17 @@ class PreparedGDN(PreparedNative):
             _Prefill if mode == "prefill" else _Gdn,
             2 if mode == "prefill" else 0,
         )
+        self.transport_route = {"entry": "ala_gdn_run", "direct_pack": False}
         if mode == "prefill":
             _require_native_prefill(library)
+            route = getattr(library.lib, "ala_prefill_direct_pack_route", None)
+            selected = 0
+            if route is not None:
+                route.argtypes, route.restype = [C.c_int] * 4, C.c_int
+                selected = route(requests, width, key_heads, value_heads)
+                if selected not in (0, 1):
+                    raise RuntimeError("unknown native prefill transport route")
+            self.transport_route = {"entry": "ala_prefill_run", "direct_pack": bool(selected)}
             with torch.cuda.device(self.device):
                 self.check(library.lib.ala_prefill_configure())
 

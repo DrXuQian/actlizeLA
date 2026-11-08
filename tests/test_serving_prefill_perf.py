@@ -587,6 +587,7 @@ def test_collector_and_fixture_registered_axes_agree():
     ([81, 82, 83], [100, 101, 102], "TARGET_NOT_MET"),   # 1.23x: faster than FLA, not 20% less time
     ([83, 83.3, 83.5], [100, 100, 100], "TARGET_NOT_MET"),  # the 1.20x speed-ratio trap
     ([110, 111, 112], [100, 101, 102], "TARGET_NOT_MET"),
+    ([90, 110, 120], [100, 101, 102], "UNRESOLVED"),   # 未过中位数且包络重叠，仍不得确定排名
 ])
 def test_registered_target_is_time_reduction_not_speed_ratio(default, fla, want):
     assert collect.target_verdict(default, fla, True)[0] == want
@@ -675,3 +676,17 @@ def test_matrix_relabel_duplicate_or_foreign_device_is_red(tmp_path, plant):
     uuid = "other-device" if plant == "device" else "uuid-fixture"
     with pytest.raises(ValueError):
         matrix.matrix(REGISTERED, REGISTERED_SHA, runs, uuid)
+
+
+def test_direct_pack_inventory_counts_all_helpers_not_free_core():
+    kernels = collect.CORE + collect.DIRECT_TRANSPORT
+    captured = collect.inventory("serving", collect.parse_raw(raw_csv(kernels)))
+    assert captured["status"] == "ADMITTED"
+    assert captured["transport_layout"] == "direct-pack"
+    assert captured["transport_us"] == sum(range(5, 9))
+    assert captured["total_us"] == sum(range(1, 9))
+    for extra in ("pack_prefill", "prepare_gdn", "unexpected_setup_or_autotune"):
+        wrong = collect.inventory("serving", collect.parse_raw(raw_csv(kernels + (extra,))))
+        assert wrong["status"] == "UNADJUDICATED", "混合旧新/未知kernel不能过滤为通过"
+    bad = collect.inventory("serving", collect.parse_raw(raw_csv(kernels + ("prepare_pack_prefill",))))
+    assert bad["status"] == "UNADJUDICATED"

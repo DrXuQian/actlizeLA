@@ -108,11 +108,67 @@ def run_case(old, new, width, hv):
                 negative="one-bit-packed-q:EXPECTED_RED")
 
 
+def direct_pack_gate(old, new):
+    """H1公共默认与未登记shape回退；不能以实验fn替换代替实际默认命中。"""
+    sys.path.insert(0, str(ROOT / "benchmarks"))
+    from profile_serving_prefill import ServingCall, raw_fixture, capture, digest
+    from aux_device import graph_stats
+    query = getattr(new.lib, "ala_prefill_direct_pack_route", None)
+    if query is None:
+        raise RuntimeError("H1候选缺少公共transport route查询")
+    query.argtypes, query.restype = [C.c_int] * 4, C.c_int
+    old_query = getattr(old.lib, "ala_prefill_direct_pack_route", None)
+    if old_query is not None:
+        old_query.argtypes, old_query.restype = [C.c_int] * 4, C.c_int
+    cases = [(1, t, hv, True) for hv in (32, 48, 64) for t in (2048, 8192)]
+    cases += [(2, 2048, 32, False), (1, 512, 48, False), (1, 2049, 64, False)]
+    rows, retained = [], []
+    for batch, length, hv, selected in cases:
+        fixture = raw_fixture(length, hv, -.1, batch)
+        baseline, public = ServingCall(old, fixture), ServingCall(new, fixture)
+        assert old_query is None or old_query(batch, length, 16, hv) == 0, "基线不可已启用H1"
+        assert query(batch, length, 16, hv) == int(selected)
+        assert public.plan.transport_route == {"entry": "ala_prefill_run", "direct_pack": selected}
+        want = capture(baseline)
+        assert digest(capture(public)) == digest(want)
+        graph = torch.cuda.CUDAGraph(keep_graph=True)
+        with torch.cuda.graph(graph):
+            public()
+        stats = graph_stats(new, graph)
+        assert stats["kernels"] == (8 if selected else 9), "实际默认图未命中登记路由"
+        graph.instantiate()
+        retained.append((baseline, public, graph))
+        torch.cuda.synchronize()
+        allocated = torch.cuda.memory_allocated()
+        for _ in range(8):
+            graph.replay()
+            torch.cuda.synchronize()
+            assert torch.cuda.memory_allocated() == allocated
+            result = (public.output, public.raw["state"][public.final])
+            assert digest(public.cpu_pair(result)) == digest(want)
+        rows.append(dict(B=batch, T=length, Hv=hv, direct_pack=selected,
+                         graph=stats, replays=8, raw_bit="PASS"))
+    assert rows[-1]["graph"]["kernels"] != 8, "未登记shape的错误快路径声明应红"
+    # H1不再写旧FP32归一化scratch；只排除这4个明确废弃的中间buffer。
+    global FIELDS
+    original_fields = FIELDS
+    unused = ("queries", "keys", "decays", "betas")
+    try:
+        FIELDS = tuple(n for n in FIELDS if n not in unused)
+        mutable = [run_case(old, new, 2048, hv) for hv in (32, 48, 64)]
+    finally:
+        FIELDS = original_fields
+    return dict(cases=rows, false_route_claim_red=True, mutable_graph=mutable,
+                compared_fields=[n for n in original_fields if n not in unused] + ["output", "state"],
+                unused_intermediate_fields=list(unused))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline-run", type=Path, required=True)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--results", type=Path, required=True)
+    parser.add_argument("--direct-pack", action="store_true", help="对比当前token-parallel基线与H1公共默认")
     args = parser.parse_args()
     result = dict(status="INCOMPLETE", cases=[], performance="NOT_RUN")
     try:
@@ -125,9 +181,15 @@ def main():
         result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
         old = NativeLibrary(result["baseline"]["library"], target="ppu10")
         new = NativeLibrary(args.candidate, target="ppu10")
+        if args.direct_pack:
+            if schedule(old) != 1 or schedule(new) != 1:
+                raise ValueError("H1必须对比当前token-parallel基线，不得使用旧串行路径")
+            result["direct_pack"] = direct_pack_gate(old, new)
+            result.update(status="PASS", cases=result["direct_pack"]["cases"])
+            return 0
         if schedule(old) != 0 or schedule(new) != 1:
             raise ValueError("require serial baseline and token-parallel candidate, not two identical routes")
-        for hv in (32, 48):
+        for hv in (32, 48, 64):
             for width in (31, 32, 33, 63, 64, 65, 127, 128, 129, 2048, 8192):
                 row = run_case(old, new, width, hv)
                 result["cases"].append(row)

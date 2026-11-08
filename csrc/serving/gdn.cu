@@ -300,6 +300,13 @@ int launch_prepare(Gdn const &p, Stream s) {
   prepare_gdn<false><<<dim3(p.requests, 2 * p.hk + p.hv), 32, 0, s>>>(p);
   return last_error();
 }
+#if ALA_PREFILL_DIRECT_PACK && ALA_PPU_TARGET == 100
+// 只复用原有完整验证，后续H1 kernel直接写packed；不省略任何错误语义。
+int validate_prefill(Gdn const &p, Stream s, ala_gdn_transaction_v2 const *guard) {
+  validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, guard ? *guard : ala_gdn_transaction_v2{});
+  return last_error();
+}
+#endif
 int prepare(Gdn const &p, Stream s) {
   validate_gdn<<<(p.requests + 127) / 128, 128, 0, s>>>(p, {});
   if (auto rc = last_error())

@@ -60,7 +60,8 @@ class RetainedPpuPath(unittest.TestCase):
                                  ("gate-cache-solve-static", "residual_gate_cache_solve_static")):
             with self.subTest(delivery=delivery):
                 with patch.object(residual, "_backend", return_value=SimpleNamespace(residual=Mock())):
-                    with self.assertRaisesRegex(AttributeError, symbol):
+                    # 现有公共适配器明确抛RuntimeError并包含缺失symbol，仍须fail-closed。
+                    with self.assertRaisesRegex(RuntimeError, symbol):
                         gdn_forward(*self.inputs, backend="ppu10", algorithm="residual", delivery=delivery)
 
     def test_unselected_geometry_is_not_exposed_on_main(self):

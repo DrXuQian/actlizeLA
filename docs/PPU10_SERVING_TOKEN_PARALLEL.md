@@ -1,5 +1,40 @@
 # PPU1.0 serving prefill: token-parallel transport experiment
 
+## 当前源码基线：ZW610 与 H1 direct-pack
+
+本性能分支的 PPU10 源码构建默认启用 token-parallel 与 direct-pack；非PPU10默认不变。
+`ALA_PREFILL_TOKEN_PARALLEL=OFF` 保留串行control，token-parallel ON 时可用
+`ALA_PREFILL_DIRECT_PACK=OFF` 关闭H1并使用当前token-parallel基线。
+
+H1只在 B=1、T=2048或8192、Hk=16、Hv=32/48/64 的已验证容量几何上默认选中；
+其他shape安全回退到token-parallel prepare+pack。选择只依据immutable descriptor，
+不读device starts/live/slot或tensor内容；准备阶段可查询
+`ala_prefill_direct_pack_route` 与 `PreparedGDN.transport_route`。
+
+融合prepare→packed保留原warp归一化树、epsilon、beta的BF16边界及FP32 natural-log gate；
+不增加caller-owned workspace对齐要求。旧queries/keys/decays/betas scratch不再写，
+不声称这些废弃中间值逐bit相同；packed/output/FP32 state/errors均需RAW-BIT一致。
+Core仍是保留的full-chunk/guarded-tail四kernel；未晋级的core实验不作为基线提交或默认选择。
+
+ZW610/SDK2.2.1/CUDA12.9：H1登记12格配对ACU helpers降39.28%–44.69%，完整serving
+降17.14%–19.88%，基线始终为当前token-parallel，不用旧3ms串行数字作收益锚点。
+54格core vs FLA 0.6.0只有24格达严格20%耗时门、28未达、2包络重叠；总目标未完成。
+这些是synthetic算子完整ACU kernel-sum，不是API latency、真实模型或ZW810新结果。
+
+公共默认6个H1几何及3个未登记shape回退图验证通过，实际8/9 kernel、0host/alloc、8次重放稳定。
+完整serving55/aux42/native graph、mutable metadata RAW-BIT与单bit/错误route负控已通过。
+可在匹配SDK下复现公共路由门：
+
+```bash
+python tests/prefill_parallel_device.py --direct-pack \
+  --baseline-run <当前token-parallel-ON且direct-pack-OFF的已准入run> \
+  --candidate <本次H1默认构建的libactlize_la_serving.so> --results <新结果路径>
+```
+
+以下保留此前token-parallel实验与ZW810交接的历史记录，其默认OFF/未晋级描述不代表上述新基线状态。
+
+## 历史实验检查点
+
 Status: candidate device numerical and ACU results returned for T2048/Hv32/48;
 still opt-in, **not promoted to release/default**. Main, v0.2.2, installed
 wheels and the GDN core selector are unchanged. The special old/new22-cell
