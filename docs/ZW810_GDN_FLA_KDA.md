@@ -290,6 +290,9 @@ actual single-TF32 call sites; restoring either old call fails. Native
 restored-triple-product and omitted TF32/BF16/store negatives also fail.
 These are local proofs; device numerical/performance status is **NOT_RUN**.
 
+The preceding NOT_RUN status describes the initial handoff. The returned
+device verdict below supersedes it; the original preregistration is retained.
+
 ```bash
 INPUT_RUN=/workspace/actlize-la-zw810-recheck-b810b6c7-20261109T083458Z-2075017 \
 PPU_SDK=/sim/eec/shared/junfu.qx/ppu-sdk-2.2.1-184ee6/PPU_SDK \
@@ -301,3 +304,40 @@ only the OFF-by-default single-TF32 experiment, and excludes W/U from this
 candidate. The exact four-kernel inventory rejects the old solve or added W/U
 work, while still counting unexpected durations before marking the call
 unadjudicated. Use the printed small `results.tar.gz` for the next handoff.
+
+## Round 2 device verdict and work-first next step
+
+Returned archive SHA256
+`9961c2362ed3485d52ef52020ae0b58fcebfbcfd0aa9bc64a5964aa65a55d419`,
+source `38e8e91cc5ab07b3226f294c99d8584e5ce62b8f`, candidate library SHA256
+`19fb1bbd565c01bee16d95d507aee23d8b3218d5f77712f522838b7fad049531`.
+All 8 cells x 8 numerical repeats and unchanged-public-default RAW-BIT gates
+pass. All 90 full-call captures, source/operand/FLA receipts and raw CSV
+inventories are audited; CE frequency is 1.7 GHz throughout. Missing-cell,
+missing-solve and changed-timing negatives fail. Original binaries and reports
+remain on box; local rehashing of those absent files is not claimed.
+
+Complete-call ACU medians in us, including every child and final state:
+
+| T/Hv/g | Default | TF32x1 | FLA | TF32x1 vs default | TF32x1 vs FLA |
+|---|---:|---:|---:|---|---|
+| 2048/32/-0.1 | 237.831 | 236.111 | 206.535 | WIN | LOSS |
+| 2048/32/-1.0 | 237.725 | 234.939 | 206.717 | UNRESOLVED | LOSS |
+| 2048/48/-0.1 | 306.475 | 302.318 | 288.555 | WIN | LOSS |
+| 2048/48/-1.0 | 306.090 | 302.094 | 291.334 | UNRESOLVED | LOSS |
+| 8192/32/-0.1 | 921.719 | 912.962 | 812.307 | WIN | LOSS |
+| 8192/32/-1.0 | 921.748 | 911.412 | 817.639 | WIN | LOSS |
+| 8192/48/-0.1 | 1117.636 | 1110.432 | 1126.084 | WIN | WIN |
+| 8192/48/-1.0 | 1117.749 | 1110.092 | 1124.341 | WIN | WIN |
+
+Keep the measured candidate as an opt-in result on the six resolved scopes;
+do not promote the two overlapping scopes or make a blanket lower-precision
+default replacement. Time falls 0.64–1.36%, not remotely the 3x suggested by
+looking only at the changed TF32 products. None meets the separate 20% target.
+
+On the user's explicit direction, the next gate is **mathematical work and
+executed instruction accounting before parallelism**, not a warp/grid sweep.
+See [ZW810_GDN_WORK_AUDIT.md](ZW810_GDN_WORK_AUDIT.md) for the arithmetic DAG,
+same-metric full-call instruction ledger, source-proven repetitions versus
+unproved codegen attribution, and an offline existing-report export command.
+No core, geometry or default-routing source changes accompany this audit.
