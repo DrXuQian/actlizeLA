@@ -107,6 +107,12 @@ set_target_properties(_gdn_chunk_ppu PROPERTIES
   BUILD_RPATH "${_torch_libraries};$ORIGIN"
   INSTALL_RPATH "$ORIGIN")
 
+option(ALA_PPU10_BEST_CORE "按已验证shape启用最优已知PPU10 core" ON)
+if(ALA_PPU10_BEST_CORE)
+  list(APPEND CUTLASS_PPU_EXTRA_HGCC_FLAGS -DALA_PPU10_BEST_CORE=1)
+  set(_best_core_sources ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_value64_ppu.cu)
+endif()
+
 # An opt-in algorithm candidate, not a rewrite of upstream dispatch. Keep
 # its device/host symbols and resource audit separate from the control.
 cutlass_add_library(gdn_wy_ppu SHARED
@@ -131,7 +137,8 @@ cutlass_add_library(gdn_wy_ppu SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_gate_cache_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_full_chunk_ppu.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_warps8_metadata_ppu.cu
-  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_prefetch_ppu.cu)
+  ${CMAKE_CURRENT_SOURCE_DIR}/csrc/gdn_chunk/gdn_wy_residual_prefetch_ppu.cu
+  ${_best_core_sources})
 target_include_directories(gdn_wy_ppu PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(gdn_wy_ppu PRIVATE CUTLASS ppu::runtime)
 get_target_property(_wy_objects gdn_wy_ppu SOURCES)
@@ -169,6 +176,7 @@ foreach(_object IN LISTS _wy_objects)
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_residual_warps8_hvlayout.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_gate_coefficients.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_full_chunk.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/wy_value64.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/wy_metadata.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/shared_copy.cuh
       ${CMAKE_CURRENT_SOURCE_DIR}/include/gdn_qsa/ppu/fragment.cuh)

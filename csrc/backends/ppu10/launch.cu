@@ -11,10 +11,13 @@ static_assert(gdn_qsa::wy::split_prepare::Plan::InverseElements == 64 * 64);
 namespace gdn_qsa::wy::solve_static {
 int configure();
 int launch_inverse(Inputs, Workspace, gdn_arch::Stream);
+int launch_inverse_default(Inputs, Workspace, gdn_arch::Stream);
 }
 namespace gdn_qsa::wy::full_chunk {
 int configure_state();
 int launch_state(Inputs, Workspace, float*, gdn_arch::Stream);
+int configure_default_state();
+int launch_default_state(Inputs, Workspace, float*, gdn_arch::Stream);
 }
 namespace gdn_qsa::wy::gate_cache {
 int configure_state();
@@ -25,10 +28,14 @@ int configure_hvlayout_output();
 int launch_hvlayout_output(Inputs, Workspace, BF16*, gdn_arch::Stream);
 }
 
+extern "C" int actlize_la_ppu10_core_route(int batch, int sequence, int key_heads, int value_heads) {
+  return int(gdn_qsa::wy::default_core_route({batch, sequence, key_heads, value_heads}));
+}
+
 extern "C" int actlize_la_ppu10_configure() {
   using namespace gdn_qsa::wy;
   if (int rc = solve_static::configure()) return rc;
-  if (int rc = full_chunk::configure_state()) return rc;
+  if (int rc = full_chunk::configure_default_state()) return rc;
   if (int rc = gate_cache::configure_state()) return rc;
   return residual_warps8_hvlayout::configure_hvlayout_output();
 }
@@ -55,9 +62,9 @@ extern "C" int actlize_la_ppu10_forward_prepared(
   auto stream = static_cast<gdn_arch::Stream>(opaque_stream);
   Workspace inverse_ws = ws;
   inverse_ws.snapshots = ws.w;  // Padded inverse pitch is 128x128, NOT 64x64.
-  if (int rc = solve_static::launch_inverse(p, inverse_ws, stream)) return rc;
+  if (int rc = solve_static::launch_inverse_default(p, inverse_ws, stream)) return rc;
   int const rc = gate_cache::full_chunks(sequence)
-      ? full_chunk::launch_state(p, ws, final, stream)
+      ? full_chunk::launch_default_state(p, ws, final, stream)
       : gate_cache::launch_state(p, ws, final, stream);
   if (rc) return rc;
   return residual_warps8_hvlayout::launch_hvlayout_output(p, ws, static_cast<BF16*>(output), stream);

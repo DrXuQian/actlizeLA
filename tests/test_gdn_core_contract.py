@@ -101,6 +101,27 @@ def test_capture_cannot_configure_cold_library(transport, monkeypatch):
     transport.lib.actlize_la_ppu10_configure.assert_not_called()
 
 
+@pytest.mark.parametrize('selected,name', [(0, 'retained'), (1, 'solve8'), (2, 'solve8-value64-warps8')])
+def test_core_route_is_native_host_query(transport, selected, name):
+    transport.lib.actlize_la_ppu10_core_route = Mock(return_value=selected)
+    route = gdn_core.gdn_core_route(transport, 1, 2048, 16, 32)
+    assert route == {'id': selected, 'name': name, 'entry': 'actlize_la_ppu10_forward_prepared'}
+    transport.lib.actlize_la_ppu10_core_route.assert_called_once_with(1, 2048, 16, 32)
+    transport.lib.actlize_la_ppu10_forward_prepared.assert_not_called()
+    transport.lib.actlize_la_ppu10_configure.assert_not_called()
+
+
+def test_unknown_core_route_fails_closed(transport):
+    transport.lib.actlize_la_ppu10_core_route = Mock(return_value=3)
+    with pytest.raises(RuntimeError, match='unknown native GDN core route'):
+        gdn_core.gdn_core_route(transport, 2, 8192, 16, 48)
+
+
+def test_legacy_library_query_is_backward_compatible(transport):
+    plan = PreparedGDNCore(transport, **operands())
+    assert plan.core_route['id'] == 0 and plan.core_route['name'] == 'retained'
+
+
 def test_launch_failure_remains_failure(transport):
     plan = PreparedGDNCore(transport, **operands())
     transport.lib.actlize_la_ppu10_forward_prepared.return_value = 7

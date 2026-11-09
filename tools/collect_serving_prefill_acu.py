@@ -203,7 +203,12 @@ def inventory(role, kernels):
         raise ValueError("unknown capture role")
     transport = (DIRECT_TRANSPORT if role == "serving" and
                  any("prepare_pack_prefill" in row["kernel"] for row in kernels) else TRANSPORT)
-    required = CORE + transport if role == "serving" else CORE if role == "default" else FLA
+    core_required = CORE
+    wide_state = [row for row in kernels if "gdn_wy_value64_state" in row["kernel"]]
+    if role != "fla" and wide_state:
+        # 固化shape的真实V64/256库存；禁止旧512线程或错误切片冒充默认赢家。
+        core_required = CORE[:2] + ("gdn_wy_value64_state",) + CORE[3:]
+    required = core_required + transport if role == "serving" else core_required if role == "default" else FLA
     counts = {name: 0 for name in required}
     unknown, helpers, core = [], 0., 0.
     for row in kernels:
@@ -223,6 +228,9 @@ def inventory(role, kernels):
             unknown.append(row["kernel"])
     valid = not unknown and all(count == 1 for count in counts.values())
     valid = valid and len({row["process"] for row in kernels}) == 1
+    if role != "fla" and wide_state:
+        valid = valid and all(row.get("grid") == "(192,1,1)" and row.get("block") == "(256,1,1)"
+                              for row in wide_state)
     return dict(status="ADMITTED" if valid else "UNADJUDICATED", counts=counts, unknown=unknown,
                 total_us=sum(row["us"] for row in kernels), transport_us=helpers,
                 core_in_same_call_us=core, kernels=kernels,

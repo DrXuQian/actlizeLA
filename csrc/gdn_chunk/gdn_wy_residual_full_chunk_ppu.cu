@@ -14,7 +14,14 @@ int launch_hvlayout_output(Inputs, Workspace, BF16*, gdn_arch::Stream);
 namespace gdn_qsa::wy::solve_static {
 int configure();
 int launch_inverse(Inputs, Workspace, gdn_arch::Stream);
+int launch_inverse_default(Inputs, Workspace, gdn_arch::Stream);
 }
+#if ALA_PPU10_BEST_CORE
+namespace gdn_qsa::wy::value64 {
+int configure_value64_warps8();
+int launch_value64_warps8(Inputs, Workspace, float*, gdn_arch::Stream);
+}
+#endif
 
 namespace gdn_qsa::wy::full_chunk {
 using namespace residual_warps8_hvlayout;
@@ -175,6 +182,21 @@ int launch_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) 
   gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
   return int(hggcGetLastError());
 }
+int configure_default_state() {
+  if (int rc = configure_state()) return rc;
+#if ALA_PPU10_BEST_CORE
+  return value64::configure_value64_warps8();
+#else
+  return 0;
+#endif
+}
+int launch_default_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) {
+#if ALA_PPU10_BEST_CORE
+  if (default_core_route(p.shape) == CoreRoute::Solve8Value64)
+    return value64::launch_value64_warps8(p, ws, final, stream);
+#endif
+  return launch_state(p, ws, final, stream);
+}
 }  // namespace gdn_qsa::wy::full_chunk
 
 extern "C" int gdn_wy_forward_residual_gate_cache_solve_static(
@@ -205,18 +227,15 @@ extern "C" int gdn_wy_forward_residual_full_chunk(
   int rc;
   rc = solve_static::configure();
   if (rc) return rc;
-  rc = int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,
-      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
+  rc = full_chunk::configure_default_state();
   if (rc) return rc;
   rc = configure_hvlayout_output();
   if (rc) return rc;
   Workspace inverse_ws = ws;
   inverse_ws.snapshots = ws.w;  // old solve writes its padded pitch, NOT the live H workspace.
-  rc = solve_static::launch_inverse(p, inverse_ws, stream);
+  rc = solve_static::launch_inverse_default(p, inverse_ws, stream);
   if (rc) return rc;
-  unsigned const grid = unsigned(int64_t(batch) * value_heads * (Dim / ValueTile));
-  gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
-  rc = int(hggcGetLastError());
+  rc = full_chunk::launch_default_state(p, ws, final, stream);
   if (rc) return rc;
   return launch_hvlayout_output(p, ws, static_cast<BF16*>(output), stream);
 }

@@ -314,6 +314,9 @@ class PreparedGDN(PreparedNative):
                 if selected not in (0, 1):
                     raise RuntimeError("unknown native prefill transport route")
             self.transport_route = {"entry": "ala_prefill_run", "direct_pack": bool(selected)}
+            if library.target == "ppu10":
+                from .gdn_core import gdn_core_route
+                self.core_route = gdn_core_route(library, requests, width, key_heads, value_heads)
             with torch.cuda.device(self.device):
                 self.check(library.lib.ala_prefill_configure())
 

@@ -22,6 +22,19 @@ def gdn_core_workspace_specs(batch, length, key_heads, value_heads):
     return {name: specs[name] for name in ("inverse", "snapshots", "vnew", "gates")}
 
 
+def gdn_core_route(library, batch, length, key_heads, value_heads):
+    """仅查询host shape策略；旧库未导出查询时保持保留路径标签。"""
+    names = {0: "retained", 1: "solve8", 2: "solve8-value64-warps8"}
+    query = getattr(library.lib, "actlize_la_ppu10_core_route", None)
+    selected = 0
+    if query is not None:
+        query.argtypes, query.restype = [C.c_int] * 4, C.c_int
+        selected = query(batch, length, key_heads, value_heads)
+    if selected not in names:
+        raise RuntimeError("unknown native GDN core route")
+    return {"id": selected, "name": names[selected], "entry": "actlize_la_ppu10_forward_prepared"}
+
+
 def _geometry(q, k, v, g, beta, initial, output, final):
     if q.ndim != 4 or v.ndim != 4:
         raise ValueError("Q/K/V must have [B,T,H,128] geometry")
@@ -95,6 +108,7 @@ class PreparedGDNCore(PreparedNative):
         self.fn.argtypes = [C.c_void_p] * 12 + [C.c_int] * 4 + [C.c_bool, C.c_void_p]
         self.fn.restype = C.c_int
         _configure(library, self.device)
+        self.core_route = gdn_core_route(library, *self.geometry)
 
     def launch(self, inputs, buffers):
         initial = inputs[5].data_ptr() if self.has_initial else None

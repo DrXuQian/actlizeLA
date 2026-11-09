@@ -37,6 +37,21 @@ def test_real_format_duration_all_kernels_and_units():
     assert measured["core_in_same_call_us"] == 21, "fill kernels must not be dropped"
 
 
+@pytest.mark.parametrize('role', ['default', 'serving'])
+def test_frozen_value64_default_inventory_and_wrong_thread_negative(role):
+    names = [*collect.CORE[:2], 'gdn_wy_value64_state', collect.CORE[3]]
+    if role == 'serving':
+        names += list(collect.TRANSPORT)
+    rows = collect.parse_raw(raw_csv(names))
+    for row in rows:
+        row['grid'] = '(192,1,1)' if 'gdn_wy_value64_state' in row['kernel'] else '(12288,1,1)'
+    assert collect.inventory(role, rows)['status'] == 'ADMITTED'
+    wrong = [dict(row, block='(512,1,1)') if 'gdn_wy_value64_state' in row['kernel'] else row for row in rows]
+    assert collect.inventory(role, wrong)['status'] == 'UNADJUDICATED'
+    wrong = [dict(row, grid='(384,1,1)') if 'gdn_wy_value64_state' in row['kernel'] else row for row in rows]
+    assert collect.inventory(role, wrong)['status'] == 'UNADJUDICATED'
+
+
 @pytest.mark.parametrize("plant", ["missing-stage", "duplicate-math", "unknown-kernel"])
 @pytest.mark.parametrize("role", collect.ROLES)
 def test_unknown_missing_or_replayed_work_never_gets_a_speed_verdict(plant, role):
