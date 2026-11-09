@@ -31,9 +31,9 @@ state, approximating away old state on strong decay or weakening the oracle.
 
 Freeze the passed box library and old input files. Compare a candidate in a
 separate build/runtime. No default promotion until its scope is admitted.
-The latest three-core table is USER_REPORTED: default wins 8/8 against PLA,
-2/8 against FLA. Its raw bundle has not yet been uploaded; do not label its
-individual instruction/traffic/resource counts independently audited.
+At phase 0 the latest three-core table was USER_REPORTED: default wins 8/8
+against PLA, 2/8 against FLA. Its raw archive has now been audited (round 1
+below); the pairwise conclusions are unchanged.
 
 There is already a fully audited same-default baseline bundle, so the user
 need not repeat it just to start analysis:
@@ -119,9 +119,72 @@ them. The PLA result does not prove C64 optimal or fusion universally bad.
 Stop each implementation round at the reproducible user-operated box handoff.
 Resume from returned artifacts, not guesses from a screenshot or average wins.
 
-## Next input (no GPU rerun)
+## Round 1: parallel W/U counterfactual
 
-Upload the latest three-core `results.tar.gz`. Reconcile it with the budget
-above, bind actual native symbol/SDK resources and select the first state
-experiment. Until then this branch contains the contract and offline analysis,
-not an unmeasured kernel replacement.
+The uploaded three-core archive is now audited: SHA256
+`4b7d6d8c3e9c233fd4755264b6cf52fcb184ca54b91f5172b91feda43e8c043f`,
+harness `ee215dd`, the same `e86ea77e` default library, 8 cells x 3 arms x 3
+captures. The six losses/two wins are confirmed, not only user-reported.
+The updated state-equivalent excess is 28.2–28.8 us / 74.1–75.5 us at Hv32;
+the Hv48/T8192 residual state saves 70.3–70.8 us against FLA W/U + state.
+
+Hypothesis: removing P@R from the recurrent chain can repay an additional
+chunk-parallel W/U materialization. The counterfactual keeps C64, V32,
+256-thread state ownership and the proved H/V publication layouts. Prefix,
+solve (including TF32x3) and output reuse the current implementations.
+W/U preparation reuses the retained split-WU atom order and BF16 conditioning.
+State becomes Vnew=U-W@BF16(H), followed by the existing gated state update.
+This changes BF16 association, not real-valued algebra; the independent
+numerical gate is unchanged, but raw equality to residual is NOT expected.
+
+Scope is an explicitly selected experimental entry, full C64 chunks only.
+`ALA_PPU10_PARALLEL_WU_EXPERIMENT` defaults OFF and does not replace any public
+route. It adds `gdn_wy_parallel_wu_materialize` and `gdn_wy_parallel_wu_state`.
+All 5 kernel durations (prefix/solve/WU/state/output) count toward the verdict.
+The unchanged public path in the candidate library must still match the old
+admitted public path bit-for-bit before candidate profiling.
+
+The existing inverse allocation has 16384 BF16 elements per group. Solve
+writes P in its first 4096. One W/U CTA reads its entire P into shared before
+overwriting its own group with W[64,128] and U[64,128]. Distinct groups never
+overlap, so no inter-CTA barrier or extra allocation is needed. Snapshots
+remain a separate live allocation. Reusing packed `tile_offset(group)` for
+these writes is specifically forbidden and tested as a cross-group negative.
+
+Costs to measure: one added kernel, materialized W/U global stores and state
+reads; state shared storage 46080 -> 49664 B. The expected recurrent MMA sites
+per warp fall 20 -> 16, while total work grows. No lower instruction count,
+occupancy or latency is promised. Reject if state improves but the complete
+call does not. Preserve Hv48/T8192 as a mandatory no-regression control;
+admission remains per shape, not a blanket switch.
+
+Local SDK 2.2.1 PPU1.0 compile/link has passed. Native recurrence changed
+20 -> 16 BF16 MMA sites, 1264 -> 1024 total static sites, 128 -> 98 registers,
+with zero native stack in both controls. AIU sites increased 4 -> 5 and all
+4 recurrent CTA barriers remain. The materializer has 32 MMA sites per warp,
+126 registers and zero native stack. These are compile facts, not measured
+latency, dynamic instruction savings or a spill diagnosis from ACU's separate
+stack-labeled metric. Native negatives include putting the old P@R body under
+the new symbol. Independent float64 recurrence, wrong-state-transpose/sign,
+padded workspace ownership and incomplete inventory negatives are local gates.
+Local validation: 170 Python/host tests and 4 exhaustive C++ ownership suites
+passed, including the unchanged W/U, eight-warp, H and H/V layouts. The native
+five-stage candidate is compiled and linked; PPU device correctness and speed
+are still NOT_RUN. No claim of an eventual win follows from these local gates.
+
+User-operated box command (same idle ZW810/SDK/inputs as the returned bundle):
+
+```bash
+INPUT_RUN=/workspace/actlize-la-zw810-recheck-b810b6c7-20261109T083458Z-2075017 \
+PPU_SDK=/sim/eec/shared/junfu.qx/ppu-sdk-2.2.1-184ee6/PPU_SDK \
+DEVICE=0 JOBS=4 bash tools/run_ppu_gdn_parallel_wu_box.sh
+```
+
+The script builds the optional entry, runs a native-body gate, and requires
+all three numerical arms plus unchanged default RAW-BIT checks before timing
+each cell. Candidate admission poisons all scratch before each of 8 replays;
+no poison/fill or verification kernels are inserted in its timed subject.
+It captures all 8 cells, rotates default/candidate/FLA order, and retains a
+second full cycle for unresolved/noisy comparisons. It never recompiles PLA.
+Upload the printed `results.tar.gz`; binaries, operands and original acurep
+remain on box. `COLLECTED` means the experiment completed, not that it won.
