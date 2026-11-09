@@ -167,6 +167,10 @@ class DefaultCall:
         self.route = get_gdn_route_info(*self.inputs, initial_state=self.initial,
                                         output_final_state=True, backend="ppu10")
         validate_default_route(self.route, library.path, sha(library.path))
+        from actlize_la.serving.gdn_core import gdn_core_route
+        geometry = core_shape(packed)
+        self.route["core_route"] = gdn_core_route(
+            library, geometry["B"], geometry["T"], geometry["Hk"], geometry["Hv"])
 
     def __call__(self):
         # Deliberately omit algorithm/delivery. A changed default must fail the

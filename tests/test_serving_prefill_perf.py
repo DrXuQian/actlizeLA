@@ -256,7 +256,9 @@ def test_actual_public_default_and_route_without_device_claim(tmp_path, monkeypa
     from actlize_la.backends.loading import _file_image
     from actlize_la import gdn_residual_interface
 
-    library = SimpleNamespace(path=tmp_path / "metadata-only.so")
+    library = SimpleNamespace(
+        path=tmp_path / "metadata-only.so",
+        lib=SimpleNamespace(actlize_la_ppu10_core_route=Mock(return_value=0)))
     library.path.write_bytes(b"metadata fixture; no device code")
     backend = PPU10Backend.__new__(PPU10Backend)
     backend.library = library
@@ -276,6 +278,9 @@ def test_actual_public_default_and_route_without_device_claim(tmp_path, monkeypa
         ((1, 64, 32), torch.bfloat16)))
     initial = torch.empty(1, 32, 128, 128)
     call = profile.DefaultCall(library, packed, initial)
+    library.lib.actlize_la_ppu10_core_route.assert_called_once_with(1, 64, 16, 32)
+    assert call.route["core_route"] == dict(
+        id=0, name="retained", entry="actlize_la_ppu10_forward_prepared")
     backend.residual_full_chunk.assert_not_called()  # Route audit launches nothing.
     assert call() == ("output", "final")
     assert backend.residual_full_chunk.call_args.args == (*packed, initial, True)

@@ -4,13 +4,14 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK="${PPU_SDK:?请指定匹配Torch CUDA版本的真实PPU_SDK}"
+ACU="${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
 DEVICE="${DEVICE:-0}"
 PHASE="${MATRIX_PHASE:-1}"
 OUT="${OUT:-/workspace/actlize-la-gdn-box-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 mkdir -p "$(dirname "$OUT")"
 mkdir "$OUT"
 export CUDA_VISIBLE_DEVICES="$DEVICE" PYTHONUNBUFFERED=1
-export PATH="$SDK/asight/bin:$SDK/CUDA_SDK/bin:$SDK/bin:$PATH"
+export PATH="$SDK/CUDA_SDK/bin:$SDK/bin:$PATH"
 export CUDA_HOME="$SDK/CUDA_SDK" CUDA_PATH="$SDK/CUDA_SDK"
 export LD_LIBRARY_PATH="$SDK/CUDA_SDK/lib64:$SDK/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export PYTHONPATH="$ROOT:$ROOT/tests${FLA_ROOT:+:$FLA_ROOT}${PYTHONPATH:+:$PYTHONPATH}"
@@ -22,7 +23,7 @@ PYTHON="${PYTHON:-python3}"
   git -C "$ROOT" rev-parse HEAD
   git -C "$ROOT" status --short
   "$SDK/bin/hgcc" --version
-  "$SDK/asight/bin/acu" --version
+  "$ACU" --version
 } > "$OUT/identity.txt"
 git -C "$ROOT" diff HEAD --binary > "$OUT/source.patch"
 "$PYTHON" -m actlize_la.serving.device --target ppu10 >> "$OUT/identity.txt"
@@ -49,5 +50,5 @@ fi
 OUT="$OUT/captures" "$PYTHON" "$ROOT/tools/collect_serving_prefill_acu.py" \
   --serving-run "$OUT" --manifest "$ROOT/benchmarks/gdn_prefill_matrix.json" \
   --manifest-sha256 48a7aa907067cf2a966594c899da9b9882316950ddd09d39a292e4810f5d7402 \
-  --manifest-phase "$PHASE" --device "$DEVICE" --acu "$SDK/asight/bin/acu" --repeats 3
+  --manifest-phase "$PHASE" --device "$DEVICE" --acu "$ACU" --repeats 3
 printf '产物目录：%s\n' "$OUT"
