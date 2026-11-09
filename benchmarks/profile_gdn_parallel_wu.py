@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact saved inputs: old public default / opt-in WU / unchanged FLA."""
+"""Exact saved inputs: old public default / declared KDA candidate / unchanged FLA."""
 import argparse
 import ctypes as C
 import json
@@ -17,7 +17,7 @@ from actlize_la.serving.gdn_core import PreparedGDNCore, gdn_core_workspace_spec
 from actlize_la.serving.device import current_device_identity
 from check_ppu810_gdn_recheck import validate_810
 from collect_ppu_gdn_acu import sha
-from gdn_kda_contract import ENTRY, ROLES, cells, geometry
+from gdn_kda_contract import EXPERIMENTS, roles, cells, geometry
 from profile_gdn_threeway import validate_payload
 from profile_serving_prefill import DefaultCall, FlaCall, capture, checked, core_shape, digest, input_fingerprint
 from profile_ppu_gdn_fla import save_fla_sources
@@ -25,10 +25,11 @@ from profile_ppu_gdn_fla import save_fla_sources
 
 class PreparedCall:
     """Benchmark-only prepared owner; no public API/selector changes."""
-    def __init__(self, library, packed, initial, candidate=True):
+    def __init__(self, library, packed, initial, candidate=True, experiment="parallel-wu"):
+        policy = EXPERIMENTS[experiment]
         shape = core_shape(packed)
         if shape["T"] % 64:
-            raise ValueError("parallel W/U is admitted only for complete C64 chunks")
+            raise ValueError("KDA candidates are admitted only for complete C64 chunks")
         self.inputs, self.initial = tuple(x.cuda() for x in packed), initial.cuda()
         self.output = torch.empty_like(self.inputs[2])
         self.final = torch.empty_like(self.initial)
@@ -38,14 +39,14 @@ class PreparedCall:
                                      initial_state=self.initial, final_state=self.final,
                                      output=self.output, workspace=self.work)
         if candidate:
-            configure = library.lib.actlize_la_ppu10_parallel_wu_configure
+            configure = getattr(library.lib, policy["configure"])
             configure.argtypes, configure.restype = [], C.c_int
             self.owner.check(configure())
-            fn = getattr(library.lib, ENTRY)
+            fn = getattr(library.lib, policy["entry"])
             fn.argtypes, fn.restype = self.owner.fn.argtypes, C.c_int
             self.owner.fn = fn
-        self.route = dict(entry=ENTRY if candidate else "actlize_la_ppu10_forward_prepared", chunk=64,
-                          arithmetic="materialized-WU-BF16" if candidate else "retained-residual",
+        self.route = dict(entry=policy["entry"] if candidate else "actlize_la_ppu10_forward_prepared", chunk=64,
+                          arithmetic=policy["arithmetic"] if candidate else "retained-residual",
                           public_default_replaced=False, final_state=True,
                           library_sha=sha(library.path), workspace_bytes=sum(x.numel() * x.element_size() for x in self.work.values()))
 
@@ -60,8 +61,8 @@ class PreparedCall:
 def construct(role, baseline, candidate, packed, initial):
     if role == "default":
         return DefaultCall(NativeLibrary(baseline, target="ppu10"), packed, initial)
-    if role == "parallel-wu":
-        return PreparedCall(NativeLibrary(candidate, target="ppu10"), packed, initial)
+    if role in EXPERIMENTS:
+        return PreparedCall(NativeLibrary(candidate, target="ppu10"), packed, initial, experiment=role)
     if role == "fla":
         call = FlaCall(packed, initial)
         call.route = call.identity
@@ -76,9 +77,13 @@ def main():
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--cell", choices=[c["id"] for c in cells()], required=True)
     p.add_argument("--phase", choices=("admit", "subject"), required=True)
-    p.add_argument("--role", choices=ROLES)
+    p.add_argument("--experiment", choices=EXPERIMENTS, default="parallel-wu")
+    p.add_argument("--role", choices=("default", *EXPERIMENTS, "fla"))
     a = p.parse_args()
-    record = dict(status="FAIL", phase=a.phase, role=a.role)
+    selected = roles(a.experiment)
+    if a.role is not None and a.role not in selected:
+        p.error("role must belong to the selected experiment")
+    record = dict(status="FAIL", phase=a.phase, role=a.role, candidate_kind=a.experiment)
     try:
         if not torch.cuda.is_available():
             record.update(status="SKIP", reason="no device; no numerical/performance admission")
@@ -119,11 +124,11 @@ def main():
             if a.role:
                 raise ValueError("admit requires all three roles")
             arms = {}
-            for role in ROLES:
+            for role in selected:
                 call = make(role)
                 fingerprints = []
                 for _ in range(8):
-                    if role == "parallel-wu":
+                    if role == a.experiment:
                         for scratch in call.work.values():
                             scratch.fill_(float("nan"))  # admission only, never in profiled subject
                     result = capture(call)
@@ -135,7 +140,8 @@ def main():
                 if role == "fla":
                     record["fla_sources"] = save_fla_sources(a.directory / "fla-sources")
             # The opt-in object must not change the shipped four-stage default.
-            control = PreparedCall(NativeLibrary(a.candidate, target="ppu10"), packed, initial, candidate=False)
+            control = PreparedCall(NativeLibrary(a.candidate, target="ppu10"), packed, initial,
+                                   candidate=False, experiment=a.experiment)
             for _ in range(8):
                 if digest(capture(control)) != arms["default"]["output_sha"]:
                     raise AssertionError("unchanged default in candidate library differs from old baseline bits")

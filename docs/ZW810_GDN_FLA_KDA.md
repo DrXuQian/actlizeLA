@@ -168,9 +168,10 @@ stack-labeled metric. Native negatives include putting the old P@R body under
 the new symbol. Independent float64 recurrence, wrong-state-transpose/sign,
 padded workspace ownership and incomplete inventory negatives are local gates.
 Local validation: 170 Python/host tests and 4 exhaustive C++ ownership suites
-passed, including the unchanged W/U, eight-warp, H and H/V layouts. The native
-five-stage candidate is compiled and linked; PPU device correctness and speed
-are still NOT_RUN. No claim of an eventual win follows from these local gates.
+passed, including the unchanged W/U, eight-warp, H and H/V layouts. At the
+initial handoff the native five-stage candidate was compiled and linked,
+but PPU device correctness and speed were NOT_RUN (now reported below).
+No claim of an eventual win follows from those local gates.
 
 User-operated box command (same idle ZW810/SDK/inputs as the returned bundle):
 
@@ -188,3 +189,115 @@ It captures all 8 cells, rotates default/candidate/FLA order, and retains a
 second full cycle for unresolved/noisy comparisons. It never recompiles PLA.
 Upload the printed `results.tar.gz`; binaries, operands and original acurep
 remain on box. `COLLECTED` means the experiment completed, not that it won.
+
+### Round 1 device verdict (2026-11-09 UTC)
+
+Archive `11fe5c47e70bfea09dbe645e23bd80b507c02761604634c5476f482337b202d3`,
+source `3d25e7e`, candidate library
+`7df5a2ae614d22b502103090bf67063b70b81b87cafeddfe2c52671f7a4adc3e`.
+Same original default library/device/operands; 291 source fingerprints match
+the commit. All 8 numerical cells passed 8 replays and the candidate library's
+unchanged public default passed RAW-BIT checks. All 90 captured calls match
+their CSV inventories/receipts; CE frequency is 1.7 GHz throughout.
+The two Hv48/T8192 cells retain six repeats because default/FLA overlap.
+All other cells have three. Missing-cell, omitted-W/U and tampered-duration
+offline negatives are rejected. Original binary/operands/acurep stay on box;
+their hashes are receipts, not local rehashes of absent files.
+
+**REJECT this candidate for promotion on all eight cells.** Full-call ACU
+medians (us; W/U and final state included):
+
+| T | Hv | g | Default | Parallel W/U | FLA |
+|---:|---:|---:|---:|---:|---:|
+| 2048 | 32 | -0.1 | 237.388 | 297.519 | 206.715 |
+| 2048 | 32 | -1.0 | 236.762 | 298.431 | 206.576 |
+| 2048 | 48 | -0.1 | 305.726 | 393.134 | 291.898 |
+| 2048 | 48 | -1.0 | 306.202 | 393.156 | 290.095 |
+| 8192 | 32 | -0.1 | 920.615 | 1107.527 | 807.855 |
+| 8192 | 32 | -1.0 | 922.468 | 1105.069 | 807.837 |
+| 8192 | 48 | -0.1 | 1121.067 | 1414.877 | 1124.675 |
+| 8192 | 48 | -1.0 | 1120.148 | 1413.241 | 1121.950 |
+
+The candidate loses to both controls with disjoint envelopes in every cell;
+it is 19.79–28.59% slower than default. Default/FLA at Hv48/T8192 is now
+UNRESOLVED, not a repeated confirmed default win. Do not erase the earlier
+two wins, but do not substitute them for this paired run either.
+
+The intended state-chain shortening **did** save time, but did not repay
+materialization. Additive means for g=-0.1 (the other g has the same outcome):
+
+| T/Hv | State saving | Added W/U | Other stage variation | Net added time |
+|---|---:|---:|---:|---:|
+| 2048/32 | 18.323 | 78.722 | +0.127 | +60.526 |
+| 2048/48 | 20.448 | 108.755 | -0.193 | +88.114 |
+| 8192/32 | 71.014 | 258.985 | +0.030 | +188.002 |
+| 8192/48 | 82.297 | 379.015 | -1.733 | +294.985 |
+
+This is not a rejection of the abstract W/U algorithm: FLA uses it and is
+faster. Our execution layer is not equivalent to FLA. At T2048/Hv32/g=-0.1,
+our W/U is 78.722 us versus FLA 32.045 us; state 123.909 versus 82.366 us.
+The same ACU `Executed Instructions` metric is 37,087,232 versus 7,438,336
+for W/U and 32,530,560 versus 10,994,176 for state. These are not summed
+per-opcode counts. State registers fell 128->98, but achieved active warps
+remain 14.18->14.15: the unchanged grid128 still limits work supply.
+Even matching FLA W/U alone would exceed the 18.323 us saved from state;
+both implementations would need further changes. Do not spend the next
+round treating a materializer-only speedup as a whole-call win.
+
+Local reproducible audit: task `actlize-la-zw810-fla-kda-20261109`,
+`audit_round1.py`, `round1-upload/audit/audit.json` and `audit.md`.
+No default routing changed; retain this opt-in implementation as a rejected
+counterfactual, not as a promoted performance path.
+
+## Round 2 contract: isolated single-TF32 inverse merges
+
+Return to the original four-stage residual algorithm; **do not stack round 1**.
+Change only off-diagonal solve products from the retained high/high plus two
+residual TF32 products to high/high TF32. Keep FP32 diagonal solve, BF16 KKT,
+FP32 accumulator/state, final BF16 inverse, chunk geometry, solve thread
+selection, state/output/prefix and scratch ownership unchanged.
+This deliberately changes precision; it is NOT a bit-identical optimization
+or a promise to match FLA rounding bit-for-bit. FLA source's single-TF32
+products motivate the experiment, not its numerical admission.
+
+Admission remains the original independent <2% output AND final-state gate,
+8 repeats, both gates, all 8 cells, nonzero asymmetric state and unchanged
+default RAW-BIT control. Do not relax that criterion after results arrive.
+An explicit optional C entry and OFF-by-default build option keep the old
+public route intact. Native gate must find 4 rather than 12 static TF32 MMA
+sites in each solve body, unchanged BF16 KKT/diagonal/order/publication and
+zero native stack; restoring the old triple-product body must turn it red.
+CPU screens cover full/tail triangular extents and longer recurrent sequences;
+they do not substitute for the user-operated device numerical gate.
+
+Discriminating result: the changed solve must improve complete four-kernel
+ACU time, not only reduce its instruction count. Compare incumbent/candidate/
+FLA under the existing serial paired capture protocol. Reject on numerical
+failure or any unresolved/non-winning scope; a per-shape win may be retained
+without claiming that this one edit closes the larger Hv32 state gap.
+
+Round 2 local closure: SDK 2.2.1 PPU1.0 compile/link passes. Native 128/256
+thread solves have 1496 -> 1394/1393 static sites, 12 -> 4 TF32 MMA sites,
+84 -> 66 registers and zero stack. Their BF16 KKT, 120 ordered diagonal
+FMAs, AIU sites, barriers and vector stores stay fixed. All 36 retained
+device bodies are instruction-identical to the round-one library; only
+the two W/U experimental symbols are absent and two new solve symbols appear.
+191 host tests pass, including long-sequence rounding screens, wrong-index/
+sign/entry negatives and the existing capture/receipt regression. The first
+source-gate negative caught a normalization hole: substituting the old
+product could pass a normalized comparison. The gate now first requires both
+actual single-TF32 call sites; restoring either old call fails. Native
+restored-triple-product and omitted TF32/BF16/store negatives also fail.
+These are local proofs; device numerical/performance status is **NOT_RUN**.
+
+```bash
+INPUT_RUN=/workspace/actlize-la-zw810-recheck-b810b6c7-20261109T083458Z-2075017 \
+PPU_SDK=/sim/eec/shared/junfu.qx/ppu-sdk-2.2.1-184ee6/PPU_SDK \
+DEVICE=0 JOBS=4 bash tools/run_ppu_gdn_solve_tf32x1_box.sh
+```
+
+This reuses the same eight-cell input files and old baseline library, builds
+only the OFF-by-default single-TF32 experiment, and excludes W/U from this
+candidate. The exact four-kernel inventory rejects the old solve or added W/U
+work, while still counting unexpected durations before marking the call
+unadjudicated. Use the printed small `results.tar.gz` for the next handoff.

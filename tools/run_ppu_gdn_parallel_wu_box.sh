@@ -7,6 +7,7 @@ if [[ -z "${INPUT_RUN:-}" ]]; then
   exit 2
 fi
 args=(--input-run "$INPUT_RUN" --device "${DEVICE:-0}" --jobs "${JOBS:-4}"
+      --experiment "${EXPERIMENT:-parallel-wu}"
       --acu "${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}")
 if [[ -n "${OUT:-}" ]]; then args+=(--out "$OUT"); fi
 exec "${PYTHON:-python3}" "$ROOT/tools/collect_gdn_parallel_wu_acu.py" "${args[@]}"
