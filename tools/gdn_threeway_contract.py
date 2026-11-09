@@ -65,7 +65,12 @@ def check_pla_source(source):
     for path, expected in ((source, PLA_SHA), (source / "3rdparty/actlize", PLA_ACTLIZE_SHA)):
         if git(path, "rev-parse", "HEAD") != expected:
             raise ValueError(f"PLA source/submodule differs from pinned commit: {path}")
-        if git(path, "status", "--porcelain", "--untracked-files=all"):
+        # Upstream invokes ninja with the source root as cwd. These two files
+        # are build bookkeeping, not compilable sources. Every other untracked
+        # file (including a new .cu) and every tracked edit remains a hard error.
+        untracked = set(git(path, "ls-files", "--others", "--exclude-standard").splitlines())
+        bookkeeping = {".ninja_log", ".ninja_deps"} if path == source else set()
+        if git(path, "diff", "HEAD", "--name-only") or untracked - bookkeeping:
             raise ValueError(f"PLA reference must be unmodified: {path}")
 
 

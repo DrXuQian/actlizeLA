@@ -98,10 +98,41 @@ The runner creates `/workspace/actlize-la-gdn-threeway-<UTC>-<pid>/` with:
 `UNADJUDICATED`/`INCOMPLETE` are not PASS. No missing cell disappears from the
 denominator. No automatic production promotion follows this experiment.
 
+### Host C++ header repair and failed-build reuse
+
+PLA's upstream builder passes native PPU includes to both compilers, but its
+ordinary host C++ compiler also needs the selected SDK's `CUDA_SDK/include`
+for PyTorch's CUDA-spelled API. The host-only compiler adapter adds that tree
+and its CCCL headers explicitly; it changes no `.cu` command, source, math
+flags, global CPATH or installed packages. `pla-host-toolchain.json` records
+the compiler, adapter and header identities. No system NVIDIA toolkit fallback.
+
+For the specific `cuda_runtime_api.h` missing-header failure, reuse the finished
+device objects instead of starting over:
+
+```bash
+INPUT_RUN=/workspace/actlize-la-zw810-recheck-b810b6c7-20261109T083458Z-2075017 \
+REUSE_BUILD_RUN=/workspace/actlize-la-gdn-threeway-20261109T122552Z-2632276 \
+DEVICE=0 JOBS=4 bash tools/run_ppu_gdn_threeway_box.sh
+```
+
+This requires the same source/submodule, SDK/compiler identity and admitted
+inputs, and refuses completed/measured runs. The original failed logs remain
+unchanged; new logs, runtime and captures go in a new output directory. Ninja
+reuses its old object directory and a nonblocking lock excludes a second
+repair using it. Object hashes report exactly which objects remained unchanged.
+Root `.ninja_log`/`.ninja_deps` are allowed build bookkeeping; an untracked
+kernel or any tracked source edit still invalidates the reference.
+
 ## Local qualification (2026-11-09)
 
-Host comparison/adapter/inventory/receipt regressions: 262 passed, 26 subtests
+Host comparison/adapter/inventory/receipt regressions: 274 passed, 26 subtests
 passed; 2 native-library checks explicitly skipped without their compiled
 libraries. Shell syntax and missing-INPUT_RUN failure also checked. These are
 not PLA PPU compile/device/performance results; those three remain NOT_RUN
 until this runner is executed on the box.
+
+The local real SDK2.2.1 host-header probe reproduces the exact missing
+`cuda_runtime_api.h` error without the adapter and passes with it, including
+CUDA runtime/BLAS/sparse/solver/CCCL and native hggc headers in one C++ TU.
+This does not claim the complete box GPU-PyTorch binding has compiled locally.

@@ -1,9 +1,11 @@
 """Host-only adapter/denominator/inventory negatives; no PPU performance claim."""
 import copy
+import fcntl
 import importlib
 import json
 from pathlib import Path
 import sys
+import subprocess
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -16,6 +18,7 @@ for path in (ROOT / "tools", ROOT / "benchmarks"):
 contract = importlib.import_module("gdn_threeway_contract")
 profile = importlib.import_module("profile_gdn_threeway")
 collector = importlib.import_module("collect_gdn_threeway_acu")
+host_cxx = importlib.import_module("ppu_pla_host_cxx")
 
 
 def fixture():
@@ -223,6 +226,7 @@ def test_build_is_exact_upstream_namespace_in_private_cwd(tmp_path, monkeypatch)
     sdk = tmp_path / "sdk"
     (sdk / "bin").mkdir(parents=True)
     (sdk / "bin/hgcc").write_bytes(b"host-compiler-placeholder")
+    make_cuda_headers(sdk)
     run = Mock()
     monkeypatch.setattr(collector, "run", run)
     monkeypatch.setattr(collector, "check_pla_source", Mock())
@@ -235,8 +239,136 @@ def test_build_is_exact_upstream_namespace_in_private_cwd(tmp_path, monkeypatch)
     assert env["PLA_BUILD_NAMESPACE"] == "pla.prefill.flashqla"
     assert env["PPU_ACTLIZE_DIR"] == str(tmp_path / "pla-source/3rdparty/actlize")
     assert env["MAX_JOBS"] == "4" and env["HGCC_THREADS"] == "1"
+    assert env["CXX"] == str(ROOT / "tools/ppu_pla_host_cxx.py")
+    assert env["ACTLIZE_LA_PLA_HOST_CXX"] == host_cxx.compiler({})
+    assert "CPLUS_INCLUDE_PATH" not in env and "CPATH" not in env
     assert run.call_count == 6  # five source operations, exactly one build
     assert collector.record_pla.call_args.args == (tmp_path / "pla-source", tmp_path / "pla-runtime")
+
+
+def make_cuda_headers(sdk):
+    include = sdk / "CUDA_SDK/include"
+    include.mkdir(parents=True)
+    for name in ("cuda_runtime_api.h", "cuda.h", "cublas_v2.h", "cusparse.h", "cusolverDn.h"):
+        (include / name).write_text("#pragma once\n")
+    return include
+
+
+def test_host_sdk_layout_and_ambiguity(tmp_path):
+    sdk = tmp_path / "sdk"
+    include = make_cuda_headers(sdk)
+    (include / "cccl").mkdir()
+    target = sdk / "CUDA_SDK/targets/x86_64-linux/include"
+    target.parent.mkdir(parents=True)
+    target.symlink_to(include)
+    assert host_cxx.include_dirs(sdk) == [include, include / "cccl"]
+    target.unlink()
+    target.mkdir()
+    (target / "cuda_runtime_api.h").write_text("#pragma once\n")
+    with pytest.raises(ValueError, match="one CUDA API"):
+        host_cxx.include_dirs(sdk)
+
+
+def test_missing_host_header_is_fail_not_system_cuda_fallback(tmp_path):
+    sdk = tmp_path / "sdk"
+    include = make_cuda_headers(sdk)
+    (include / "cuda_runtime_api.h").unlink()
+    with pytest.raises(ValueError, match="one CUDA API"):
+        host_cxx.include_dirs(sdk)
+
+
+def test_real_host_compiler_negative_then_adapter_positive(tmp_path):
+    sdk = tmp_path / "sdk"
+    include = make_cuda_headers(sdk)
+    (include / "actlize_test_sdk_marker.h").write_text("#define ACTLIZE_TEST_SDK_MARKER 42\n")
+    source = tmp_path / "host.cc"
+    source.write_text('#include <actlize_test_sdk_marker.h>\n#include <cuda_runtime_api.h>\n'
+                      'static_assert(ACTLIZE_TEST_SDK_MARKER == 42);\n')
+    cxx = host_cxx.compiler({})
+    flags = ["-std=c++20", "-fsyntax-only", str(source)]
+    before = subprocess.run([cxx, *flags], capture_output=True, text=True)
+    assert before.returncode != 0 and "actlize_test_sdk_marker.h" in before.stderr
+    command = host_cxx.command({"PPU_SDK": str(sdk), "ACTLIZE_LA_PLA_HOST_CXX": cxx}, flags)
+    after = subprocess.run(command, capture_output=True, text=True)
+    assert after.returncode == 0, after.stderr
+
+
+def test_ninja_bookkeeping_does_not_hide_new_compilable_sources(tmp_path, monkeypatch):
+    source = tmp_path / "source"
+    (source / "3rdparty/actlize").mkdir(parents=True)
+    untracked = [".ninja_log", ".ninja_deps"]
+    def git(path, *args):
+        if args == ("rev-parse", "HEAD"):
+            return contract.PLA_SHA if path == source else contract.PLA_ACTLIZE_SHA
+        if args[0] == "ls-files":
+            return "\n".join(untracked) if path == source else ""
+        return ""
+    monkeypatch.setattr(contract, "git", git)
+    contract.check_pla_source(source)
+    untracked.append("src/prefill/flashqla/kernels/injected.cu")
+    with pytest.raises(ValueError, match="unmodified"):
+        contract.check_pla_source(source)
+
+
+def failed_build(tmp_path):
+    previous = tmp_path / "failed-run"
+    evidence = previous / "evidence"
+    evidence.mkdir(parents=True)
+    (previous / "pla-source").mkdir()
+    (previous / "pla-build").mkdir()
+    (previous / "pla-build/device.o").write_bytes(b"host-fixture-device-object")
+    sdk = tmp_path / "sdk"
+    sdk.mkdir()
+    selected = {"origin": {"sha256": "unchanged-admitted-binary"}}
+    (evidence / "summary.json").write_text(json.dumps(dict(
+        status="INCOMPLETE", captures={}, input_run=selected, sdk=str(sdk))))
+    (evidence / "pla-build.log").write_text("fatal error: cuda_runtime_api.h: No such file or directory\n")
+    (evidence / "compiler.log").write_text("same measured HGCC\n")
+    compiler_log = tmp_path / "current-compiler.log"
+    compiler_log.write_bytes((evidence / "compiler.log").read_bytes())
+    return previous, selected, sdk, compiler_log
+
+
+@pytest.mark.parametrize("plant", ["none", "input", "sdk", "compiler", "capture", "completed", "other-error"])
+def test_reuse_is_limited_to_the_exact_failed_build(tmp_path, monkeypatch, plant):
+    previous, selected, sdk, compiler_log = failed_build(tmp_path)
+    monkeypatch.setattr(collector, "check_pla_source", Mock())
+    summary_path = previous / "evidence/summary.json"
+    summary = json.loads(summary_path.read_text())
+    if plant == "input":
+        selected = {"origin": {"sha256": "another-binary"}}
+    elif plant == "sdk":
+        summary["sdk"] = str(tmp_path / "another-sdk")
+    elif plant == "compiler":
+        compiler_log.write_text("new compiler\n")
+    elif plant == "capture":
+        summary["captures"] = {"already-measured": {}}
+    elif plant == "completed":
+        summary["status"] = "COLLECTED"
+    elif plant == "other-error":
+        (previous / "evidence/pla-build.log").write_text("unknown error\n")
+    summary_path.write_text(json.dumps(summary))
+    if plant == "none":
+        reuse = collector.reuse_failed_build(previous, selected, sdk, compiler_log, workspace=tmp_path)
+        assert reuse["source"] == str(previous / "pla-source")
+        assert len(reuse["objects_before"]) == 1
+    else:
+        with pytest.raises(ValueError):
+            collector.reuse_failed_build(previous, selected, sdk, compiler_log, workspace=tmp_path)
+
+
+def test_second_builder_cannot_write_active_object_tree(tmp_path, monkeypatch):
+    previous, selected, sdk, compiler_log = failed_build(tmp_path)
+    make_cuda_headers(sdk)
+    monkeypatch.setattr(collector, "check_pla_source", Mock())
+    reuse = collector.reuse_failed_build(previous, selected, sdk, compiler_log, workspace=tmp_path)
+    run = Mock()
+    monkeypatch.setattr(collector, "run", run)
+    with (previous / "pla-build/.threeway-build.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        with pytest.raises(BlockingIOError):
+            collector.build_pla(tmp_path, tmp_path, {"PPU_SDK": str(sdk)}, 4, reuse)
+    run.assert_not_called()
 
 
 def receipt():

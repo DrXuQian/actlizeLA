@@ -9,4 +9,5 @@ fi
 args=(--input-run "$INPUT_RUN" --device "${DEVICE:-0}" --jobs "${JOBS:-4}"
       --acu "${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}")
 if [[ -n "${OUT:-}" ]]; then args+=(--out "$OUT"); fi
+if [[ -n "${REUSE_BUILD_RUN:-}" ]]; then args+=(--pla-build-run "$REUSE_BUILD_RUN"); fi
 exec "${PYTHON:-python3}" "$ROOT/tools/collect_gdn_threeway_acu.py" "${args[@]}"
