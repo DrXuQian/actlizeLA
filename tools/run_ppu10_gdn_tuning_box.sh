@@ -23,8 +23,11 @@ PYTHON="${PYTHON:-python3}"
   git -C "$ROOT" rev-parse HEAD
   git -C "$ROOT" status --short
   "$SDK/bin/hgcc" --version
-  "$ACU" --version
 } > "$OUT/identity.txt"
+# Check the selected profiler before compiling, with the same binding as capture.
+# A bare --version here can parse a foreign SDK's sections before capture starts.
+"$PYTHON" "$ROOT/tools/acu_installation.py" --acu "$ACU" --out "$OUT/profiler" \
+  2>&1 | tee "$OUT/profiler.log"
 git -C "$ROOT" diff HEAD --binary > "$OUT/source.patch"
 "$PYTHON" -m actlize_la.serving.device --target ppu10 >> "$OUT/identity.txt"
 cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET=ppu10 \

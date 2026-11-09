@@ -17,6 +17,7 @@ import sys
 import tarfile
 
 from collect_ppu_gdn_acu import DEFAULT_ACU, ROOT, report_file, run as run_process, sha
+from acu_installation import bind_profiler, check_profiler, profiler_layout
 
 ROLES = ("serving", "default", "fla")
 CORE = ("gdn_wy_split_prefix", "gdn_wy_split_solve_static",
@@ -48,19 +49,6 @@ def run(command, log, env, **kwargs):
                 print(f"[prefill ACU] failed command log: {log}\n" +
                       "".join(deque(stream, maxlen=60)), file=sys.stderr, flush=True)
         raise
-
-
-def profiler_layout(acu):
-    """A fixed executable must not inherit another installation's sections."""
-    executable = Path(acu).resolve(strict=True)
-    home = executable.parent.parent
-    sections = home / "sections"
-    files = sorted(sections.glob("*.section"))
-    if not files:
-        raise ValueError(f"selected ACU has no companion sections: {sections}")
-    return dict(executable=str(executable), executable_sha256=sha(executable),
-                home=str(home), sections=str(sections),
-                section_sha256={p.name: sha(p) for p in files})
 
 
 def validate_default_route(route, library, digest):
@@ -460,16 +448,13 @@ def main():
         status["source_diff"] = subprocess.check_output(["git", "diff", "HEAD", "--stat"], cwd=ROOT, text=True)
         status["harness_files"] = source_fingerprint()
         (out / "harness-files.json").write_text(json.dumps(status["harness_files"], indent=2) + "\n")
-        status["profiler"] = profiler_layout(acu)
         status["inherited_asight_home"] = env.get("ASIGHT_HOME")
-        env["ASIGHT_HOME"] = status["profiler"]["home"]
-        section_flags = ["--section-folder", status["profiler"]["sections"]]
+        status["profiler"], env, acu_command = bind_profiler(acu, env)
+        acu, *section_flags = acu_command
         status["acu_sha256"] = status["profiler"]["executable_sha256"]
-        run([acu, "--version"], out / "acu-version.log", env, console=False)
         # Parse the unchanged full-set section schema BEFORE fixture/reference
         # work. A bad tool installation stays FAIL, never a reduced-metric PASS.
-        run([acu, *section_flags, "--set", "full", "--list-sections"],
-            out / "acu-section-check.log", env, console=False)
+        check_profiler(status["profiler"], env, acu_command, out, runner=run)
         smi = shutil.which("ppu-smi")
         if smi:
             status["driver_before"] = run([smi, "-i", args.device, "-q"], out / "device-before.log",

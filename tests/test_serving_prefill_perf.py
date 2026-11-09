@@ -460,7 +460,7 @@ def test_collector_control_flow_not_device_execution(tmp_path, monkeypatch, plan
         command = [str(value) for value in command]
         commands.append(command)
         assert env["ASIGHT_HOME"] == str(tool.parent.parent)
-        if "--list-sections" in command or "--set" in command or "--import" in command:
+        if command[0] == str(tool):
             assert command[command.index("--section-folder") + 1] == str(tool.parent.parent / "sections")
         log.write_text("synthetic transport; no device ran\n")
         if plant == "section-schema" and "--list-sections" in command:

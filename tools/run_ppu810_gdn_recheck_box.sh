@@ -22,6 +22,9 @@ finish() {
   trap - EXIT
   local files=() name
   for name in runner.log identity.log routes.log build-run.log capture.log \
+      build-run/profiler.log build-run/profiler/profiler.json \
+      build-run/profiler/acu-version.log build-run/profiler/acu-version.log.command \
+      build-run/profiler/acu-section-check.log build-run/profiler/acu-section-check.log.command \
       build-run/identity.txt build-run/binary.json build-run/build.log \
       build-run/results.json build-run/aux-results.json build-run/device-tests.log \
       build-run/aux-device.log build-run/native-graph.log acu/results.tar.gz; do

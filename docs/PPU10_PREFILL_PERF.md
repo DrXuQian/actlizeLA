@@ -93,9 +93,10 @@ Do not select a legacy `GDN_QSA_WY_EXTENSION` for this comparison; if present it
 is rejected rather than silently replaced. `ACTLIZE_LA_SERVING_LIBRARY`, if set,
 must name the same library as the chosen passed serving run.
 
-The collector binds `ASIGHT_HOME` and `--section-folder` to that ACU installation
-for capture AND import, and records executable/section hashes. It validates the
-unchanged `full` set before numerical preparation. This prevents an inherited
+The builder and collector share `tools/acu_installation.py`: bind `ASIGHT_HOME`
+and `--section-folder` to that ACU installation for **every invocation, including
+`--version`**, capture and import, and record executable/section hashes. Validate
+the unchanged `full` set before building or numerical preparation. This prevents an inherited
 SDK's `ASIGHT_HOME` from silently mixing another section schema with the selected
 binary. An incompatible companion installation still fails; no section/metric
 is deleted or silently dropped. On failure the last60 log lines are printed.
@@ -103,6 +104,27 @@ is deleted or silently dropped. On failure the last60 log lines are printed.
 If `MemoryMetricTable` is rejected even with the explicit companion folder,
 inspect `acu-section-check.log` and the selected installation's libraries/version;
 do not modify GDN or infer a numerical failure from a profiler schema error.
+The parser can initialize during `--version`, so check `acu-version.log` too.
+The ZW810 wrapper includes both logs and `profiler.json` in its small archive.
+Do not delete the field, switch silently to SDK ACU or drop the `full` metric set.
+
+To test only the tool installation, without rebuilding or running a kernel:
+
+```bash
+python3 tools/acu_installation.py
+```
+
+If the old build already passed all serving/aux/native gates, reuse that exact
+library and receipts; a profiler failure does not require recompilation:
+
+```bash
+SERVING_RUN=/workspace/<previous-ZW810-run>/build-run \
+DEVICE=0 bash tools/run_ppu_serving_prefill_acu_box.sh \
+  --batches 1 --lengths 2048 8192 --value-heads 32 48 --gates -0.1 -1.0 --repeats 3
+```
+
+Do not use an interrupted build directory without the passed receipts. Otherwise
+rerun `bash tools/run_ppu810_gdn_recheck_box.sh`; it checks ACU before compilation.
 
 Upload the small `results.tar.gz`: summaries, exact commands, prior passed-run
 receipts and their binary identity, current numerical receipts,
