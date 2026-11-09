@@ -46,3 +46,4 @@ def test_site_acu_and_complete_eight_cell_scope():
     assert '--batches 1 --lengths 2048 8192 --value-heads 32 48 --gates -0.1 -1.0' in runner
     assert '--manifest ' not in runner and '--no-confirm' not in runner
     assert '--repeats 3' in runner and 'acu/results.tar.gz' in runner
+    assert 'TMPDIR="$OUT/scratch"' in runner and '$OUT/triton-cache' in runner

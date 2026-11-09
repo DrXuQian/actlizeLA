@@ -14,6 +14,8 @@ SHA="$(git -C "$ROOT" rev-parse --short=8 HEAD)"
 OUT="${OUT:-/workspace/actlize-la-zw810-recheck-${SHA}-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 mkdir -p -- "$(dirname "$OUT")"
 mkdir -- "$OUT"
+export TMPDIR="$OUT/scratch" TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-$OUT/triton-cache}"
+mkdir -p -- "$TMPDIR" "$TRITON_CACHE_DIR"
 
 finish() {
   local rc=$?
