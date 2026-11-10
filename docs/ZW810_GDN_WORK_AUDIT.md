@@ -111,8 +111,8 @@ Only then choose an isolated removal/reuse candidate, before a parallelism sweep
 ## 4. Extract the missing instruction detail without another device run
 
 The uploaded raw CSV contains aggregate counts, not enough per-opcode/PC
-information to allocate the full excess. Original `.acurep` files on box
-already contain that evidence. After pulling this branch:
+information to allocate the full excess. Read the original `.acurep` files
+on box and require actual native PC/count coverage. After pulling this branch:
 
 ```bash
 python tools/export_gdn_kda_details.py \
@@ -122,14 +122,18 @@ python tools/export_gdn_kda_details.py \
 
 No compilation, device query, warmup or GPU launch. The script invokes the
 **same captured ACU CLI with `--import`**, verifies the original report hash,
-and exports its raw/source/details CSV pages for all kernels in repeat0 of four geometries
+and exports raw/details metrics plus an embedded `--stats-rule` native table
+for all kernels in repeat0 of four geometries
 at g=-0.1 for default/candidate/FLA (12 reports). Fixed repeat0 is diagnostic
 selection, not fastest-run selection or a replacement for all90 timing samples.
 Every re-imported duration/symbol/grid/block and aggregate instruction count
-is checked against its original CSV. Source-page native PCs are checked for
-complete action coverage and execution counts. Missing reports/SASS/counts
-are INCOMPLETE, not zero or PASS. The source page provides native PCs, not a
-promise of C++ file/line correlation. No Python ACU API is required on box.
+is checked against its original CSV, including those read inside the native
+rule. Native PCs are checked for complete action coverage and execution counts.
+Missing reports/SASS/counts are INCOMPLETE, not zero or PASS. The rule writes
+a separate completion denominator only after all actions have been exported:
+old ACU can return rc0 even when a rule fails halfway. Missing optional fields
+stay blank, not synthetic zero. No external Python ACU API is required on box;
+the rule uses the CLI's embedded `HgRules`, without importing torch or json/gzip.
 
 The new `/workspace/actlize-la-gdn-work-details-*/results.tar.gz` contains
 compressed text: raw/details metric tables, native PC instructions/execution
@@ -137,12 +141,16 @@ counts/live registers/stall samples and provenance, plus per-action exact
 source-mnemonic counts. It excludes operands, binaries and original large reports.
 Upload only this small tar. No PPUProfiler, JIT or remote build is involved.
 
-Local validation uses an existing REAL four-kernel QUactlize report: all three
-CLI pages export successfully; an independent SDK2.2.1 Python reader agrees on
-symbols/geometries/durations/counts. All2761 native PC instructions, warp/thread
-execution counts and live-register counts agree. This validates report export,
-not GDN device performance or the as-yet-unreturned GDN detail export. Local
-testing uses isolated matching userspace; no system runtime was replaced.
+Local validation uses an existing REAL four-kernel QUactlize report. Both
+SDK2.1.1's ACU (v2.1.1_20260725, data15000) and SDK2.2.1's ACU export the
+embedded rule. An independent SDK2.2.1 Python reader agrees on all2761 PCs,
+native instructions, function IDs, warp/thread execution counts and live
+registers, plus all symbols/geometries/durations/aggregate instruction counts.
+Total PC warp executions are1,964,224; the distinct aggregate instruction
+counter sums to1,975,040. Those denominators must not be merged.
+This validates these readers on this report, **not the site's older v2.0.0
+reader**, GDN device performance, or the as-yet-unreturned GDN PC export.
+Testing uses isolated matching userspace; no system runtime was replaced.
 Host negatives cover changed report hash, missing cells/roles/repeats/kernels,
 changed symbol/grid/duration/unit, empty SASS, absent execution counts and
 lost metric-correlation entries. No production route changes accompany it.
@@ -157,7 +165,7 @@ required that package. No GDN instruction detail was collected, and no kernel
 failed or ran during this attempted export. The mistake was our installation
 assumption, not a reason to rebuild the kernel or change the box SDK.
 
-The corrected default path uses the captured CLI only. Negative tests recreate
+The first correction used the captured CLI only. Negative tests recreated
 the missing Python package while proving the import command contains no
 executable-to-profile/device-query arguments. Both wide raw and long metric-row
 CSV formats are supported; wide count selection comes from the captured
@@ -166,3 +174,35 @@ missing/extra actions, wrong symbols, empty/negative counts, no executed work,
 CLI errors and protobuf errors even with rc0 remain failures. Helpers are not
 dropped from source counts. The optional `tools/acu_report_details.py` remains
 developer-only for independent local validation, not a box dependency.
+
+### Second correction: old CLI ignores the requested source page
+
+The43048B upload SHA256
+`9940b34b67455cca9cf9264aa3df7b19c1d316262258fd3347aa548cc3f02c72`
+contains three **byte-identical**108399B raw/source/details files, all SHA256
+`9d46ecb323b68a7830ed6183ebd3bc6a5852e9b60059cff0ed786e65d010ca37`.
+Every file is an aggregate metric-row table, not native instructions; all
+commands returned rc0 and empty stderr. The site capture CLI is
+v2.0.0_20251231-4f7cd70 / data12006, executable SHA256
+`7d750971b45b0bb1f4367df6b8b0f37656d1be89894d40b39ceb2010f865b2b6`.
+This is not a renamed source column. Our newer-CLI test did not establish
+old-CLI source-page capability; treating that test as sufficient was an error.
+No new GDN opcode evidence or speed verdict follows from either failed export.
+
+The default now uses `tools/acu_work_rule.py` through the **same** capture CLI's
+`--stats-rule` interface, not `--page source`. The rule retains every action
+(including FLA fills) and helper PC. Its function IDs are native IDs, not the
+new source page's ordinal namespace. A repeated metric table cannot pass as
+source data. Tests also plant a failure after a valid first action: missing
+completion remains failure even if ACU itself returns0. Changed per-action
+symbol/grid/duration/instruction count and truncated denominators remain red.
+
+Cross-reader diagnostic caution: on the local four-kernel report, the old
+SDK2.1.1 rule reports all not-issued-stall samples as0 whereas the new reader
+reports1828 total; old access-sector/data-byte attributes are absent and remain
+blank. General stall fields and the required instruction/count/register fields
+agree. Preserve capture-reader identity and raw diagnostics; neither absent
+fields nor zero samples establish zero latency. This is one more reason not
+to silently substitute a newer reader and mix its stall evidence into the
+old capture's tables. The exact site v2.0.0 rule run still requires the user's
+offline confirmation; failure must remain INCOMPLETE, never a device PASS.

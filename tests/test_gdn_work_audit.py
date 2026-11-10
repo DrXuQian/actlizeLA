@@ -1,6 +1,7 @@
 """Work/inventory negatives; synthetic counters are never device evidence."""
 import copy
 import csv
+import importlib.util
 import io
 import json
 from pathlib import Path
@@ -318,3 +319,127 @@ def test_cli_failures_cannot_become_empty_success(tmp_path, monkeypatch, plant):
     monkeypatch.setattr(exporter.subprocess, "run", run)
     with pytest.raises((ValueError, RuntimeError)):
         exporter.export_page(["acu"], Path("existing.acurep"), "source", tmp_path / "page.csv", {})
+
+
+def test_old_cli_identical_metric_pages_are_not_native_instructions():
+    # Uploaded9940b34b: raw/source/details were byte-identical aggregate rows.
+    fields, rows, kernels = csv_rows()
+    pages = {p: encode_csv(fields, rows) for p in ("raw", "source", "details")}
+    assert len(set(pages.values())) == 1
+    with pytest.raises(ValueError, match="metric rows are not native instructions"):
+        exporter.source_counts(pages["source"], kernels)
+
+
+def native_rule_fixture(tmp_path, monkeypatch, *, modern=False, broken=False):
+    """Run the actual embedded rule with a fake native context; no SDK/device."""
+    path = tmp_path / "native.csv"
+    names = SimpleNamespace(NameBase_DEMANGLED=1, NameBase_MANGLED=2)
+    metrics = {
+        "ppu__time_duration.sum": SimpleNamespace(has_value=lambda: True, value=lambda: 4200., unit=lambda: "nsecond"),
+        "captured_counter.sum": SimpleNamespace(has_value=lambda: True, value=lambda: 1234., unit=lambda: "inst"),
+    }
+    insn = SimpleNamespace(address=256, function_id=8675309, sass_code="v.mma.f32.bf16.m16n16k16 vreg0",
+                           warp_executed_count=8, thread_executed_count=256)
+    helper = SimpleNamespace(address=512, function_id=123, sass_code="s.wait 0x0",
+                             warp_executed_count=4, thread_executed_count=128)
+    native = {256: insn, 512: helper}
+    def action(i):
+        return SimpleNamespace(
+            sass=lambda: {} if broken and i == 1 else native,
+            functions=lambda: {8675309: "kernel", 123: "helper"},
+            name=lambda base=0: ("kernel", "kernel(int)", "_Zkernel_i")[base],
+            metric_by_name=lambda key: metrics[key], capture_sequence_id=lambda: i,
+            grid_size=lambda: "32,1,1", block_size=lambda: "128,1,1")
+    context = SimpleNamespace(num_ranges=lambda: 2, range_by_idx=lambda i: SimpleNamespace(
+        num_actions=lambda: 1, action_by_idx=lambda j: action(i)))
+    module = SimpleNamespace(get_output_file_path=lambda h: str(path), get_context=lambda h: context,
+                             IAction=names if modern else SimpleNamespace(NameBase=names))
+    monkeypatch.setitem(sys.modules, "HgRules", module)
+    monkeypatch.setenv("ACTLIZE_ACU_INSTRUCTION_METRIC", "captured_counter.sum")
+    spec = importlib.util.spec_from_file_location("test_embedded_work_rule", ROOT / "tools/acu_work_rule.py")
+    rule = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rule)
+    kernels = [dict(id=str(i), kernel="kernel(int)", grid="(32,1,1)", block="(128,1,1)", us=4.2) for i in range(2)]
+    counts = [dict(kernel="kernel(int)", count=1234) for i in range(2)]
+    return rule, path, kernels, counts
+
+
+@pytest.mark.parametrize("modern", [False, True])
+def test_embedded_rule_old_and_new_name_api_all_actions_helpers_and_blank_optional(tmp_path, monkeypatch, modern):
+    rule, path, kernels, counts = native_rule_fixture(tmp_path, monkeypatch, modern=modern)
+    rule.apply(None)
+    groups = exporter.rule_counts(path, kernels, counts, "captured_counter.sum")
+    assert set(groups) == {"0", "1"}
+    assert all(g["pc_warp_executions"] == 12 for g in groups.values())
+    assert all(g["functions"] == ["helper", "kernel"] for g in groups.values())
+    rows = list(csv.DictReader(path.open()))
+    assert len(rows) == 4 and rows[0]["Function Id"] == "8675309"
+    assert rows[0]["achieved_access_data_bytes"] == rows[0]["stall_total"] == ""
+
+
+@pytest.mark.parametrize("plant", ["no-marker", "denominator", "dropped-row", "grid", "symbol", "duration", "unit", "count", "binding"])
+def test_rule_output_cannot_hide_partial_or_changed_native_data(tmp_path, monkeypatch, plant):
+    rule, path, kernels, counts = native_rule_fixture(tmp_path, monkeypatch)
+    rule.apply(None)
+    marker = Path(str(path) + ".complete")
+    rows = list(csv.DictReader(path.open()))
+    fields = list(rows[0])
+    if plant == "no-marker":
+        marker.unlink()
+    elif plant == "denominator":
+        marker.write_text("1,4\n")
+    elif plant == "dropped-row":
+        rows.pop()
+    else:
+        label, value = {
+            "grid": ("Grid Size", "64,1,1"), "symbol": ("Kernel Name", "other(int)"),
+            "duration": ("Duration", "4201"), "unit": ("Duration Unit", "cycle"),
+            "count": ("Aggregate Instructions", "1235"), "binding": ("Instruction Metric", "other.sum"),
+        }[plant]
+        rows[0][label] = value
+    path.write_text(encode_csv(fields, rows))
+    with pytest.raises(ValueError):
+        exporter.rule_counts(path, kernels, counts, "captured_counter.sum")
+
+
+def test_rule_failure_after_valid_action_does_not_publish_completion(tmp_path, monkeypatch):
+    rule, path, kernels, counts = native_rule_fixture(tmp_path, monkeypatch, broken=True)
+    with pytest.raises(ValueError, match="missing native"):
+        rule.apply(None)
+    assert path.is_file() and not Path(str(path) + ".complete").exists()
+    with pytest.raises(ValueError, match="did not complete"):
+        exporter.rule_counts(path, kernels, counts, "captured_counter.sum")
+
+
+@pytest.mark.parametrize("swallowed_error", [False, True])
+def test_native_export_is_offline_and_rejects_rc0_rule_failure(tmp_path, monkeypatch, swallowed_error):
+    rule, path, kernels, counts = native_rule_fixture(tmp_path, monkeypatch)
+    def run(command, **kwargs):
+        assert command == ["acu", "--section-folder", "sections", "--import", "existing.acurep",
+                           "--stats-rule", str(ROOT / "tools/acu_work_rule.py"), "--stats-rule-output", str(path)]
+        assert kwargs["env"]["ACTLIZE_ACU_INSTRUCTION_METRIC"] == "captured_counter.sum"
+        if swallowed_error:
+            kwargs["stdout"].write("[Asight]: load python script failed\n")
+        else:
+            rule.apply(None)
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(exporter.subprocess, "run", run)
+    if swallowed_error:
+        with pytest.raises(ValueError, match="load python script failed"):
+            exporter.export_rule(["acu", "--section-folder", "sections"], Path("existing.acurep"),
+                                 path, {}, kernels, counts, "captured_counter.sum")
+    else:
+        assert len(exporter.export_rule(["acu", "--section-folder", "sections"], Path("existing.acurep"),
+                                       path, {}, kernels, counts, "captured_counter.sum")) == 2
+
+
+def test_existing_native_evidence_is_not_overwritten(tmp_path, monkeypatch):
+    rule, path, kernels, counts = native_rule_fixture(tmp_path, monkeypatch)
+    receipt = path.with_suffix(".command.json")
+    receipt.write_text("original identity")
+    def unexpected(*args, **kwargs):
+        raise AssertionError("must reject before running the CLI")
+    monkeypatch.setattr(exporter.subprocess, "run", unexpected)
+    with pytest.raises(ValueError, match="already exists"):
+        exporter.export_rule(["acu"], Path("existing.acurep"), path, {}, kernels, counts, "captured_counter.sum")
+    assert receipt.read_text() == "original identity"

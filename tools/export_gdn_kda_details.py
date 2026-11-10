@@ -6,8 +6,10 @@ The box path needs no acu_report Python API, SDK change, build or GPU execution.
 import argparse
 import csv
 from datetime import datetime, timezone
+from decimal import Decimal
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -66,14 +68,14 @@ def source_counts(text, kernels):
     """Keep every PC; raw CLI columns remain in the accompanying CSV.
 
     In ACU's source CSV, Range Id identifies a captured action (not the API's
-    context-range index). Function Id is a CLI ordinal, not the API's symbol
-    hash. Preserve those namespaces; bind actions to the separately checked raw
-    page and report hash. Helper functions are included, not silently filtered.
+    context-range index). Function Id is a source-page ordinal or, for our
+    embedded rule, the native function ID. Do not mix those namespaces. Bind
+    actions to the checked raw page/report hash; retain all helper functions.
     """
     lines = text.splitlines()
     start = next((i for i,line in enumerate(lines) if line.startswith('"Range Id",')), None)
     if start is None:
-        raise ValueError("ACU source page lacks the native PC table")
+        raise ValueError("ACU source page lacks the native PC table; metric rows are not native instructions")
     rows = csv.DictReader(io.StringIO("\n".join(lines[start:])))
     required = {"Range Id", "Function Name", "Function Id", "Address", "Source",
                 "Instructions Executed", "Thread Instructions Executed"}
@@ -114,6 +116,59 @@ def source_counts(text, kernels):
     return groups
 
 
+def rule_counts(path, kernels, instructions, metric_id):
+    """A rule can fail with ACU rc0: require completion and original bindings."""
+    marker = Path(str(path) + ".complete")
+    if not marker.is_file():
+        raise ValueError("ACU native rule did not complete; partial CSV/rc0 is not success")
+    text = path.read_text()
+    groups = source_counts(text, kernels)
+    denominator = f"{len(kernels)},{sum(g['static_pcs'] for g in groups.values())}\n"
+    if marker.read_text() != denominator:
+        raise ValueError("native rule completion denominator differs from exported actions/PCs")
+    expected = {str(k["id"]): (k, c) for k, c in zip(kernels, instructions)}
+    if len(instructions) != len(kernels):
+        raise ValueError("native rule instruction denominator changed")
+    factors = {"nsecond": .001, "usecond": 1., "msecond": 1000., "second": 1000000.}
+    shape = lambda s: tuple(int(x.strip()) for x in s.strip("() ").split(","))
+    for row in csv.DictReader(io.StringIO(text)):
+        k, c = expected[row["Range Id"]]
+        if (row["Kernel Name"] != k["kernel"] or not row["Kernel Mangled Name"]
+                or shape(row["Grid Size"]) != shape(k["grid"])
+                or shape(row["Block Size"]) != shape(k["block"])):
+            raise ValueError("native rule symbol/geometry differs from captured CSV")
+        unit = row["Duration Unit"]
+        if (unit not in factors or not math.isclose(float(row["Duration"]) * factors[unit],
+                                                   k["us"], rel_tol=1e-9, abs_tol=1e-5)):
+            raise ValueError("native rule duration differs from captured CSV")
+        if (c["kernel"] != k["kernel"] or row["Instruction Metric"] != metric_id
+                or row["Instruction Unit"] != "inst"
+                or Decimal(row["Aggregate Instructions"]) != c["count"]):
+            raise ValueError("native rule instruction count differs from captured CSV")
+    return groups
+
+
+def export_rule(prefix, report, destination, env, kernels, instructions, metric_id):
+    rule = ROOT / "tools/acu_work_rule.py"
+    command = [*prefix, "--import", str(report), "--stats-rule", str(rule),
+               "--stats-rule-output", str(destination)]
+    log = destination.with_suffix(".log")
+    receipt = destination.with_suffix(".command.json")
+    # Never reuse a completed result from another invocation.
+    if any(p.exists() for p in (destination, Path(str(destination) + ".complete"), log, receipt)):
+        raise ValueError("native export destination already exists")
+    receipt.write_text(json.dumps(command) + "\n")
+    with log.open("x") as output:
+        process = subprocess.run(command, env=dict(env, ACTLIZE_ACU_INSTRUCTION_METRIC=metric_id),
+                                 stdout=output, stderr=subprocess.STDOUT, timeout=180)
+    if process.returncode or "Error parsing text-format HG.Profiler.ProfilerSection" in log.read_text(errors="replace"):
+        raise RuntimeError(f"ACU offline native rule rc={process.returncode}; see {log}\n{log.read_text()[-3000:]}")
+    try:
+        return rule_counts(destination, kernels, instructions, metric_id)
+    except Exception as error:
+        raise ValueError(f"{error}; see {log}\n{log.read_text()[-3000:]}") from error
+
+
 def export_page(prefix, report, page, destination, env):
     """Only --import; no executable-to-profile or device-query option exists here."""
     if page not in ("raw", "source", "details"):
@@ -141,11 +196,12 @@ def main():
     if not out.is_relative_to(Path("/workspace")) or out == Path("/workspace"):
         p.error("use a new dedicated /workspace output directory")
     out.mkdir(parents=True, exist_ok=False)
-    status = dict(status="INCOMPLETE", created_utc=stamp, exports=[], errors=[], backend="capture-cli-import",
+    status = dict(status="INCOMPLETE", created_utc=stamp, exports=[], errors=[], backend="capture-cli-stats-rule",
                   scope="offline opcode/PC/traffic evidence; no compilation, device query or GPU launch",
                   selection="all four geometries, g=-0.1, repeat0, all three roles; not fastest selection",
                   count_scope="source PC warp executions; do not equate to aggregate Executed Instructions",
-                  source_locations="native PCs; CLI does not promise C++ source-line correlation")
+                  source_locations="native PCs; absent optional diagnostics are blank, not zero",
+                  function_id_namespace="native HgRules function ID, not source-page CLI ordinal")
     try:
         evidence = a.run.resolve(strict=True) / "evidence"
         source = evidence / "summary.json"
@@ -157,7 +213,7 @@ def main():
         status.update(source_run=str(a.run.resolve()), source_summary_sha256=sha(source),
                       captured_source_sha=summary["source_sha"], candidate=summary["candidate"], profiler=layout,
                       exporter_files={n: sha(ROOT / "tools" / n) for n in
-                                      ("export_gdn_kda_details.py", "gdn_kda_contract.py", "acu_installation.py")})
+                                      ("export_gdn_kda_details.py", "acu_work_rule.py", "gdn_kda_contract.py", "acu_installation.py")})
         (out / "captured-summary.json").write_bytes(source.read_bytes())
         status["instruction_metric_id"] = instruction_metric_id(layout)
         prefix = [layout["executable"], "--section-folder", layout["sections"]]
@@ -179,8 +235,9 @@ def main():
                 raise ValueError("report SHA256 differs from captured receipt")
             target = out / cell
             target.mkdir(exist_ok=True)
-            pages = {page: target / f"{stem}-{page}.csv" for page in ("raw", "source", "details")}
-            print(f"[GDN work export] {cell} {role} repeat0: ACU --import only; Python API not required", flush=True)
+            pages = {page: target / f"{stem}-{page}.csv" for page in ("raw", "details")}
+            print(f"[GDN work export] {cell} {role} repeat0: ACU --import + embedded native rule; "
+                  "external Python API not required", flush=True)
             for page, path in pages.items():
                 export_page(prefix, report, page, path, env)
             raw = pages["raw"].read_text()
@@ -188,7 +245,9 @@ def main():
             if (decoded != observed["kernels"]
                     or instruction_rows(raw, decoded, status["instruction_metric_id"]) != counts):
                 raise ValueError("re-imported timing/instructions differ from captured CSV")
-            native = source_counts(pages["source"].read_text(), decoded)
+            pages["native"] = target / f"{stem}-native.csv"
+            native = export_rule(prefix, report, pages["native"], env, decoded, counts, status["instruction_metric_id"])
+            pages["complete"] = Path(str(pages["native"]) + ".complete")
             if sha(report) != item["capture"]["report_sha256"]:
                 raise ValueError("original report changed during import")
             status["exports"].append(dict(cell=cell, role=role, repeat=repeat,
@@ -196,6 +255,8 @@ def main():
                 report_sha256=item["capture"]["report_sha256"], actions=native))
         if profiler_layout(a.acu) != layout or sha(source) != status["source_summary_sha256"]:
             raise ValueError("capture manifest or ACU installation changed")
+        if any(sha(ROOT / "tools" / name) != digest for name, digest in status["exporter_files"].items()):
+            raise ValueError("exporter or native rule changed during export")
         if len(status["exports"]) != 12:
             raise ValueError("incomplete diagnostic export denominator")
         status["status"] = "OFFLINE_EXPORTED"
