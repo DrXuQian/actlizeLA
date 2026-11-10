@@ -12,6 +12,12 @@ work; only then investigate warp/grid/resource parallelism. This is a
 diagnostic order, not a claim that minimizing instructions always minimizes
 latency. No kernel or default selection was changed by this audit.
 
+**2026-11-10 native evidence is now complete. No further export/upload is
+needed for this work ledger.** Section 5 identifies a software BF16 conversion
+fallback accounting for42.6–44.0% of default native PC executions. This is
+not excess GEMM arithmetic. Section 4 retains the historical exporter failures
+and their corrections; its requests to re-export have been satisfied.
+
 ## 1. Measured executed instructions: approximately twice FLA
 
 `dev/ppu/zw810_fla_kda/analyze_work.py` revalidates the eight-cell denominator,
@@ -259,3 +265,157 @@ This upload stops before the native rule and contains no FLA detail. It closes
 the formatting diagnosis, **not** per-opcode attribution or another performance
 comparison. Continue the same offline command against existing reports; there
 is no need for a new GPU capture.
+
+## 5. Completed native ledger: a compiler-version guard selects software BF16
+
+Returned archive SHA256:
+`f782633493ff326e9eb9ed28db6578d59b9c7359b26b943e79a4472919bff8fd`.
+It contains12/12 selected exports,60 captured actions,74749 static PC rows
+and150 files. All bound file hashes, original report receipts, action inventory,
+grid/block, aggregate counts and original-precision duration checks pass.
+The source manifest SHA256 remains
+`ad59ceb5e2964f2f23efd478f25e676d1bfa56e8f2f1fd339099991ce6a81697`.
+This is offline analysis of the existing source38e8e91 captures, not new
+GPU execution or a replacement for the90 original timing samples.
+
+Transport note: the uploaded2413258B file contains a complete, CRC-valid
+1730917B gzip member followed by682341 uninterpreted bytes. The original is
+preserved unchanged. The first member has all150 expected regular files,
+including the complete summary and all bound hashes; no unsafe tar paths or
+links. The extra bytes are not evidence and do not require another upload.
+The original large reports remain on box; their receipt hashes, not local
+rehashed copies, bind this small export.
+
+Reproducer: `dev/ppu/zw810_fla_kda/analyze_native_work.py` consumes the extracted
+offline export and rechecks its12-report denominator, hashes, full native
+completion markers and original captures before producing `native-work.json`.
+The compact60-action ledger is retained in
+`dev/ppu/zw810_fla_kda/results/native-f7826334.json`; it retains both metric
+families, category totals, MMA counts and software-conversion denominators.
+The executable reader is PATH-resolved SDK2.2.1 ACU hash9e5de950; the old
+capture-reader identity remains separately recorded. Source locations in this
+bundle are `<invalid>`: the attribution below uses actual operands plus pinned
+source and an isolated compiler probe, not invented source-line bindings.
+
+### 5.1 Measured MMA work closes the mathematical ledger
+
+At B1/T2048/Hk16/Hv32, C64, K=V128, g=-0.1, repeat0:
+
+| Work | Default | TF32x1 candidate | FLA |
+|---|---:|---:|---:|
+| Solve BF16 m16n16k16 | 81,920 | 81,920 | 81,920 |
+| Solve TF32 m16n16k8 | 98,304 | 32,768 | 32,768 |
+| State-equivalent BF16 m16n16k16 | 655,360 | 655,360 | 786,432 |
+| Output BF16 m16n16k16 | 524,288 | 524,288 | 524,288 |
+
+FLA state-equivalent includes262144 W/U +524288 recurrent MMA. Per chunk-head,
+the BF16 counts are80 KKT,640 residual-state versus768 FLA W/U+state, and512
+output on both sides. These ratios hold at all four returned geometries.
+No repeated output QK or duplicated mathematical V panels explains the gap.
+The default's extra65536 TF32 MMAs are real compensation work, already isolated
+by the prior TF32x1 candidate; that candidate does not remove the BF16 fallback.
+
+### 5.2 Do not mix two executed-instruction metrics
+
+The following are **sums of native per-PC warp executions**, including every
+kernel and both FLA fills. They are not `pu__inst_executed.sum` from Section1.
+
+| T/Hv | Default PC sum | TF32x1 PC sum | FLA PC sum | Default software-BF16 core | Share of default |
+|---|---:|---:|---:|---:|---:|
+| 2048/32 | 64,577,664 | 63,737,984 | 37,192,704 | 27,525,120 | 42.6% |
+| 2048/48 | 94,580,928 | 93,361,344 | 54,847,488 | 41,287,680 | 43.7% |
+| 8192/32 | 250,200,192 | 246,947,968 | 147,336,192 | 110,100,480 | 44.0% |
+| 8192/48 | 375,300,288 | 370,421,952 | 217,532,928 | 165,150,720 | 44.0% |
+
+For2048/32 the default aggregate counter is75,708,544, not64,577,664.
+FLA's two measures happen to agree here; ours do not. Preserve both. We do
+not claim an exact hardware explanation for this counter difference or charge
+the difference to missing PCs: all action/function/PC completion checks pass.
+
+### 5.3 These masks implement rounding, not address generation
+
+The pinned actlize423253c header `include/cutlass/bfloat16.h:120` selects native
+conversion only under:
+
+```cpp
+#if defined(__HGGC_ARCH__) && (__HGGC_ARCH__ >= 100) && (__HGGCCC_VER_MAJOR__ >= 11)
+```
+
+The local HGCC2.2.1 device pass reports `__HGGC_ARCH__=100` and
+`__HGGCCC_VER_MAJOR__=2`. Thus the CUDA-style major-version threshold selects
+the **software** constructor. This is a compiler-version-family guard problem,
+not absent PPU BF16 hardware. A compile-only probe using the unmodified pinned
+header reproduces the same15-operation core; the same probe's explicit
+`ppu.cvt.rtte.bf16.f32` emits one `v.cnvt.bf16.f32.rtte`. No device ran.
+The locally runtime-patched hgcc executable hash differs from the box receipt;
+its diagnostic is a local reproduction, not an assertion that their entire
+toolchains are byte-identical. The actual box PC stream independently proves
+the software branch ran.
+The reproducible source is `dev/ppu/zw810_fla_kda/bf16_lowering_probe.cu`, SHA256
+`517b5119807734721618e225acefd340de5b07dfbfbcc583a96333e781c27c07`.
+The pinned header SHA256 is
+`ca917597bcaf0b522f3d034ec36a333728a4e92883dee531ab5e14d67b56c8df`.
+
+For example, state starts the repeated sequence at nativePC0x418119e0:
+mask0x7f800000 checks exponent; mask0x7fff checks sticky bits; mask0x18000
+checks rounding/retained LSB; add0x10000 supplies a rounding increment.
+Fifteen executed mask/compare/select/execution-mask operations implement the
+finite-input core. The later right shift, store, waits and constant moves are
+**not** charged to those15; their work remains elsewhere in the ledger.
+The special-value branch has zero active executions in this fixture, but must
+still be validated before replacing the constructor. FLA directly emits
+scalar `v.cnvt.bf16.f32.rtte` and packed `v.pcnvt.bf16x2`.
+
+| Default stage,2048/32 | Logical BF16 results per chunk-head | Conversion warp executions | Measured15-op core instructions |
+|---|---:|---:|---:|
+| Solve inverse publication | 4,096 | 131,072 | 1,966,080 |
+| State: H snapshot + residual + Vnew + gated Vnew | 16,384 +8,192 +8,192 +8,192 | 1,310,720 | 19,660,800 |
+| Output: attention + final output | 4,096 +8,192 | 393,216 | 5,898,240 |
+| Total | 57,344 | 1,835,008 | 27,525,120 |
+
+There are1024 chunk-heads; logical scalar results /32 independently reproduces
+the dynamic conversion counts. The parser requires the complete instruction
+multiset, rounding literals, equal execution counts and non-overlapping PCs,
+then checks this independent logical denominator. It does not call every
+`and`, `cmp`, `mov` or `emsk` a conversion.
+
+The software core alone contributes5,505,024 `v.and`,3,670,016 each of
+`v.cmp.ne`, `s.lop.emsk`, `s.xor`, and1,835,008 each of `v.cmp.gt.i16`,
+`v.cmp.eq`, `s.or`, `v.add.i32`, `s.and`, `v.csel`. This explains the dominant
+mask/compare excess concretely. It does **not** explain every `s.mov` or
+`v.mov.v2s`: e.g. full-call vector-to-scalar transfers are1,607,680 versus
+FLA512. Those require a separate operand/descriptor/control attribution and
+are not charged to this conversion core.
+
+### 5.4 Next isolated change, and what is not promised
+
+Fix the BF16 conversion selection **before** changing grids, warps, chunk size
+or recurrence. Preserve all rounding locations, layouts, mathematical products,
+global consumers and source order. Start with a narrowly scoped PPU conversion
+adapter/candidate; do not globally fake `__HGGCCC_VER_MAJOR__=11` to activate
+unreviewed code elsewhere in the dependency. A later actlize guard correction
+needs its own target/SDK coverage.
+
+A conservative instruction-only counterfactual replaces the15-op core with
+one native scalar conversion, leaving shifts/stores/setup untouched. For2048/32
+that removes25,690,112 PC executions from the default and gives38,887,552 versus
+FLA37,192,704 (1.046x). This is **not** a compiled candidate count, latency
+prediction or evidence that FLA has been beaten. Real compilation can change
+lifetimes/scheduling/resources, and necessary memory/sync work remains.
+
+Before a box handoff: compile the exact bodies, require native conversions and
+no software signatures; retain the old branch as control; verify BF16 finite
+ties/signs/subnormals and the NaN/Inf contract, plus all existing recurrence
+and RAW-BIT delivery gates. On box compare complete calls across the registered
+eight cells, not just one kernel; preserve the Hv48/T8192 winner. User owns that
+device iteration. This audit changes no kernel, routing or benchmark thresholds.
+
+Attribution negatives mutate a rounding-mask bit, the increment, an operation,
+the path count or closing mask. Each must fail. Interleaved stores/conversions
+remain outside the15-op charge, and native BF16 instructions do not match the
+software signature. The source/header/probe identities and raw operands remain
+available under the task's `work-detail-upload/` evidence directory.
+Local scoped regression:286 tests PASS, including9 new attribution tests;
+log `work-detail-upload/tests-native-final.log`. This is not a claim that the
+entire repository suite is green: the previously recorded solve-static
+source-equality failure remains out of this scope and was not weakened.
