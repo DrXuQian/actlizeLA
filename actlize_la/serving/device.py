@@ -2,13 +2,12 @@
 
 import argparse
 import json
-import re
+from ..device import is_ppu_device_name, ppu_target_from_name
 
 
 def validate_device_target(target, name, capability=None):
     """Fail on mismatches/unknown PPU families; never retarget a binary."""
-    family = re.search(r"ZW(810|890)(?![0-9])", name.upper())
-    measured = {"810": "ppu10", "890": "ppu15"}.get(family[1]) if family else None
+    measured = ppu_target_from_name(name)
     if target in ("ppu10", "ppu15"):
         if measured != target:
             hint = (
@@ -20,7 +19,7 @@ def validate_device_target(target, name, capability=None):
                 f"device/target mismatch: name={name!r}, target={target}{hint}"
             )
     elif target == "cuda_sm120":
-        if measured is not None or "PPU" in name.upper() or capability != (12, 0):
+        if is_ppu_device_name(name) or capability != (12, 0):
             raise ValueError(
                 f"SM120 target requires native SM120 NVIDIA, got {name!r} capability={capability}"
             )

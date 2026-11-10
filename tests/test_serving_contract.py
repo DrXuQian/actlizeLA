@@ -25,14 +25,25 @@ def test_target_device_mismatch_before_launch():
     from actlize_la.serving.device import validate_device_target
 
     validate_device_target("ppu10", "PPU-ZW810")
+    validate_device_target("ppu10", "PPU-ZW810E")
     validate_device_target("ppu15", "PPU-ZW890")
+    validate_device_target("ppu15", "ZW890")
+    validate_device_target("ppu15", "ZW-M890P", (8, 9))
     validate_device_target("cuda_sm120", "RTX PRO 6000 Blackwell", (12, 0))
     for target, name, cap in (
         ("ppu15", "PPU-ZW810", None),
         ("ppu10", "PPU-ZW890", None),
+        ("ppu10", "ZW-M890P", (8, 9)),
         ("ppu15", "unknown PPU", None),
+        ("ppu15", "ZW-M890P-extra", (8, 9)),
+        ("ppu15", "ZW-M890P0", (8, 9)),
+        ("ppu15", "ZW-M890", (8, 9)),
+        ("ppu15", "ZW890-extra", (8, 9)),
+        ("ppu15", "NVIDIA RTX 4090", (8, 9)),
         ("ppu10", "ZW8100", None),
         ("cuda_sm120", "PPU-ZW810", (12, 0)),
+        ("cuda_sm120", "ZW-M890P", (12, 0)),
+        ("cuda_sm120", "ZW-M890P-unknown", (12, 0)),
         ("cuda_sm120", "H800", (9, 0)),
     ):
         with pytest.raises(ValueError):

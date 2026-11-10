@@ -140,7 +140,9 @@ class Ppu15Contract(unittest.TestCase):
         extension = work / 'host-only-never-loaded.so'
         extension.write_bytes(b'HOST_ONLY_COMMAND_CONTRACT_NOT_A_DEVICE_IMAGE')
         argv = ['test_ppu15_device.py', '--extension', str(extension), '--out', str(work), '--no-perf']
-        props = SimpleNamespace(name='PPU-ZW890', multi_processor_count=1)
+        # The actual runtime alias lacks a PPU prefix; do not use a fixture
+        # name that hides the real device-admission regression.
+        props = SimpleNamespace(name='ZW-M890P', multi_processor_count=39)
         with patch.object(sys, 'argv', argv), patch.dict(os.environ, {}, clear=False), patch.object(
                 device_test.torch.cuda, 'set_device'), patch.object(
                 device_test.torch.cuda, 'get_device_properties', return_value=props), patch.object(

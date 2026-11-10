@@ -5,6 +5,34 @@ from functools import lru_cache
 from .backends.registry import require_backend
 
 
+# Runtime product names, not CUDA compatibility capabilities. Keep admission
+# exact: a similarly named future device is not evidence for either backend.
+_PPU_TARGET_NAMES = {
+    "ZW810": "ppu10",
+    "PPU-ZW810": "ppu10",
+    "ZW810E": "ppu10",
+    "PPU-ZW810E": "ppu10",
+    "ZW890": "ppu15",
+    "PPU-ZW890": "ppu15",
+    "ZW-M890P": "ppu15",
+}
+
+
+def ppu_target_from_name(name):
+    """Known admission alias only; never infer a generation from major/minor."""
+    return _PPU_TARGET_NAMES.get(name.strip().upper())
+
+
+def is_ppu_device_name(name):
+    """Exclude PPU names from NVIDIA routing, including unknown ZW products.
+
+    This broader rejection predicate does not admit an unknown PPU target.
+    ZW-M890P has no 'PPU' prefix and reports compatibility capability (8, 9).
+    """
+    normalized = name.strip().upper()
+    return "PPU" in normalized or normalized.startswith("ZW")
+
+
 @dataclass(frozen=True)
 class DeviceProfile:
     name: str

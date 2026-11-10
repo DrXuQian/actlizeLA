@@ -107,7 +107,10 @@ class Automatic(unittest.TestCase):
                       (1, 2048, 16, 32, 64, 128)):
             with self.assertRaises(ValueError):
                 select(shape, H800)
-        for profile in (DeviceProfile("PPU", 72, (9, 0)), DeviceProfile("A800", 108, (8, 0))):
+        for profile in (DeviceProfile("PPU", 72, (9, 0)),
+                        DeviceProfile("ZW-M890P", 39, (9, 0)),
+                        DeviceProfile("ZW-M890P-unknown", 39, (9, 0)),
+                        DeviceProfile("A800", 108, (8, 0))):
             with self.assertRaises(ValueError):
                 select((1, 2048, 16, 32, 128, 128), profile)
 
@@ -142,9 +145,18 @@ class Automatic(unittest.TestCase):
 
     def test_auto_does_not_guess_ppu_generation_or_take_legacy_configuration(self):
         args = tensors((1, 2048, 16, 32))
-        with patch("actlize_la.sm90_policy.device_profile", return_value=DeviceProfile("PPU-ZW810", 72, (9, 0))):
-            with self.assertRaisesRegex(ValueError, "PPU requires"):
-                gdn_forward(*args)
+        for name, capability in (("PPU-ZW810", (9, 0)), ("ZW-M890P", (8, 9)),
+                                 ("ZW-M890P", (9, 0)), ("ZW-M890P-unknown", (8, 9))):
+            with self.subTest(name=name, capability=capability), patch(
+                "actlize_la.sm90_policy.device_profile",
+                return_value=DeviceProfile(name, 39, capability)
+            ), patch("actlize_la.gdn_interface.import_module") as load:
+                with self.assertRaisesRegex(ValueError, "PPU requires"):
+                    gdn_forward(*args)
+                load.assert_not_called()
+        # Identical compatibility numbers alone must not change NVIDIA routing.
+        with patch("actlize_la.sm90_policy.device_profile", return_value=DeviceProfile("NVIDIA RTX 4090", 128, (8, 9))):
+            self.assertEqual(tensor_backend(args[0]), "cuda_sm80")
         with self.assertRaisesRegex(ValueError, "auto selects"):
             gdn_forward(*args, configuration="value64")
 

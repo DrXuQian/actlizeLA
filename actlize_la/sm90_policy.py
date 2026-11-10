@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from .device import DeviceProfile, device_profile, get_device_profile, validate_profile_options
+from .device import DeviceProfile, device_profile, get_device_profile, is_ppu_device_name, validate_profile_options
 
 POLICY_FILE = Path(__file__).with_suffix(".json")
 
@@ -38,7 +38,7 @@ def tensor_backend(q):
     if device is None or device.type != "cuda":
         raise ValueError("automatic GDN requires a CUDA/PPU device tensor")
     profile = device_profile(device.index)
-    if "PPU" in profile.name.upper():
+    if is_ppu_device_name(profile.name):
         raise ValueError("PPU requires an explicit backend; do not guess its hardware generation")
     if profile.capability == (9, 0):
         return "cuda_sm90"
@@ -55,7 +55,7 @@ def select(shape, profile):
     if shape[3] % shape[2] or tuple(shape[4:]) != tuple(data["head_dimensions"]):
         raise ValueError("SM90 requires integral GVA and K=V=128")
     expected = data["device"]
-    if profile.capability != tuple(expected["capability"]) or "PPU" in profile.name.upper():
+    if profile.capability != tuple(expected["capability"]) or is_ppu_device_name(profile.name):
         raise ValueError("SM90 shape policy cannot be applied to another execution target")
     if profile.source == "configured":
         return Selection(data["default"], "perfmodel-unmeasured-default", data["id"])

@@ -11,6 +11,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from actlize_la import gdn_forward
+from actlize_la.serving.device import validate_device_target
 from test_ppu_gdn_backend import fixture, assert_pair, digest, print_failure, MAX_RELATIVE_ERROR
 from test_ppu_wy_backend import oracle
 
@@ -136,8 +137,7 @@ def main():
     os.environ["GDN_QSA_PPU15_EXTENSION"]=str(args.extension.resolve())
     torch.set_num_threads(1); torch.cuda.set_device(0)
     props=torch.cuda.get_device_properties(0)
-    if "890" not in props.name or "PPU" not in props.name.upper():
-        raise RuntimeError(f"PPU1.5 admission requires ZW890, got {props.name}")
+    validate_device_target("ppu15", props.name)
     identity=dict(name=props.name,cu=props.multi_processor_count,torch=torch.__version__,runtime=torch.version.cuda,
                   extension=str(args.extension.resolve()),criterion=MAX_RELATIVE_ERROR)
     print("[ppu15 identity] "+json.dumps(identity),flush=True)
