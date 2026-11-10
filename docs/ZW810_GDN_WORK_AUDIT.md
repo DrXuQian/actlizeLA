@@ -120,26 +120,49 @@ python tools/export_gdn_kda_details.py \
   --acu /sim/eec/shared/junfu.qx/asight/bin/acu
 ```
 
-No compilation, device query, warmup or GPU launch. The script imports the
-**companion `acu_report` reader of the captured site installation**, verifies
-the original report hash, and exports all kernels in repeat0 of four geometries
+No compilation, device query, warmup or GPU launch. The script invokes the
+**same captured ACU CLI with `--import`**, verifies the original report hash,
+and exports its raw/source/details CSV pages for all kernels in repeat0 of four geometries
 at g=-0.1 for default/candidate/FLA (12 reports). Fixed repeat0 is diagnostic
 selection, not fastest-run selection or a replacement for all90 timing samples.
-Every exported native duration/symbol/grid/block is checked against its CSV.
-Missing reports/SASS/execution counts are INCOMPLETE, not zero or PASS. Missing
-source locations and absent stall samples are recorded explicitly.
+Every re-imported duration/symbol/grid/block and aggregate instruction count
+is checked against its original CSV. Source-page native PCs are checked for
+complete action coverage and execution counts. Missing reports/SASS/counts
+are INCOMPLETE, not zero or PASS. The source page provides native PCs, not a
+promise of C++ file/line correlation. No Python ACU API is required on box.
 
 The new `/workspace/actlize-la-gdn-work-details-*/results.tar.gz` contains
-compressed text: all metrics with units/instances/correlation IDs, native PC
-instructions/execution counts/live registers/source bindings/stall samples,
-and provenance. It excludes operands, binaries and original large reports.
+compressed text: raw/details metric tables, native PC instructions/execution
+counts/live registers/stall samples and provenance, plus per-action exact
+source-mnemonic counts. It excludes operands, binaries and original large reports.
 Upload only this small tar. No PPUProfiler, JIT or remote build is involved.
 
-Local validation uses an existing REAL four-kernel QUactlize report: companion
-SDK2.2.1 reader and independent CLI raw export agree on all symbols/geometries/
-durations; 2761 static PCs exported, JSON gzip135387B. This validates the reader,
-not GDN device performance or the as-yet-unreturned detail export. Reader runs
-with an isolated local matching userspace; no system runtime was replaced.
+Local validation uses an existing REAL four-kernel QUactlize report: all three
+CLI pages export successfully; an independent SDK2.2.1 Python reader agrees on
+symbols/geometries/durations/counts. All2761 native PC instructions, warp/thread
+execution counts and live-register counts agree. This validates report export,
+not GDN device performance or the as-yet-unreturned GDN detail export. Local
+testing uses isolated matching userspace; no system runtime was replaced.
 Host negatives cover changed report hash, missing cells/roles/repeats/kernels,
 changed symbol/grid/duration/unit, empty SASS, absent execution counts and
 lost metric-correlation entries. No production route changes accompany it.
+
+### Exporter correction after the returned failure
+
+The490B upload SHA256
+`b521103d604c68c506b52cc365877d6f9d15bed8b551f0e99ca6f374ab2212ab`
+contains only `INCOMPLETE / exports=[]`: the site's standalone Asight install
+does not ship `extras/python/acu_report`. The previous script incorrectly
+required that package. No GDN instruction detail was collected, and no kernel
+failed or ran during this attempted export. The mistake was our installation
+assumption, not a reason to rebuild the kernel or change the box SDK.
+
+The corrected default path uses the captured CLI only. Negative tests recreate
+the missing Python package while proving the import command contains no
+executable-to-profile/device-query arguments. Both wide raw and long metric-row
+CSV formats are supported; wide count selection comes from the captured
+`InstructionStatistics.section`, never a guessed counter name. Duplicate PCs,
+missing/extra actions, wrong symbols, empty/negative counts, no executed work,
+CLI errors and protobuf errors even with rc0 remain failures. Helpers are not
+dropped from source counts. The optional `tools/acu_report_details.py` remains
+developer-only for independent local validation, not a box dependency.

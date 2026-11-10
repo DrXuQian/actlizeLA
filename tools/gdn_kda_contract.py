@@ -1,5 +1,8 @@
 """Bounded KDA inventories; existing numerical/ACU rules stay authoritative."""
 import itertools
+import csv
+import io
+import math
 import statistics
 
 from gdn_threeway_contract import cells, geometry
@@ -18,6 +21,32 @@ EXPERIMENTS = {
                          kernels=(CORE[0], "gdn_wy_split_solve_tf32x1", *CORE[2:]),
                          option="ALA_PPU10_SOLVE_TF32X1_EXPERIMENT", checker="check_solve_tf32x1.py"),
 }
+
+INSTRUCTION_METRIC = "Executed Instructions"
+INSTRUCTION_SECTION = "Instruction Statistics"
+
+
+def instruction_rows(text, kernels, metric_id=None):
+    """One same-unit count per captured launch, including EACH FLA fill."""
+    reader = csv.DictReader(io.StringIO(text[text.index('"ID"'):]))
+    long_format = "Metric Name" in (reader.fieldnames or ())
+    if not long_format and (not metric_id or metric_id not in (reader.fieldnames or ())):
+        raise ValueError("wide CSV requires the captured instruction metric binding")
+    counts = {}
+    for row in reader:
+        if long_format and row["Metric Name"] != INSTRUCTION_METRIC:
+            continue
+        key = (row["Process ID"], row["ID"])
+        if key in counts or (long_format and (row["Section Name"] != INSTRUCTION_SECTION or row["Metric Unit"] != "inst")):
+            raise ValueError("duplicate instruction metric or changed section/unit")
+        count = float(row["Metric Value" if long_format else metric_id].replace(",", ""))
+        if not math.isfinite(count) or count <= 0 or not count.is_integer():
+            raise ValueError("instruction count must be a positive integer")
+        counts[key] = dict(kernel=row["Kernel Name"], count=int(count), grid=row["Grid Size"], block=row["Block Size"])
+    expected = {(k["process"], str(k["id"])): k["kernel"] for k in kernels}
+    if counts.keys() != expected.keys() or any(counts[k]["kernel"] != name for k, name in expected.items()):
+        raise ValueError("instruction denominator does not cover the exact full-call inventory")
+    return [counts[k] for k in expected]
 
 
 def roles(candidate="parallel-wu"):

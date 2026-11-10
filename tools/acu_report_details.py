@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Offline reader of an existing ACU report. No torch, profiler or GPU launch.
 
-Use the Python report API shipped beside the capture's ACU executable. A
-separate process contains native parser failures; never import uploaded code.
+Optional developer-side cross-check using an installed Asight report API.
+The box exporter uses ACU CLI directly and does not depend on this module.
+Never import uploaded code.
 """
 import argparse
 import gzip
@@ -37,7 +38,7 @@ def sha(path):
 def api_identity(home):
     root = Path(home).resolve(strict=True) / "extras/python/acu_report"
     if not (root / "__init__.py").is_file():
-        raise ValueError(f"companion acu_report API unavailable: {root}; no device work attempted")
+        raise ValueError(f"acu_report API unavailable: {root}; no device work attempted")
     paths = sorted(p for p in root.rglob("*") if p.is_file() and p.suffix in (".py", ".so"))
     if not any(p.suffix == ".so" for p in paths):
         raise ValueError("companion acu_report native reader missing")
@@ -131,6 +132,44 @@ def export_report(home, report, digest):
                 notes=["PC warp executions and pu__inst_executed.sum are different metrics; do not equate them",
                        "stall fields are recorded samples, not disjoint wall-time components",
                        "missing source locations/zero samples remain explicit; no new line-info capture implied"])
+
+
+def shape(text):
+    return tuple(int(x.strip()) for x in text.strip("() ").split(","))
+
+
+def check_detail(detail, expected, instructions=None, metric_id=None):
+    if detail.get("report_sha256") != expected["report_sha256"]:
+        raise ValueError("exported a different original report")
+    actions = detail["actions"]
+    if len(actions) != len(expected["kernels"]):
+        raise ValueError("detail export dropped or added a kernel (including fills)")
+    for action, original in zip(actions, expected["kernels"]):
+        names = (action["name"], action["demangled"])
+        if (original["kernel"] not in names or action["capture_id"] != int(original["id"])
+                or shape(action["grid"]) != shape(original["grid"])
+                or shape(action["block"]) != shape(original["block"])):
+            raise ValueError("detail action/symbol/geometry differs from captured CSV")
+        metric = action["metrics"].get("ppu__time_duration.sum")
+        factors = {"nsecond": .001, "usecond": 1., "msecond": 1000., "second": 1000000.}
+        if not metric or metric["unit"] not in factors or not metric["has_value"]:
+            raise ValueError("missing native duration/known unit in report API")
+        duration = float(metric["value"]) * factors[metric["unit"]]
+        if not math.isclose(duration, original["us"], rel_tol=1e-9, abs_tol=1e-5):
+            raise ValueError("native API duration differs from original CSV")
+        if not action.get("sass") or action.get("coverage", {}).get("warp_executions", 0) <= 0:
+            raise ValueError("missing SASS or execution counts, not a successful detail export")
+    if (instructions is None) != (metric_id is None):
+        raise ValueError("instruction check requires both captured counts and metric binding")
+    if instructions is not None:
+        if len(instructions) != len(actions):
+            raise ValueError("instruction comparison denominator changed")
+        for action, row in zip(actions, instructions):
+            metric = action["metrics"].get(metric_id)
+            if (row["kernel"] not in (action["name"], action["demangled"]) or not metric
+                    or not metric["has_value"] or metric["unit"] != "inst"
+                    or metric["value"] != row["count"]):
+                raise ValueError("offline reader instruction count differs from captured CSV")
 
 
 def main():

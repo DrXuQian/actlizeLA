@@ -5,9 +5,7 @@ Reads an admitted KDA archive as data, never executes uploaded source. Logical
 matrix work is a separate C64/K128/V128 source model, NOT measured MMA counts.
 """
 import argparse
-import csv
 import hashlib
-import io
 import json
 import math
 from pathlib import Path
@@ -16,9 +14,8 @@ import statistics
 from analyze_baseline import files, PHASES, phase
 import collect_serving_prefill_acu as retained
 import gdn_kda_contract as contract
+from gdn_kda_contract import instruction_rows, INSTRUCTION_METRIC as METRIC, INSTRUCTION_SECTION as SECTION
 
-METRIC = "Executed Instructions"
-SECTION = "Instruction Statistics"
 
 
 def logical_work():
@@ -50,26 +47,6 @@ def work_phase(role, name):
             return "state_equivalent"
         role = "default"
     return phase(role, name)
-
-
-def instruction_rows(text, kernels):
-    """Exactly one same-unit count for EVERY launch, including both FLA fills."""
-    reader = csv.DictReader(io.StringIO(text[text.index('"ID"'):]))
-    counts = {}
-    for row in reader:
-        if row["Metric Name"] != METRIC:
-            continue
-        key = (row["Process ID"], row["ID"])
-        if key in counts or row["Section Name"] != SECTION or row["Metric Unit"] != "inst":
-            raise ValueError("duplicate instruction metric or changed section/unit")
-        count = float(row["Metric Value"].replace(",", ""))
-        if not math.isfinite(count) or count <= 0 or not count.is_integer():
-            raise ValueError("instruction count must be a positive integer")
-        counts[key] = dict(kernel=row["Kernel Name"], count=int(count), grid=row["Grid Size"], block=row["Block Size"])
-    expected = {(k["process"], str(k["id"])): k["kernel"] for k in kernels}
-    if counts.keys() != expected.keys() or any(counts[k]["kernel"] != name for k, name in expected.items()):
-        raise ValueError("instruction denominator does not cover the exact full-call inventory")
-    return list(counts.values())
 
 
 def analyze(blob):
