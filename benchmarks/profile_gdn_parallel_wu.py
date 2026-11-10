@@ -137,6 +137,10 @@ def main():
                 if len(set(fingerprints)) != 1 or input_fingerprint(call) != canonical:
                     raise AssertionError("unstable output/state or mutated inputs")
                 arms[role] = dict(input_sha=canonical, output_sha=fingerprints[0], route=call.route, errors=errors, repeats=8)
+                if role == a.experiment and EXPERIMENTS[a.experiment].get("raw_bits"):
+                    if fingerprints[0] != arms["default"]["output_sha"]:
+                        raise AssertionError("native BF16 candidate changed output/state raw bits")
+                    record["candidate_default_raw_bits"] = "PASS"
                 if role == "fla":
                     record["fla_sources"] = save_fla_sources(a.directory / "fla-sources")
             # The opt-in object must not change the shipped four-stage default.

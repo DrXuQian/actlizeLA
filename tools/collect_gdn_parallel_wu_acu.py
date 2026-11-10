@@ -21,6 +21,8 @@ def source_identity():
     for policy in EXPERIMENTS.values():
         path = "dev/ppu/" + policy["checker"]
         files[path] = sha(ROOT / path)
+        for path in policy.get("sources", ()):
+            files[path] = sha(ROOT / path)
     for directory in ("include", "csrc", "cmake"):
         for p in sorted((ROOT / directory).rglob("*")):
             if p.is_file():
@@ -150,6 +152,10 @@ def main():
         library = build / "libactlize_la_serving.so"
         status["candidate"] = dict(library=str(library), sha256=sha(library), compiler_sha256=sha(sdk / "bin/hgcc"))
         shutil.copyfile(build / "CMakeCache.txt", evidence / "CMakeCache.txt")
+        if policy.get("generated_manifest"):
+            generated = build / policy["generated_manifest"]
+            status["generated_sources"] = json.loads(generated.read_text())
+            shutil.copyfile(generated, evidence / "generated-sources.json")
         dumper = sdk / "bin/hgobjdump"
         if not os.access(dumper, os.X_OK):
             raise ValueError("native codegen gate unavailable: hgobjdump missing from selected SDK")
@@ -157,6 +163,14 @@ def main():
         run([dumper, "--dump-resource-usage=all", library], out / "native.resources", env, console=False)
         run([sys.executable, ROOT / "dev/ppu" / policy["checker"], "--isa", out / "native.isa",
              "--resources", out / "native.resources"], evidence / "native-gate.log", env)
+        if policy.get("probe"):
+            receipt = evidence / "conversion-admission.json"
+            run([sys.executable, ROOT / "tests" / policy["probe"], "--library", library,
+                 "--receipt", receipt], evidence / "conversion-admission.log", env)
+            status["conversion_admission"] = json.loads(receipt.read_text())
+            if (status["conversion_admission"].get("status") != "PASS" or
+                    status["conversion_admission"].get("library_sha256") != status["candidate"]["sha256"]):
+                raise ValueError("native conversion device semantics not admitted")
         for cell in cells():
             key = cell["id"]
             directory = evidence / key

@@ -341,3 +341,85 @@ See [ZW810_GDN_WORK_AUDIT.md](ZW810_GDN_WORK_AUDIT.md) for the arithmetic DAG,
 same-metric full-call instruction ledger, source-proven repetitions versus
 unproved codegen attribution, and an offline existing-report export command.
 No core, geometry or default-routing source changes accompany this audit.
+
+## Round 3: conversion-only native BF16 candidate
+
+Registered before editing at parent `bd9031543171de121f9dd95faa7f617b19deb380`.
+The complete work export, archive `f7826334`, identifies the software BF16
+constructor's 15-operation finite-rounding core as 42.6–44.0% of the default's
+executed native PC instructions. That is an instruction count, not a time
+fraction. See the work audit, section 5, for the independently closed rounding
+denominator and the SDK compiler-version guard that selects software.
+
+This candidate replaces only seven scalar FP32-to-BF16 constructor sites:
+one in solve, four in state and two in output. The local adapter emits
+`ppu.cvt.rtte.bf16.f32`, retaining the same BF16 storage and conversion
+boundaries. It does not change actlize or pretend HGCC major 2 is CUDA major 11.
+The old three kernel bodies remain the source authority: an opt-in generator
+extracts their complete definitions and reversibly replaces the conversions
+and candidate names. Generated source/authority hashes accompany the bundle.
+There is no second hand-maintained algorithm or replacement public default.
+
+Retain the original TF32x3 solve, FP32 state/accumulators, native AIU/SWZL
+delivery, layouts, thread/grid geometry, inverse pitch, gates and prefix.
+Do not stack the round-2 single-TF32 candidate. The extra C ABI and CMake
+option `ALA_PPU10_NATIVE_BF16_EXPERIMENT` are opt-in. Reject tails and the
+out-of-scope value64 route. The numerical/performance denominator remains all
+eight B1/Hk16/Hv32-or-48/T2048-or-8192/g=-0.1-or-1 cells, K=V128/C64.
+
+### Local closure, not device admission
+
+Local SDK 2.2.1 compiles and links the real PPU1.0 library. The native gate
+counts the entire selected static bodies, not estimated dynamic executions:
+
+| Body | Static instructions, old → candidate | Registers | Software sites → native conversions |
+|---|---:|---:|---:|
+| Solve, 128 threads | 1496 → 1472 | 84 → 84 | 1 → 1 |
+| Solve, 256 threads | 1496 → 1471 | 84 → 84 | 1 → 1 |
+| State | 1942 → 1095 | 128 → 120 | 40 → 40 |
+| Output | 2094 → 1408 | 72 → 70 | 32 → 32 |
+
+All four have zero native stack. MMA, FP32 arithmetic, AIU, shared/global
+load/store and barrier counts remain unchanged. Removing a conversion, MMA
+or SWZL load from the exact candidate body fails the compile gate. All 36
+retained control bodies have identical native instruction sequences to the
+prior local build; this does not assert whole-DSO byte identity. Scoped host
+regression: 292 tests PASS. The separately recorded legacy solve-static
+source-equality failure is not included or hidden in that total.
+
+Evidence in task `actlize-la-zw810-fla-kda-20261109`:
+`native-bf16-build-02.log`, `native-bf16-gate.json`,
+`native-bf16-control-check.json`, `native-bf16-tests-final.log`.
+No GPU was run. Native instruction semantics and performance are **NOT_RUN**;
+static instruction savings are not a predicted speedup.
+
+### Box admission and command
+
+Before any timing, a separate conversion probe compares both retained and
+native results to an independent integer round-to-nearest-even oracle:
+458,752 FP32 patterns, covering every high16 pattern at six low16 boundaries
+plus deterministic random inputs. This includes ties, both zeros, subnormals,
+finite overflow, infinities and the retained canonical-NaN contract. A one-bit
+negative must fail. A semantic difference stops the round; do not relax it.
+
+Each full-core cell then requires eight repeated independent numerical checks,
+candidate output **and final state RAW-BIT equality to the original default**,
+unchanged public-default bits in the candidate library, and poisoned-scratch
+replay. Only admitted cells reach the existing serial, rotated 3/6-repeat
+default/candidate/FLA full-call ACU capture. Include every FLA helper/fill and
+final state as before; retain unresolved/lost cells and the eight-cell
+denominator. A conversion mismatch is not a performance observation.
+
+From the task branch on the same ZW810 box as the frozen inputs:
+
+```bash
+INPUT_RUN=/workspace/actlize-la-zw810-recheck-b810b6c7-20261109T083458Z-2075017 \
+PPU_SDK=/sim/eec/shared/junfu.qx/ppu-sdk-2.2.1-184ee6/PPU_SDK \
+DEVICE=0 JOBS=4 ACU=acu \
+bash tools/run_ppu_gdn_native_bf16_box.sh
+```
+
+Use PATH `acu`, not the obsolete absolute Asight path. The runner prints the
+complete comparison and `/workspace/actlize-la-gdn-native-bf16-.../results.tar.gz`.
+Upload that small archive; operands, binary and original reports stay on box.
+`COLLECTED` does not mean a performance win, and no outcome auto-promotes main.

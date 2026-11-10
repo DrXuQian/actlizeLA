@@ -419,3 +419,8 @@ Local scoped regression:286 tests PASS, including9 new attribution tests;
 log `work-detail-upload/tests-native-final.log`. This is not a claim that the
 entire repository suite is green: the previously recorded solve-static
 source-equality failure remains out of this scope and was not weakened.
+
+Round 3 now implements this isolated adapter and exact-body compile gates;
+see [the registered round-3 contract](ZW810_GDN_FLA_KDA.md#round-3-conversion-only-native-bf16-candidate).
+Local compile/host checks pass; device semantics and latency await the user's
+box run. The public default and this work attribution remain unchanged.

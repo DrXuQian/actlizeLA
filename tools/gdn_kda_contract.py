@@ -12,6 +12,13 @@ ROLES = ("default", "parallel-wu", "fla")
 CANDIDATE_KERNELS = CORE[:2] + ("gdn_wy_parallel_wu_materialize", "gdn_wy_parallel_wu_state") + CORE[3:]
 ENTRY = "actlize_la_ppu10_parallel_wu_forward_prepared"
 EXPERIMENTS = {
+    "native-bf16": dict(entry="actlize_la_ppu10_native_bf16_forward_prepared",
+                        configure="actlize_la_ppu10_native_bf16_configure",
+                        arithmetic="retained-residual-TF32x3-native-BF16-same-rounding",
+                        kernels=(CORE[0], "gdn_wy_native_bf16_solve", "gdn_wy_native_bf16_state", "gdn_wy_native_bf16_output"),
+                        option="ALA_PPU10_NATIVE_BF16_EXPERIMENT", checker="check_native_bf16.py",
+                        raw_bits=True, probe="native_bf16_device.py", sources=("dev/ppu/generate_native_bf16.py",),
+                        generated_manifest="native_bf16/sources.json"),
     "parallel-wu": dict(entry=ENTRY, configure="actlize_la_ppu10_parallel_wu_configure",
                         arithmetic="materialized-WU-BF16", kernels=CANDIDATE_KERNELS,
                         option="ALA_PPU10_PARALLEL_WU_EXPERIMENT", checker="check_parallel_wu.py"),
@@ -93,7 +100,8 @@ def summarize(captures, candidate="parallel-wu"):
                 target_candidate_vs_fla=target, needs_confirmation=confirm, max_relative_spread=spread,
                 rows={r: dict(median_us=statistics.median(v), min_us=min(v), max_us=max(v), samples_us=v)
                       for r, v in values.items()}, scope=("complete-core ACU kernel sums; all WU work included"
-                      if candidate == "parallel-wu" else "complete-core ACU kernel sums; single-TF32 inverse declared"))
+                      if candidate == "parallel-wu" else "complete-core ACU kernel sums; native BF16, unchanged rounding/TF32x3"
+                      if candidate == "native-bf16" else "complete-core ACU kernel sums; single-TF32 inverse declared"))
 
 
 def validate_receipt(admission, subject, role):
@@ -108,6 +116,8 @@ def validate_receipt(admission, subject, role):
             or admission.get("unchanged_public_default_bits") != "PASS"
             or set(admission.get("arms", {})) != set(selected) or role not in selected):
         raise ValueError("incomplete KDA numerical gate")
+    if EXPERIMENTS[candidate].get("raw_bits") and admission.get("candidate_default_raw_bits") != "PASS":
+        raise ValueError("native conversion candidate requires default raw-bit equality")
     if (subject.get("status") != "PASS" or subject.get("phase") != "subject" or subject.get("role") != role
             or subject.get("public_calls") != 1 or subject.get("warmup") != 0 or subject.get("verification") != "CPU"):
         raise ValueError("subject must be exactly one verified full core call")
