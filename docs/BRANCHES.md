@@ -10,6 +10,11 @@ not needed by the product. See [release validation status](releases/v0.2.2.md):
 publication does not change outstanding installed-device or Flare graph evidence
 into PASS. Performance remains a separate, deferred qualification.
 
+The subsequent mainline also includes the bounded
+[native BF16 default](PPU10_NATIVE_BF16_DEFAULT.md), with its own ZW810
+product-entry graph and RAW-BIT admission. Existing 0.2.2 wheels are unchanged:
+use a rebuilt native library or a wheel built from the updated source.
+
 Unselected experiments and their measurement records are preserved, not
 maintained as parallel development branches:
 

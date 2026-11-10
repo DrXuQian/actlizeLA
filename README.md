@@ -101,8 +101,9 @@ shapes, BF16 gates and guarded tails retain the previous implementation.
 See [native default scope and verification](docs/PPU10_NATIVE_BF16_DEFAULT.md).
 Original, scalar residual and materialized-WY
 remain explicit alternatives. Default final state is FP32, not the old
-original algorithm's BF16. Default-route numerical PASS is user-reported; the
-historical speed measurements belong to the explicit retained kernel. See
+original algorithm's BF16. The selected native BF16 scope has ZW810
+public/prepared/serving RAW-BIT and graph admission; historical performance
+and product-entry correctness remain separately recorded. See
 [PPU build/API](docs/PPU_RETAINED_PATH.md),
 [original implementation](docs/PPU_BACKEND.md) and
 [residual formulation](docs/PPU_GDN_RESIDUAL.md).
@@ -135,7 +136,7 @@ PPU1.0/PPU1.5 residual prefill with explicit state-layout conversion, and paged 
 BF16 QSA. Flare preparation bindings, workspace bounds and a box test script
 are documented in [Flare serving](docs/FLARE_SERVING.md). These operators require
 their own device admission; model routing is not changed by installing the library.
-PPU1.0 prefill uses the retained full-chunk/guarded-tail implementation, with
+PPU1.0 prefill uses the shape-selected native/retained implementation, with
 configuration outside capture and caller-owned padded workspace. The new serving
 adapter's device gate is separate from the public-default forward's numerical PASS.
 See the [0.2.2 release notes](docs/releases/v0.2.2.md) for the exact binary target,
@@ -166,7 +167,8 @@ device performance measurement.
 
 ## Provenance
 
-`main` includes the serving integration and the retained PPU1.0 default.
+`main` includes the serving integration and the admitted PPU1.0 native BF16
+default scope, with retained fallback outside that scope.
 Unselected tuning arms and their
 evidence remain available through [archive tags](docs/BRANCHES.md).
 

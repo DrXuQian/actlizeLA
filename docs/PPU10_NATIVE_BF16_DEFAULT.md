@@ -61,6 +61,32 @@ resource/argument records. The 32 retained main bodies are likewise unchanged.
 The native bodies use respectively 84/84/120/70 vector registers and zero
 stack. This is compile evidence, not a fresh product-entry device result.
 
+### Product-entry device admission
+
+Source `dd13c95a03e39654df3796ecd02a6204ac2926e5` passed the product-entry
+regression on 2026-11-10: PPU-ZW810, 72 CUs, HGCC 2.2.1-184ee6,
+PyTorch 2.9.0, runtime 13.0. The complete receipt contains:
+
+- Eight native-route cells and five retained-route controls, with no missing
+  or duplicate cells. Each passes eight public/prepared output and FP32-state
+  RAW-BIT comparisons, plus zero-state and output-only checks.
+- 104 prepared graph replays with changed inputs and no replay allocations.
+- Four serving geometries, each covering changed state slots, shortened live
+  lengths and inactive requests in one graph. State-layout round trips,
+  untouched slots, workspace canaries and allocation checks all pass.
+
+The device log and structured results agree exactly. Archive SHA-256:
+`e9c995f0baa4026a74a275433b2b8696ad40c009757046f16e9486a901c905c8`.
+Both identity and results record binary SHA-256
+`4480e661587afa1a09534a34f9d4b30c716bd11f9570499c0faad5053705618e`.
+The binary itself remains on the box, so this is a mutually consistent receipt,
+not an independent local rehash of that binary. Tracked sources are clean;
+only an ACU report and result archive are listed as untracked.
+
+This closes the product dispatch/numerical/graph gate. It does not add a new
+performance measurement, validate a full Flare model, change other backends,
+or update the already-published 0.2.2 wheel.
+
 Run the product-entry regression on the box:
 
 ```bash
