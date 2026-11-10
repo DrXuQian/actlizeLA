@@ -94,7 +94,12 @@ Hopper instructions. The retained V32/8 tuning is on `main`: static solve,
 gate reuse and full-C64 state with guarded-tail fallback. Use the unified
 entry with `backend="ppu10"`; the default is the retained residual/full-chunk
 implementation, including its guarded-tail branch. No caller-selected delivery
-or warp geometry is needed. Original, scalar residual and materialized-WY
+or warp geometry is needed. On PPU1.0, the admitted B1/T2048-or8192/Hk16/
+Hv32-or48 FP32-gate prefill shapes now select native BF16 conversion by
+default, through the same public, prepared and serving native entry. Other
+shapes, BF16 gates and guarded tails retain the previous implementation.
+See [native default scope and verification](docs/PPU10_NATIVE_BF16_DEFAULT.md).
+Original, scalar residual and materialized-WY
 remain explicit alternatives. Default final state is FP32, not the old
 original algorithm's BF16. Default-route numerical PASS is user-reported; the
 historical speed measurements belong to the explicit retained kernel. See

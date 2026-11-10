@@ -4,6 +4,7 @@
 #include "gdn_wy_common.cuh"
 #include "gdn_wy_state_copy.cuh"
 #include "gdn_qsa/ppu/wy_residual_warps8_hvlayout.cuh"
+#include "gdn_qsa/ppu/wy_bf16_convert.cuh"
 
 namespace gdn_qsa::wy::residual_warps8_hvlayout {
 
@@ -149,6 +150,7 @@ gdn_wy_residual_warps8_hvlayout_state(Inputs p, Workspace ws, float* final) {
         sm.final_h, final + int64_t(bh) * Dim * Dim + v0, Dim);
   }
 }
+template <bool NativeBf16 = false>
 __global__ void __launch_bounds__(OutputTile::Threads)
 gdn_wy_residual_warps8_hvlayout_output(Inputs p, Workspace ws, BF16* output) {
   using Q = aiu::Tile<Chunk, Dim>;
@@ -185,7 +187,7 @@ gdn_wy_residual_warps8_hvlayout_output(Inputs p, Workspace ws, BF16* output) {
     for (int s = 0; s < 8; ++s) {
       auto const rc = result_coord(lane, s);
       int const row = OutputTile::row(warp) + rc.row, col = OutputTile::column(warp, c) + rc.col;
-      sm.attn[A::offset(row, col)] = BF16(
+      sm.attn[A::offset(row, col)] = convert_bf16<NativeBf16>(
           row >= col && row < valid ? attention[c][s] * expf(sm.g[row] - sm.g[col]) : 0.0f);
     }
   }
@@ -235,7 +237,7 @@ gdn_wy_residual_warps8_hvlayout_output(Inputs p, Workspace ws, BF16* output) {
         auto const rc = result_coord(lane, s);
         sm.stage.output[Output::offset(OutputTile::row(warp) + rc.row,
                                   OutputTile::column(warp, c) + rc.col)] =
-            BF16(acc[c][s] * 0.08838834764831845f);
+            convert_bf16<NativeBf16>(acc[c][s] * 0.08838834764831845f);
       }
     }
     __syncthreads();
@@ -258,12 +260,22 @@ int launch_hvlayout_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream
   return int(hggcGetLastError());
 }
 int configure_hvlayout_output() {
-  return int(hggcFuncSetAttribute(gdn_wy_residual_warps8_hvlayout_output,
+  return int(hggcFuncSetAttribute(gdn_wy_residual_warps8_hvlayout_output<false>,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(TiledOutputStorage)));
 }
 int launch_hvlayout_output(Inputs p, Workspace ws, BF16* output, gdn_arch::Stream stream) {
-  gdn_wy_residual_warps8_hvlayout_output<<<unsigned(p.shape.groups()), OutputTile::Threads,
+  gdn_wy_residual_warps8_hvlayout_output<false><<<unsigned(p.shape.groups()), OutputTile::Threads,
                                        sizeof(TiledOutputStorage), stream>>>(p, ws, output);
+  return int(hggcGetLastError());
+}
+
+int configure_native_bf16_output() {
+  return int(hggcFuncSetAttribute(gdn_wy_residual_warps8_hvlayout_output<true>,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(TiledOutputStorage)));
+}
+int launch_native_bf16_output(Inputs p, Workspace ws, BF16* output, gdn_arch::Stream stream) {
+  gdn_wy_residual_warps8_hvlayout_output<true><<<unsigned(p.shape.groups()), OutputTile::Threads,
+                                            sizeof(TiledOutputStorage), stream>>>(p, ws, output);
   return int(hggcGetLastError());
 }
 

@@ -108,6 +108,42 @@ def test_launch_failure_remains_failure(transport):
         plan.launch(plan.inputs, plan.buffers)
 
 
+@pytest.mark.parametrize("selected,name", [(0, "retained"), (3, "native-bf16")])
+@pytest.mark.parametrize("fp32", [False, True])
+def test_preparation_route_query_v2_has_dtype_without_launch(transport, selected, name, fp32):
+    query = Mock(return_value=selected)
+    transport.lib.actlize_la_ppu10_core_route_v2 = query
+    observed = gdn_core.gdn_core_route(transport, 1, 2048, 16, 32, gate_fp32=fp32)
+    assert observed == dict(id=selected, name=name, entry="actlize_la_ppu10_forward_prepared")
+    query.assert_called_once_with(1, 2048, 16, 32, fp32)
+    transport.lib.actlize_la_ppu10_forward_prepared.assert_not_called()
+    transport.lib.actlize_la_ppu10_configure.assert_not_called()
+
+
+def test_prepared_owner_records_actual_gate_dtype(transport):
+    query = Mock(return_value=0)
+    transport.lib.actlize_la_ppu10_core_route_v2 = query
+    plan = PreparedGDNCore(transport, **operands(fp32_gate=False))
+    query.assert_called_once_with(2, 65, 2, 6, False)
+    assert plan.core_route["name"] == "retained"
+
+
+def test_unknown_route_is_not_silently_retained(transport):
+    transport.lib.actlize_la_ppu10_core_route_v2 = Mock(return_value=4)
+    with pytest.raises(RuntimeError, match="unknown native"):
+        gdn_core.gdn_core_route(transport, 1, 2048, 16, 32)
+
+
+def test_v2_query_takes_priority_without_changing_v1_abi(transport):
+    transport.lib.actlize_la_ppu10_core_route_v2 = Mock(return_value=3)
+    transport.lib.actlize_la_ppu10_core_route = Mock(return_value=1)
+    assert gdn_core.gdn_core_route(transport, 1, 2048, 16, 32)["id"] == 3
+    transport.lib.actlize_la_ppu10_core_route.assert_not_called()
+    del transport.lib.actlize_la_ppu10_core_route_v2
+    assert gdn_core.gdn_core_route(transport, 1, 2048, 16, 32)["id"] == 1
+    transport.lib.actlize_la_ppu10_core_route.assert_called_once_with(1, 2048, 16, 32)
+
+
 @pytest.mark.parametrize("shape", [(0, 64, 1, 2), (1, 2**31, 1, 2), (2**30, 64, 1, 2), (1, 64, 2, 3)])
 def test_bad_geometry_does_not_allocate(shape):
     with pytest.raises(ValueError):

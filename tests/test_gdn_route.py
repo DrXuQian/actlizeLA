@@ -116,6 +116,27 @@ class Route(unittest.TestCase):
             for _ in range(8):
                 self.assertEqual(gdn_forward(*inputs(), backend="ppu10"), ("O", "H"))
 
+    def test_serving_provider_inspects_native_policy_with_actual_gate_dtype(self):
+        import torch
+        from actlize_la._gdn_ppu10 import PPU10Backend
+        native = object.__new__(PPU10Backend)
+        query = Mock()
+        native.library = SimpleNamespace(lib=SimpleNamespace(actlize_la_ppu10_core_route_v2=query))
+        native.provider, native.manifest_sha256 = "explicit-serving", None
+        native.image_info = Mock(return_value=[dict(path="/built.so", sha256="fixture")])
+        native.residual_full_chunk = Mock(side_effect=AssertionError("inspection executed kernel"))
+        for dtype, selected in ((torch.float32, 3), (torch.bfloat16, 0)):
+            args = list(inputs(length=2048))
+            args[3] = TensorMetadata(1, 2048, 32)
+            args[3].dtype = dtype
+            query.return_value = selected
+            with patch.object(residual, "_backend", return_value=native):
+                info = get_gdn_route_info(*args, backend="ppu10")
+            self.assertEqual(info["core_route"]["id"], selected)
+            self.assertEqual(info["native_entry"], "actlize_la_ppu10_forward_prepared")
+            query.assert_called_with(1, 2048, 16, 32, dtype == torch.float32)
+        native.residual_full_chunk.assert_not_called()
+
 
 class Images(unittest.TestCase):
     def setUp(self):

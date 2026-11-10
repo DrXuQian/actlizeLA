@@ -6,6 +6,7 @@
 #include "gdn_wy_state_copy.cuh"
 #include "gdn_qsa/ppu/wy_gate_coefficients.cuh"
 #include "gdn_qsa/ppu/wy_full_chunk.hpp"
+#include "gdn_qsa/ppu/wy_bf16_convert.cuh"
 
 namespace gdn_qsa::wy::residual_warps8_hvlayout {
 int configure_hvlayout_output();
@@ -20,6 +21,7 @@ namespace gdn_qsa::wy::full_chunk {
 using namespace residual_warps8_hvlayout;
 using residual_warps8_hvlayout::StateTile;
 
+template <bool NativeBf16 = false>
 __global__ void __launch_bounds__(Plan::Threads)
 gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
   extern __shared__ __align__(128) unsigned char storage[];
@@ -65,7 +67,7 @@ gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
       CUTE_UNROLL
       for (int s = 0; s < 8; ++s) {
         auto const rc = result_coord(lane, s);
-        sm.snapshot[Snapshot::producer_offset(h_store_base, k, s)] = BF16(state[k][s]);
+        sm.snapshot[Snapshot::producer_offset(h_store_base, k, s)] = convert_bf16<NativeBf16>(state[k][s]);
       }
     }
     commit_wait();  // INPUTS_READY: AIU completion + snapshot publication.
@@ -102,7 +104,7 @@ gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
         // Deliberate new rounding boundary. No exp(-prefix) / growing gate
         // factor: nonpositive log gates cannot overflow on strong decay.
         float const difference = float(sm.value[at]) - factor[half] * kh[r][s];
-        sm.residual[BIntermediate::producer_offset(b_store_base, r, s)] = BF16(beta[half] * difference);
+        sm.residual[BIntermediate::producer_offset(b_store_base, r, s)] = convert_bf16<NativeBf16>(beta[half] * difference);
       }
     }
     __syncthreads();  // RESIDUAL_READY: P@R ready; all original input-V readers retired.
@@ -125,8 +127,8 @@ gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
         auto const rc = result_coord(lane, s);
         int const row = StateTile::value_row(warp, r) + rc.row;
         float const x = value[r][s];
-        sm.value[PublishedValue::producer_offset(b_store_base, r, s)] = BF16(x);
-        sm.scaled[BIntermediate::producer_offset(b_store_base, r, s)] = BF16(x * row_decay[r][StateGateRows::half(s)]);
+        sm.value[PublishedValue::producer_offset(b_store_base, r, s)] = convert_bf16<NativeBf16>(x);
+        sm.scaled[BIntermediate::producer_offset(b_store_base, r, s)] = convert_bf16<NativeBf16>(x * row_decay[r][StateGateRows::half(s)]);
       }
     }
     __syncthreads();  // VALUES_READY: BF16 output and scaledV have different rounding.
@@ -167,12 +169,21 @@ gdn_wy_residual_full_chunk_state(Inputs p, Workspace ws, float* final) {
 }
 // Host-only prepared seam. Reuse the exact retained device body and geometry.
 int configure_state() {
-  return int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,
+  return int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state<false>,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
 }
 int launch_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) {
   unsigned const grid = unsigned(int64_t(p.shape.batch) * p.shape.value_heads * (Dim / ValueTile));
-  gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
+  gdn_wy_residual_full_chunk_state<false><<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
+  return int(hggcGetLastError());
+}
+int configure_native_bf16_state() {
+  return int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state<true>,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
+}
+int launch_native_bf16_state(Inputs p, Workspace ws, float* final, gdn_arch::Stream stream) {
+  unsigned const grid = unsigned(int64_t(p.shape.batch) * p.shape.value_heads * (Dim / ValueTile));
+  gdn_wy_residual_full_chunk_state<true><<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
   return int(hggcGetLastError());
 }
 }  // namespace gdn_qsa::wy::full_chunk
@@ -205,7 +216,7 @@ extern "C" int gdn_wy_forward_residual_full_chunk(
   int rc;
   rc = solve_static::configure();
   if (rc) return rc;
-  rc = int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state,
+  rc = int(hggcFuncSetAttribute(gdn_wy_residual_full_chunk_state<false>,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(gate_cache::Storage)));
   if (rc) return rc;
   rc = configure_hvlayout_output();
@@ -215,7 +226,7 @@ extern "C" int gdn_wy_forward_residual_full_chunk(
   rc = solve_static::launch_inverse(p, inverse_ws, stream);
   if (rc) return rc;
   unsigned const grid = unsigned(int64_t(batch) * value_heads * (Dim / ValueTile));
-  gdn_wy_residual_full_chunk_state<<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
+  gdn_wy_residual_full_chunk_state<false><<<grid, Plan::Threads, sizeof(gate_cache::Storage), stream>>>(p, ws, final);
   rc = int(hggcGetLastError());
   if (rc) return rc;
   return launch_hvlayout_output(p, ws, static_cast<BF16*>(output), stream);

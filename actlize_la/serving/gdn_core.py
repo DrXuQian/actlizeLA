@@ -1,7 +1,7 @@
 """Prepared PPU1.0 residual on processed operands, in public KV state order.
 
 Unlike PreparedGDN this entry does not normalize Q/K, transform gates, or move
-slot state. It exposes the already retained native launch, not another kernel.
+slot state. It shares the product native dispatch with public and serving calls.
 """
 
 import ctypes as C
@@ -20,6 +20,24 @@ def gdn_core_workspace_specs(batch, length, key_heads, value_heads):
     specs = gdn_workspace_specs(batch, length, key_heads, value_heads,
                                 mode="prefill", target="ppu10")
     return {name: specs[name] for name in ("inverse", "snapshots", "vnew", "gates")}
+
+
+def gdn_core_route(library, batch, length, key_heads, value_heads, *, gate_fp32=True):
+    """Inspect the same native shape/type policy, without executing kernels."""
+    names = {0: "retained", 1: "solve8", 2: "solve8-value64-warps8", 3: "native-bf16"}
+    query = getattr(library.lib, "actlize_la_ppu10_core_route_v2", None)
+    if query is not None:
+        query.argtypes, query.restype = [C.c_int] * 4 + [C.c_bool], C.c_int
+        selected = query(batch, length, key_heads, value_heads, gate_fp32)
+    else:
+        legacy = getattr(library.lib, "actlize_la_ppu10_core_route", None)
+        selected = 0
+        if legacy is not None:
+            legacy.argtypes, legacy.restype = [C.c_int] * 4, C.c_int
+            selected = legacy(batch, length, key_heads, value_heads)
+    if selected not in names:
+        raise RuntimeError("unknown native GDN core route")
+    return {"id": selected, "name": names[selected], "entry": "actlize_la_ppu10_forward_prepared"}
 
 
 def _geometry(q, k, v, g, beta, initial, output, final):
@@ -95,6 +113,7 @@ class PreparedGDNCore(PreparedNative):
         self.fn.argtypes = [C.c_void_p] * 12 + [C.c_int] * 4 + [C.c_bool, C.c_void_p]
         self.fn.restype = C.c_int
         _configure(library, self.device)
+        self.core_route = gdn_core_route(library, *self.geometry, gate_fp32=g.dtype == torch.float32)
 
     def launch(self, inputs, buffers):
         initial = inputs[5].data_ptr() if self.has_initial else None

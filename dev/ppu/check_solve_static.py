@@ -21,6 +21,18 @@ def check_source(control, subject, helper, hv, binding):
     start, end = old.index('floatcolumn[16];'), old.index('__syncthreads();', old.index('floatcolumn[16];'))
     seam = ('floatcolumn[16];unsignedconstdiagonal_base=warp*16*(Chunk+1);'
             'solve_static::diagonal(sm.lower+diagonal_base,sm.inverse+diagonal_base,lane,column);')
+    # The product shares a templated body with native-conversion instances.
+    # Project ONLY its retained <128,false> specialization onto the old source
+    # proof. Exact replacements reject a changed guard, cadence or rounding site.
+    if 'template<unsignedThreads=Plan::SolveThreads,boolNativeBf16=false>' not in s:
+        raise AssertionError('retained solve template contract changed')
+    new = replace_one(new, 'tile+=Threads/32', 'tile+=4')
+    new = replace_one(new, 'if(warp<4){'+seam+'}', seam)
+    new = replace_one(new, 'i+=Threads', 'i+=Plan::SolveThreads')
+    new = replace_one(new, 'convert_bf16<NativeBf16>(', 'BF16(')
+    new = replace_one(new, 'it<Plan::InverseElements/Plan::VectorElements/Threads',
+                      'it<Plan::InverseIterations')
+    new = replace_one(new, 'it*Threads', 'it*Plan::SolveThreads')
     if replace_one(new, seam, old[start:end]) != old:
         raise AssertionError('solve changed work/rounding/TF32/barriers/layout outside diagonal indexing')
     if block(c,'structSolveStorage') != block(s,'structSolveStorage'):
@@ -55,11 +67,11 @@ def check_source(control, subject, helper, hv, binding):
     if launch != block(v,'gdn_wy_forward_residual_warps8_hvlayout('):
         raise AssertionError('candidate changed admission/workspace/other-stage ordering')
     required = (
-        ('intconfigure()',s,'{returnint(hggcFuncSetAttribute(gdn_wy_split_solve_static,'
+        ('intconfigure()',s,'{returnint(hggcFuncSetAttribute(gdn_wy_split_solve_static<128,false>,'
          'hggcFuncAttributeMaxDynamicSharedMemorySize,sizeof(SolveStorage)));}'),
         ('intlaunch_inverse(Inputs p, Workspace ws, gdn_arch::Stream stream)',s,
          '{intconstrc=launch_split_prefix(p,ws,stream);if(rc)returnrc;'
-         'gdn_wy_split_solve_static<<<unsigned(p.shape.groups()),Plan::SolveThreads,'
+         'gdn_wy_split_solve_static<128,false><<<unsigned(p.shape.groups()),Plan::SolveThreads,'
          'sizeof(SolveStorage),stream>>>(p,ws);returnint(hggcGetLastError());}'),
         ('intlaunch_split_prefix(Inputs p, Workspace ws, gdn_arch::Stream stream)',c,
          '{usingnamespacesplit_prepare;gdn_wy_split_prefix<<<unsigned(p.shape.groups()),'
@@ -92,9 +104,15 @@ def diagonal_region(isa, marker):
     return records,edges,region
 
 
+def retained_subject(isa):
+    marker = SUBJECT+'ILj128ELb0E'
+    # Keep historical reports readable, but never mix new true/false instances.
+    return marker if marker in isa else SUBJECT
+
+
 def check_native(isa):
     old,_,before=diagonal_region(isa,CONTROL)
-    new,edges,after=diagonal_region(isa,SUBJECT)
+    new,edges,after=diagonal_region(isa,retained_subject(isa))
     if any('ivreg' in op for op in new.values()):
         raise AssertionError('static candidate retained indirect register reads')
     if any('pipe_flush' in op for op in after.values()):
@@ -140,6 +158,9 @@ def main():
             ('omitted-row',2,'Row < 16','Row < 15'),
             ('wrong-owner',2,'lane < 16','lane < 32'),
             ('wrong-warp-base',1,'warp * 16 * (Chunk + 1)','warp * 16 * Chunk'),
+            ('wrong-diagonal-guard',1,'if (warp < 4)', 'if (warp < 3)'),
+            ('wrong-retained-instance',1,'gdn_wy_split_solve_static<128, false>',
+             'gdn_wy_split_solve_static<128, true>'),
             ('wrong-solve-sign',1,'= -merged[s]','= merged[s]'),
             ('wrong-launch',1,'solve_static::launch_inverse(p, inverse_ws, stream)','launch_split_inverse(p, inverse_ws, stream)'),
             ('wrong-state',3,'gdn_wy_residual_warps8_hvlayout_state<<<grid, Plan::Threads','gdn_wy_residual_warps8_metadata_state<<<grid, Plan::Threads'),
@@ -162,12 +183,13 @@ def main():
         isa=args.isa.read_text();print('[solve static native]',check_native(isa))
         if args.self_test:
             from check_wy_binary import plant_in_kernel
+            marker=retained_subject(isa)
             for op in ('v.mma.f32.tf32.m16n16k8','vmem.st.b32x4','s.blksyn.defer'):
-                try:check_native(plant_in_kernel(isa,SUBJECT,op,'MISSING'))
+                try:check_native(plant_in_kernel(isa,marker,op,'MISSING'))
                 except AssertionError:print('[solve static native negative]',op,'EXPECTED-RED/PASS')
                 else:raise AssertionError('escaped native work negative')
-            subject=section(isa,SUBJECT)
-            _,_,region=diagonal_region(isa,SUBJECT)
+            subject=section(isa,marker)
+            _,_,region=diagonal_region(isa,marker)
             fma=next(op for op in region.values() if op.startswith('v.fma.f32'))
             bad=isa.replace(subject,replace_one(subject,fma,fma.replace('!','',1)))
             try:check_native(bad)
@@ -177,7 +199,7 @@ def main():
             else:raise AssertionError('wrong native FMA sign escaped')
             # Restore the actual old lowering under the new symbol: must reject
             # the exact indirect-index defect, not merely an absent symbol.
-            bad=isa.replace(subject,section(isa,CONTROL).replace(CONTROL+'E',SUBJECT+'E'))
+            bad=isa.replace(subject,section(isa,CONTROL).replace(CONTROL+'E',marker+'E'))
             try:check_native(bad)
             except AssertionError as error:
                 if 'indirect register' not in str(error):raise

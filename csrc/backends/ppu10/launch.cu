@@ -1,6 +1,7 @@
 #include "launch.h"
 #include "../../gdn_chunk/gdn_wy_common.cuh"
 #include "gdn_qsa/ppu/wy_full_chunk.hpp"
+#include "gdn_qsa/ppu/wy_dispatch.hpp"
 #include "gdn_qsa/ppu/wy_split_prepare.cuh"
 #include <climits>
 
@@ -11,10 +12,14 @@ static_assert(gdn_qsa::wy::split_prepare::Plan::InverseElements == 64 * 64);
 namespace gdn_qsa::wy::solve_static {
 int configure();
 int launch_inverse(Inputs, Workspace, gdn_arch::Stream);
+int configure_native_bf16();
+int launch_native_bf16(Inputs, Workspace, gdn_arch::Stream);
 }
 namespace gdn_qsa::wy::full_chunk {
 int configure_state();
 int launch_state(Inputs, Workspace, float*, gdn_arch::Stream);
+int configure_native_bf16_state();
+int launch_native_bf16_state(Inputs, Workspace, float*, gdn_arch::Stream);
 }
 namespace gdn_qsa::wy::gate_cache {
 int configure_state();
@@ -23,6 +28,13 @@ int launch_state(Inputs, Workspace, float*, gdn_arch::Stream);
 namespace gdn_qsa::wy::residual_warps8_hvlayout {
 int configure_hvlayout_output();
 int launch_hvlayout_output(Inputs, Workspace, BF16*, gdn_arch::Stream);
+int configure_native_bf16_output();
+int launch_native_bf16_output(Inputs, Workspace, BF16*, gdn_arch::Stream);
+}
+
+extern "C" int actlize_la_ppu10_core_route_v2(
+    int batch, int sequence, int key_heads, int value_heads, bool gate_fp32) {
+  return int(gdn_qsa::wy::core_route({batch, sequence, key_heads, value_heads}, gate_fp32));
 }
 
 extern "C" int actlize_la_ppu10_configure() {
@@ -30,7 +42,10 @@ extern "C" int actlize_la_ppu10_configure() {
   if (int rc = solve_static::configure()) return rc;
   if (int rc = full_chunk::configure_state()) return rc;
   if (int rc = gate_cache::configure_state()) return rc;
-  return residual_warps8_hvlayout::configure_hvlayout_output();
+  if (int rc = residual_warps8_hvlayout::configure_hvlayout_output()) return rc;
+  if (int rc = solve_static::configure_native_bf16()) return rc;
+  if (int rc = full_chunk::configure_native_bf16_state()) return rc;
+  return residual_warps8_hvlayout::configure_native_bf16_output();
 }
 
 extern "C" int actlize_la_ppu10_forward_prepared(
@@ -55,6 +70,11 @@ extern "C" int actlize_la_ppu10_forward_prepared(
   auto stream = static_cast<gdn_arch::Stream>(opaque_stream);
   Workspace inverse_ws = ws;
   inverse_ws.snapshots = ws.w;  // Padded inverse pitch is 128x128, NOT 64x64.
+  if (core_route(shape, gate_fp32) == CoreRoute::NativeBf16) {
+    if (int rc = solve_static::launch_native_bf16(p, inverse_ws, stream)) return rc;
+    if (int rc = full_chunk::launch_native_bf16_state(p, ws, final, stream)) return rc;
+    return residual_warps8_hvlayout::launch_native_bf16_output(p, ws, static_cast<BF16*>(output), stream);
+  }
   if (int rc = solve_static::launch_inverse(p, inverse_ws, stream)) return rc;
   int const rc = gate_cache::full_chunks(sequence)
       ? full_chunk::launch_state(p, ws, final, stream)

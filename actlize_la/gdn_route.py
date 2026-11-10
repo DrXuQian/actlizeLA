@@ -64,6 +64,11 @@ def get_gdn_route_info(q, k, v, g, beta, initial_state=None, output_final_state=
             result["native_entry"] = "actlize_la_ppu10_forward_prepared"
             result["native_provider"] = native.provider
             result["manifest_sha256"] = native.manifest_sha256
+            from .serving.gdn_core import gdn_core_route
+            import torch
+            result["core_route"] = gdn_core_route(
+                native.library, q.shape[0], q.shape[1], q.shape[2], v.shape[2],
+                gate_fp32=g.dtype == torch.float32)
         else:
             dependency = "libgdn_qsa_ppu.so" if route["algorithm"] == "original" else "libgdn_wy_ppu.so"
             result["native_images"] = loaded_image_info(native, dependency)

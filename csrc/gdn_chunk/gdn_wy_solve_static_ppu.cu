@@ -4,6 +4,8 @@
 #include "gdn_qsa/ppu/wy_aiu.cuh"
 #include "gdn_qsa/ppu/wy_split_prepare.cuh"
 #include "gdn_qsa/ppu/wy_solve_static.cuh"
+#include "gdn_qsa/ppu/wy_bf16_convert.cuh"
+#include "gdn_qsa/ppu/wy_dispatch.hpp"
 
 namespace gdn_qsa::wy::solve_static {
 using Key = aiu::Tile<Chunk, Dim>;
@@ -19,7 +21,8 @@ struct SolveStorage {
 };
 static_assert(sizeof(SolveStorage) == 49664);
 
-__global__ void __launch_bounds__(Plan::SolveThreads)
+template <unsigned Threads = Plan::SolveThreads, bool NativeBf16 = false>
+__global__ void __launch_bounds__(Threads)
 gdn_wy_split_solve_static(Inputs p, Workspace ws) {
   extern __shared__ __align__(128) unsigned char storage[];
   auto& sm = *reinterpret_cast<SolveStorage*>(storage);
@@ -40,7 +43,7 @@ gdn_wy_split_solve_static(Inputs p, Workspace ws) {
   commit_wait();
   // Same ten products, K-atom order, row weighting and FP32 diagonal solve
   // as prepare_inverse. No BF16 lower matrix / no TF32 residual removal.
-  for (int tile = int(warp); tile < 16; tile += 4) {
+  for (int tile = int(warp); tile < 16; tile += Threads / 32) {
     int const br = tile / 4, bc = tile % 4;
     if (bc > br) continue;
     float acc[8] = {};
@@ -60,9 +63,11 @@ gdn_wy_split_solve_static(Inputs p, Workspace ws) {
     }
   }
   __syncthreads();  // all key readers retire before union scratch reuse
-  float column[16];
-  unsigned const diagonal_base = warp * 16 * (Chunk + 1);
-  solve_static::diagonal(sm.lower + diagonal_base, sm.inverse + diagonal_base, lane, column);
+  if (warp < 4) {
+    float column[16];
+    unsigned const diagonal_base = warp * 16 * (Chunk + 1);
+    solve_static::diagonal(sm.lower + diagonal_base, sm.inverse + diagonal_base, lane, column);
+  }
   __syncthreads();
   #pragma unroll 1
   for (int gap = 1; gap < 4; ++gap) {
@@ -91,12 +96,12 @@ gdn_wy_split_solve_static(Inputs p, Workspace ws) {
   }
   // Temp readers retired. Materialize every entry, including upper-triangle
   // zeros; no memset/fill kernel and no read of uninitialized upper inverse.
-  for (unsigned i = tid; i < Plan::InverseElements; i += Plan::SolveThreads)
-    sm.result[i] = BF16(i / Chunk >= i % Chunk ? sm.inverse[i] : 0.0f);
+  for (unsigned i = tid; i < Plan::InverseElements; i += Threads)
+    sm.result[i] = convert_bf16<NativeBf16>(i / Chunk >= i % Chunk ? sm.inverse[i] : 0.0f);
   __syncthreads();
   CUTE_UNROLL
-  for (unsigned it = 0; it < Plan::InverseIterations; ++it) {
-    unsigned const i = (tid + it * Plan::SolveThreads) * Plan::VectorElements;
+  for (unsigned it = 0; it < Plan::InverseElements / Plan::VectorElements / Threads; ++it) {
+    unsigned const i = (tid + it * Threads) * Plan::VectorElements;
     uint4 const packed = *reinterpret_cast<uint4 const*>(sm.result + i);
     cutlass::arch::global_store<uint4, 16>(packed,
         ws.snapshots + Plan::inverse_base(group) + i, true);
@@ -105,14 +110,30 @@ gdn_wy_split_solve_static(Inputs p, Workspace ws) {
 
 
 int configure() {
-  return int(hggcFuncSetAttribute(gdn_wy_split_solve_static,
+  return int(hggcFuncSetAttribute(gdn_wy_split_solve_static<128, false>,
       hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(SolveStorage)));
 }
 int launch_inverse(Inputs p, Workspace ws, gdn_arch::Stream stream) {
   int const rc = launch_split_prefix(p, ws, stream);
   if (rc) return rc;
-  gdn_wy_split_solve_static<<<unsigned(p.shape.groups()), Plan::SolveThreads,
+  gdn_wy_split_solve_static<128, false><<<unsigned(p.shape.groups()), Plan::SolveThreads,
                              sizeof(SolveStorage), stream>>>(p, ws);
+  return int(hggcGetLastError());
+}
+int configure_native_bf16() {
+  if (int rc = hggcFuncSetAttribute(gdn_wy_split_solve_static<128, true>,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(SolveStorage))) return rc;
+  return int(hggcFuncSetAttribute(gdn_wy_split_solve_static<256, true>,
+      hggcFuncAttributeMaxDynamicSharedMemorySize, sizeof(SolveStorage)));
+}
+int launch_native_bf16(Inputs p, Workspace ws, gdn_arch::Stream stream) {
+  if (int rc = launch_split_prefix(p, ws, stream)) return rc;
+  if (native_bf16_solve_threads(p.shape) == 256)
+    gdn_wy_split_solve_static<256, true><<<unsigned(p.shape.groups()), 256,
+        sizeof(SolveStorage), stream>>>(p, ws);
+  else
+    gdn_wy_split_solve_static<128, true><<<unsigned(p.shape.groups()), 128,
+        sizeof(SolveStorage), stream>>>(p, ws);
   return int(hggcGetLastError());
 }
 }  // namespace gdn_qsa::wy::solve_static
