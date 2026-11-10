@@ -6,7 +6,7 @@ The box path needs no acu_report Python API, SDK change, build or GPU execution.
 import argparse
 import csv
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_EVEN
 import io
 import json
 import math
@@ -62,6 +62,59 @@ def select_reports(summary):
     if len(reports) != 12:
         raise ValueError("diagnostic denominator must be four geometries x three roles")
     return reports
+
+
+def duration_tokens(text):
+    """Exact displayed durations/decimal quanta, NOT a performance tolerance."""
+    rows = csv.DictReader(io.StringIO(text[text.index('"ID"'):]))
+    long_format = "Metric Name" in (rows.fieldnames or ())
+    units = {u: Decimal(factor) for names, factor in (
+        (("nsecond", "ns"), ".001"), (("usecond", "us", "µsecond", "µs", "μs"), "1"),
+        (("msecond", "ms"), "1000"), (("second", "s"), "1000000")) for u in names}
+    result = {}
+    for row in rows:
+        if long_format:
+            if not (row["Metric Name"] == "ppu__time_duration.sum" or
+                    (row["Metric Name"] == "Duration" and row["Section Name"] == "PPU Speed Of Light Throughput")):
+                continue
+            token, unit = row["Metric Value"], row["Metric Unit"]
+        else:
+            token, unit = row["ppu__time_duration.sum"], "nsecond"
+        value = Decimal(token.replace(",", ""))
+        key = (row["Process ID"], row["ID"])
+        if key in result or unit not in units or not value.is_finite() or value <= 0:
+            raise ValueError("invalid/duplicate displayed duration")
+        result[key] = dict(value=value * units[unit],
+                           quantum=(Decimal(1).scaleb(value.as_tuple().exponent) * units[unit]).normalize())
+    return result
+
+
+def compare_reimport(original_text, reader_text, metric_id):
+    """Keep exact metadata/counts; round times only to captured CSV precision."""
+    original, decoded = parse_raw(original_text), parse_raw(reader_text)
+    counts = instruction_rows(original_text, original, metric_id)
+    imported_counts = instruction_rows(reader_text, decoded, metric_id)
+    old_times, new_times = duration_tokens(original_text), duration_tokens(reader_text)
+    differences, times = [], []
+    if len(original) != len(decoded):
+        differences.append(dict(field="kernel_count", captured=len(original), reader=len(decoded)))
+    for old, new, count, imported in zip(original, decoded, counts, imported_counts):
+        for field in sorted(set(old) | set(new)):
+            if field != "us" and old.get(field) != new.get(field):
+                differences.append(dict(id=old["id"], field=field, captured=old.get(field), reader=new.get(field)))
+        if count != imported:
+            differences.append(dict(id=old["id"], field="instructions", captured=count, reader=imported))
+        before = old_times[(old["process"], old["id"])]
+        after = new_times[(new["process"], new["id"])]["value"]
+        rounded = after.quantize(before["quantum"], rounding=ROUND_HALF_EVEN)
+        times.append(dict(id=old["id"], captured_us=str(before["value"]), reader_us=str(after),
+                          captured_quantum_us=str(before["quantum"]), delta_us=str(after-before["value"]),
+                          match=(rounded == before["value"])))
+        if rounded != before["value"]:
+            differences.append(dict(times[-1], field="duration"))
+    return dict(status="MISMATCH" if differences else "MATCH_AT_CAPTURE_PRECISION",
+                rule="exact metadata/instructions; decimal time rounded to original CSV's displayed quantum",
+                differences=differences, times=times)
 
 
 def source_counts(text, kernels):
@@ -249,10 +302,14 @@ def main():
             for page, path in pages.items():
                 export_page(prefix, report, page, path, env)
             raw = pages["raw"].read_text()
+            pages["captured"] = target / f"{stem}-captured.csv"
+            pages["captured"].write_text(csv_text)
+            comparison = compare_reimport(csv_text, raw, status["instruction_metric_id"])
+            pages["comparison"] = target / f"{stem}-comparison.json"
+            pages["comparison"].write_text(json.dumps(comparison, indent=2) + "\n")
+            if comparison["status"] != "MATCH_AT_CAPTURE_PRECISION":
+                raise ValueError("re-import differs from captured CSV: " + json.dumps(comparison["differences"][:3]))
             decoded = parse_raw(raw)
-            if (decoded != observed["kernels"]
-                    or instruction_rows(raw, decoded, status["instruction_metric_id"]) != counts):
-                raise ValueError("re-imported timing/instructions differ from captured CSV")
             pages["native"] = target / f"{stem}-native.csv"
             native = export_rule(prefix, report, pages["native"], env, decoded, counts, status["instruction_metric_id"])
             pages["complete"] = Path(str(pages["native"]) + ".complete")

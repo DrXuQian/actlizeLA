@@ -331,6 +331,58 @@ def test_old_cli_identical_metric_pages_are_not_native_instructions():
         exporter.source_counts(pages["source"], kernels)
 
 
+def displayed_duration_pair(old_ns="41931.76", new_ns="41931.764706", count="15428608"):
+    # Actual solve duration/count pair in upload c2049910; synthetic symbol.
+    metadata = dict(ID="1", **{"Process ID": "3", "Kernel Name": "kernel(int)",
+                    "Grid Size": "(1024,1,1)", "Block Size": "(256,1,1)",
+                    "Device": "PPU", "Context": "1", "Stream": "8"})
+    old_rows = [dict(metadata, **{"Section Name": "PPU Speed Of Light Throughput", "Metric Name": "Duration",
+                 "Metric Unit": "nsecond", "Metric Value": old_ns}),
+                dict(metadata, **{"Section Name": "Instruction Statistics", "Metric Name": "Executed Instructions",
+                 "Metric Unit": "inst", "Metric Value": "15428608"})]
+    new_rows = [dict(metadata, **{"ppu__time_duration.sum": new_ns, "pu__inst_executed.sum": count})]
+    return encode_csv(list(old_rows[0]), old_rows), encode_csv(list(new_rows[0]), new_rows)
+
+
+@pytest.mark.parametrize("old_ns,new_ns", [("2603.53", "2603.529412"), ("41931.76", "41931.764706"),
+                                          ("142276.47", "142276.470588"), ("51019.41", "51019.411765")])
+def test_uploaded_precision_pairs_match_without_changing_recorded_time(old_ns, new_ns):
+    old, new = displayed_duration_pair(old_ns, new_ns)
+    result = exporter.compare_reimport(old, new, "pu__inst_executed.sum")
+    assert result["status"] == "MATCH_AT_CAPTURE_PRECISION" and not result["differences"]
+    assert result["times"][0]["captured_quantum_us"] == "0.00001"
+    assert result["times"][0]["match"] is True
+
+
+@pytest.mark.parametrize("old_ns,new_ns,count", [
+    ("41931.76", "41931.765001", "15428608"),  # Outside original half-quantum, not generic 10ps tolerance.
+    ("41931.76", "41931.754999", "15428608"),
+    ("41931.760000", "41931.764706", "15428608"),  # More precise original must tighten the check.
+    ("41931.76", "41931.764706", "15428609"),  # Even one instruction is not a time-format difference.
+])
+def test_precision_normalization_cannot_hide_time_or_instruction_changes(old_ns, new_ns, count):
+    old, new = displayed_duration_pair(old_ns, new_ns, count)
+    result = exporter.compare_reimport(old, new, "pu__inst_executed.sum")
+    assert result["status"] == "MISMATCH" and result["differences"]
+
+
+def test_reimport_reports_specific_metadata_change():
+    old, new = displayed_duration_pair()
+    result = exporter.compare_reimport(old, new.replace('"(1024,1,1)"', '"(512,1,1)"'), "pu__inst_executed.sum")
+    assert result["status"] == "MISMATCH"
+    assert any(d["field"] == "grid" and d["reader"] == "(512,1,1)" for d in result["differences"])
+
+
+@pytest.mark.parametrize("token,unit,new_ns,match", [("0.04", "msecond", "41931.764706", True),
+                                                    ("0.04", "msecond", "46000", False),
+                                                    ("0.00004", "second", "41931.764706", True)])
+def test_time_quantum_changes_with_original_unit_not_decimal_exponent_alone(token, unit, new_ns, match):
+    old, new = displayed_duration_pair(token, new_ns)
+    result = exporter.compare_reimport(old.replace('"nsecond"', f'"{unit}"'), new, "pu__inst_executed.sum")
+    assert (result["status"] == "MATCH_AT_CAPTURE_PRECISION") is match
+    assert result["times"][0]["captured_quantum_us"] == "1E+1"
+
+
 def native_rule_fixture(tmp_path, monkeypatch, *, modern=False, broken=False):
     """Run the actual embedded rule with a fake native context; no SDK/device."""
     path = tmp_path / "native.csv"

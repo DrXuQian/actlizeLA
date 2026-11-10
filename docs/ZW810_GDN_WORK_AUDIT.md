@@ -138,7 +138,9 @@ The original `capture_profiler` is preserved separately from `reader_profiler`;
 the latter's resolved executable, sections, hashes and version are recorded.
 Each reader uses its own sections/ASIGHT_HOME. A different offline reader is
 allowed, but different original kernel counts, timings or aggregate instruction
-counts remain failures. Counter selection still comes from the original
+counts remain failures. Timing comparison uses the **original CSV's displayed
+decimal precision**, not binary-float equality between differently formatted
+exports; metadata and instruction counts remain exact. Counter selection still comes from the original
 hash-bound capture section, not a new reader's preferred metric. Per-PC
 diagnostics are reader-scoped and must not be mixed across reader versions.
 
@@ -230,3 +232,30 @@ against a distinct reader, retain original identities, and plant one changed
 instruction count to ensure that different-reader support does not weaken
 the evidence check. PATH symlinks resolve to the actual executable's companion
 sections; a cwd file named acu or missing PATH entry cannot silently substitute.
+
+### Returned re-import: decimal formatting, not changed time/counts
+
+Archive `c20499105fe8d7cbfd95ad01ca5d86a641c2affd135ac41f7ba8b34aeb2cdaa8`
+(49787B) binds the new reader to executable SHA256 `9e5de950...`, exactly the
+local SDK2.2.1 version. All four default kernel names, IDs, process IDs,
+grid/block geometries and aggregate instruction counts match. Only displayed
+Duration precision differs: old metric rows use0.01ns, new wide CSV uses
+0.000001ns. For solve,41931.76ns versus41931.764706ns is the same value at the
+old display precision, not device drift. The raw-dictionary float equality in
+our exporter incorrectly rejected this. The instruction counts are unchanged:
+377856 /15428608 /40218752 /19683328 (prefix/solve/state/output).
+
+The fix derives the decimal quantum from each original lexical value and its
+unit, then checks that re-imported time rounds to that original value. It does
+not introduce a percentage performance tolerance or alter historical timing
+receipts/verdicts. A more precise original export tightens the check. Original
+CSV plus a per-kernel comparison JSON now accompany the native export; any
+actual difference prints the field and both values. Negatives plant a solve
+time of41931.765001ns(outside the original rounding bin), one extra instruction,
+and a changed grid; each must fail. Unit conversion also preserves the original
+decimal quantum rather than reusing the textual exponent in another unit.
+
+This upload stops before the native rule and contains no FLA detail. It closes
+the formatting diagnosis, **not** per-opcode attribution or another performance
+comparison. Continue the same offline command against existing reports; there
+is no need for a new GPU capture.
