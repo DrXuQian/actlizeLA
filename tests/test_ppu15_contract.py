@@ -113,9 +113,51 @@ class Ppu15Contract(unittest.TestCase):
         self.assertNotIn("mktemp",runner)
         self.assertNotIn("/tmp/",runner)
         device=(ROOT/"tests/test_ppu15_device.py").read_text()
-        self.assertIn("len(cases)!=40",device)
+        self.assertIn("len(cases)!=47",device)
         self.assertIn("assert_pair(reference,expected)",device)
         self.assertLess(device.index('device_admission="PASS"'),device.index('result["performance"]=measure'))
+
+    def test_correctness_grid_retains_old_cases_and_covers_model_heads(self):
+        from test_ppu15_device import correctness_cases
+        cases = correctness_cases()
+        self.assertEqual(len(cases), 47)
+        self.assertEqual(len(set(cases)), 47)
+        for length in (1, 63, 64, 65, 127, 128, 129):
+            for gate in (-.1, -1.):
+                for initial in (False, True):
+                    self.assertIn(((2, length, 1, 2), gate, initial, False), cases)
+        for length in (2048, 8192):
+            for hv in (32, 48):
+                for gate in (-.1, -1.):
+                    self.assertIn(((1, length, 16, hv), gate, True, False), cases)
+        self.assertIn(((1, 129, 2, 4), -.01, True, True), cases)
+        self.assertIn(((1, 2048, 16, 64), -.1, False, False), cases)
+
+    def test_no_perf_flag_cannot_enter_measurement(self):
+        import test_ppu15_device as device_test
+        work = Path('/workspace') / f'actlize-la-ppu15-no-perf-host-{uuid4().hex}'
+        work.mkdir()
+        extension = work / 'host-only-never-loaded.so'
+        extension.write_bytes(b'HOST_ONLY_COMMAND_CONTRACT_NOT_A_DEVICE_IMAGE')
+        argv = ['test_ppu15_device.py', '--extension', str(extension), '--out', str(work), '--no-perf']
+        props = SimpleNamespace(name='PPU-ZW890', multi_processor_count=1)
+        with patch.object(sys, 'argv', argv), patch.dict(os.environ, {}, clear=False), patch.object(
+                device_test.torch.cuda, 'set_device'), patch.object(
+                device_test.torch.cuda, 'get_device_properties', return_value=props), patch.object(
+                device_test, 'run_case', return_value={'host_only': True}) as case, patch.object(
+                device_test, 'measure', side_effect=AssertionError('timing forbidden')) as measure:
+            device_test.main()
+        self.assertEqual(case.call_count, 47)
+        measure.assert_not_called()
+        result = json.loads((work/'device.json').read_text())
+        self.assertEqual(result['performance_status'], 'NOT_RUN')
+        self.assertEqual(result['performance'], [])
+        # This proves command control flow only; mock results are never admission.
+        self.assertTrue(all(row == {'host_only': True} for row in result['cases']))
+        runner = (ROOT/'tools/run_ppu15_gdn_box.sh').read_text()
+        self.assertIn('case "${NO_PERF:-0}" in', runner)
+        self.assertIn('EXTRA_ARGS+=(--no-perf)', runner)
+        self.assertIn('"${EXTRA_ARGS[@]}" 2>&1', runner)
 
 
 if __name__ == "__main__":

@@ -99,6 +99,28 @@ def measure(samples, launches, warmup):
     return records
 
 
+def correctness_cases():
+    cases = [((2, length, 1, 2), gate, initial, False)
+             for length in (1, 63, 64, 65, 127, 128, 129)
+             for gate in (-.1, -1.) for initial in (False, True)]
+    cases += [((1, 129, 2, 2), -.1, True, False),
+              ((1, 129, 2, 4), -.01, True, True)]
+    cases += [((1, length, 16, 32), gate, False, False)
+              for length in (2048, 2049) for gate in (0., -.001, -.1, -1.)]
+    cases += [((1, 2048, 16, 32), -.1, True, False),
+              ((1, 2048, 16, 64), -.1, False, False)]
+    # Include GVA1:3 and long contexts; never substitute an810 numerical result.
+    for length in (2048, 8192):
+        for hv in (32, 48):
+            for gate in (-.1, -1.):
+                cell = ((1, length, 16, hv), gate, True, False)
+                if cell not in cases:
+                    cases.append(cell)
+    if len(cases) != 47 or len(set(cases)) != 47:
+        raise AssertionError("coverage denominator must be47 unique cases")
+    return cases
+
+
 @torch.inference_mode()
 def main():
     p=argparse.ArgumentParser()
@@ -119,27 +141,18 @@ def main():
     identity=dict(name=props.name,cu=props.multi_processor_count,torch=torch.__version__,runtime=torch.version.cuda,
                   extension=str(args.extension.resolve()),criterion=MAX_RELATIVE_ERROR)
     print("[ppu15 identity] "+json.dumps(identity),flush=True)
-    cases=[]
-    for length in (1,63,64,65,127,128,129):
-        for gate in (-.1,-1.):
-            for initial in (False,True):
-                cases.append(run_case((2,length,1,2),gate,initial))
-    cases.append(run_case((1,129,2,2),-.1,True))
-    cases.append(run_case((1,129,2,4),-.01,True,variable=True))
-    for length in (2048,2049):
-        for gate in (0.,-.001,-.1,-1.):
-            cases.append(run_case((1,length,16,32),gate,False))
-    cases.append(run_case((1,2048,16,32),-.1,True))
-    cases.append(run_case((1,2048,16,64),-.1,False))
-    if len(cases)!=40:
-        raise AssertionError("coverage denominator changed: expected40")
+    cases=[run_case(*cell) for cell in correctness_cases()]
+    if len(cases)!=47:
+        raise AssertionError("coverage denominator changed: expected47")
     args.out.mkdir(parents=True,exist_ok=True)
-    result=dict(identity=identity,cases=cases,device_admission="PASS",performance=[])
+    result=dict(identity=identity,cases=cases,device_admission="PASS",performance=[],
+                performance_status="NOT_RUN" if args.no_perf else "PENDING")
     (args.out/"device.json").write_text(json.dumps(result,indent=2)+"\n")
     if not args.no_perf:
         result["performance"]=measure(args.samples,args.launches,args.warmup)
+        result["performance_status"]="MEASURED_NOT_PERFORMANCE_ADMITTED"
     (args.out/"device.json").write_text(json.dumps(result,indent=2)+"\n")
-    print("[ppu15 device] PASS cases=40 repeats=8 GVA/output-only/input-immutable; original-2%-gate=UNCHANGED")
+    print("[ppu15 device] PASS cases=47 repeats=8 GVA/output-only/input-immutable; original-2%-gate=UNCHANGED; performance="+result["performance_status"])
 
 
 if __name__ == "__main__":
