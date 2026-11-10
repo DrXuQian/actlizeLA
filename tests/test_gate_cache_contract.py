@@ -29,12 +29,12 @@ class GateCacheContract(unittest.TestCase):
     def test_missing_candidate_fails_instead_of_falling_back(self):
         tensors=[Mock() for _ in range(5)]
         with patch.object(api,"_backend",return_value=SimpleNamespace(residual=Mock())):
-            with self.assertRaises(AttributeError):
+            with self.assertRaisesRegex(RuntimeError, "selected backend has no residual_gate_cache"):
                 api.gdn_chunk_residual(*tensors,delivery="gate-cache")
 
-    def test_runner_keeps_site_acu_and_raw_bit_admission(self):
+    def test_runner_keeps_path_acu_and_raw_bit_admission(self):
         text=(ROOT/"tools/run_ppu_residual_delivery_acu_box.sh").read_text()
-        self.assertIn("/sim/eec/shared/junfu.qx/asight/bin/acu",text)
+        self.assertIn('${ACU:-acu}',text)
         self.assertIn('CANDIDATE" == residual-gate-cache',text)
         self.assertIn("l033_wy_gate_cache",text)
         self.assertIn("check_gate_cache.py",text)

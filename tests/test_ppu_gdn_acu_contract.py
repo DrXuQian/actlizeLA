@@ -343,6 +343,13 @@ class ACUContract(unittest.TestCase):
         cls.root = Path("/workspace") / f"gdn-acu-contract-{uuid4().hex}"
         cls.root.mkdir()
 
+    def setUp(self):
+        # subject_call sets a diagnostic extension; do not leak it into later
+        # public-default collector tests in the same pytest process.
+        environment = patch.dict(os.environ, {}, clear=False)
+        environment.start()
+        self.addCleanup(environment.stop)
+
     def directory(self):
         directory = self.root / self._testMethodName
         directory.mkdir()
@@ -368,30 +375,26 @@ class ACUContract(unittest.TestCase):
         fla["role"] = "fla"
         return ours, fla
 
-    def test_site_acu_outranks_sdk_and_path(self):
+    def test_path_acu_selected_without_sdk_fallback(self):
         directory = self.directory()
         sdk = directory / "sdk"
         matched = sdk / "asight/bin/acu"
         matched.parent.mkdir(parents=True)
         matched.write_text("synthetic executable identity only\n")
         matched.chmod(0o755)
-        site = Path("/sim/eec/shared/junfu.qx/asight/bin/acu")
+        selected = directory / "path-acu"
         with patch.dict(os.environ, {}, clear=True), \
-                patch.object(collect.shutil, "which", return_value=str(directory / "older-acu")), \
+                patch.object(collect.shutil, "which", return_value=str(selected)), \
                 patch.object(Path, "is_file", return_value=True), \
                 patch.object(collect.os, "access", return_value=True):
-            self.assertEqual(collect.find_acu(), site)
+            self.assertEqual(collect.find_acu(), selected)
             self.assertNotEqual(collect.find_acu(), matched)
 
-    def test_missing_site_acu_does_not_fall_back_to_sdk_or_path(self):
-        site = Path("/sim/eec/shared/junfu.qx/asight/bin/acu")
+    def test_missing_path_acu_does_not_guess_site_or_sdk(self):
         with patch.dict(os.environ, {}, clear=True), \
-                patch.object(collect.shutil, "which", return_value="/sdk/asight/bin/acu"), \
-                patch.object(Path, "is_file", side_effect=lambda p: p != site, autospec=True), \
-                patch.object(collect.os, "access", return_value=True):
-            self.assertFalse(site.is_file())
-            self.assertTrue(Path("/sdk/asight/bin/acu").is_file())
-            self.assertEqual(collect.find_acu(), site)
+                patch.object(collect.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(FileNotFoundError, "not found on PATH"):
+                collect.find_acu()
 
     def test_explicit_acu_is_not_silently_replaced(self):
         directory = self.directory()

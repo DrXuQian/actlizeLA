@@ -21,7 +21,7 @@ import traceback
 from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ACU = Path("/sim/eec/shared/junfu.qx/asight/bin/acu")
+DEFAULT_ACU = Path("acu")
 sys.path.insert(0, str(ROOT))
 from actlize_la.gdn_wy_interface import DELIVERIES
 from actlize_la.gdn_residual_interface import PROFILE_VARIANTS, RESIDUAL_VARIANTS, RESIDUAL_CONTROLS, MATH_CONTRACT, WY_MATH_CONTRACT
@@ -346,13 +346,19 @@ def pack(bundle, status):
     return archive
 
 
+def resolve_acu(selected):
+    """Resolve a command through the caller's PATH; never guess another SDK."""
+    name = os.fspath(selected)
+    if "/" not in name:
+        found = shutil.which(name)
+        if found is None:
+            raise FileNotFoundError(f"ACU command not found on PATH: {name}")
+        name = found
+    return Path(name).resolve()
+
+
 def find_acu():
-    if os.environ.get("ACU"):
-        return Path(os.environ["ACU"]).resolve()
-    # Operator-selected site profiler (2026-09-24). Tool selection is not
-    # capability discovery: a missing executable must fail at admission,
-    # never silently choose the SDK or PATH version instead.
-    return DEFAULT_ACU
+    return resolve_acu(os.environ.get("ACU") or DEFAULT_ACU)
 
 
 def validate_backend_source_snapshot(root):

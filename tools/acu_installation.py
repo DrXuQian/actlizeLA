@@ -7,12 +7,12 @@ import os
 from pathlib import Path
 import sys
 
-from collect_ppu_gdn_acu import DEFAULT_ACU, run, sha
+from collect_ppu_gdn_acu import DEFAULT_ACU, resolve_acu, run, sha
 
 
 def profiler_layout(acu):
     """Bind executable and unchanged sections to the same resolved installation."""
-    executable = Path(acu).resolve(strict=True)
+    executable = resolve_acu(acu).resolve(strict=True)
     home = executable.parent.parent
     sections = home / "sections"
     files = sorted(sections.glob("*.section"))

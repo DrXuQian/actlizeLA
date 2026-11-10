@@ -5,7 +5,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHA="$(git -C "$ROOT" rev-parse --short HEAD)"
 RUN="${OUT:-/workspace/gdn-residual-${SHA}-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 PPU_SDK_ROOT="${PPU_SDK:-${PPU_SDK_ROOT:-/usr/local/PPU_SDK}}"
-ACU="${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
+if ! ACU="$(command -v -- "${ACU:-acu}")"; then
+  echo "[residual ACU] FAIL: selected ACU is not executable/on PATH" >&2
+  exit 2
+fi
 if [[ -e "$RUN" || ! -x "$ACU" ]]; then
   echo "[residual ACU] FAIL: require fresh OUT=$RUN and executable ACU=$ACU" >&2
   exit 1

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package native instructions/counters from EXISTING reports using the capture CLI.
+"""Package native instructions/counters from EXISTING reports using PATH's acu.
 
 The box path needs no acu_report Python API, SDK change, build or GPU execution.
 """
@@ -17,7 +17,7 @@ import subprocess
 import sys
 import tarfile
 
-from acu_installation import profiler_layout
+from acu_installation import check_profiler, profiler_layout
 from collect_ppu_gdn_acu import DEFAULT_ACU, report_file, sha
 from collect_serving_prefill_acu import parse_raw
 from gdn_kda_contract import cells, complete, instruction_rows, inventory, roles, summarize, validate_receipt
@@ -196,7 +196,7 @@ def main():
     if not out.is_relative_to(Path("/workspace")) or out == Path("/workspace"):
         p.error("use a new dedicated /workspace output directory")
     out.mkdir(parents=True, exist_ok=False)
-    status = dict(status="INCOMPLETE", created_utc=stamp, exports=[], errors=[], backend="capture-cli-stats-rule",
+    status = dict(status="INCOMPLETE", created_utc=stamp, exports=[], errors=[], backend="offline-cli-stats-rule",
                   scope="offline opcode/PC/traffic evidence; no compilation, device query or GPU launch",
                   selection="all four geometries, g=-0.1, repeat0, all three roles; not fastest selection",
                   count_scope="source PC warp executions; do not equate to aggregate Executed Instructions",
@@ -208,16 +208,24 @@ def main():
         summary = json.loads(source.read_text())
         selected = select_reports(summary)
         layout = profiler_layout(a.acu)
-        if layout != summary["profiler"]:
-            raise ValueError("selected ACU installation changed since capture; use the recorded installation")
+        captured = summary["profiler"]
         status.update(source_run=str(a.run.resolve()), source_summary_sha256=sha(source),
-                      captured_source_sha=summary["source_sha"], candidate=summary["candidate"], profiler=layout,
+                      captured_source_sha=summary["source_sha"], candidate=summary["candidate"],
+                      capture_profiler=captured, reader_profiler=layout, reader_matches_capture=(layout == captured),
+                      reader_scope="offline decoding only; original timings/counters must match; "
+                                   "reader-specific PC diagnostics are not mixed with capture-reader diagnostics",
                       exporter_files={n: sha(ROOT / "tools" / n) for n in
-                                      ("export_gdn_kda_details.py", "acu_work_rule.py", "gdn_kda_contract.py", "acu_installation.py")})
+                                      ("export_gdn_kda_details.py", "acu_work_rule.py", "gdn_kda_contract.py",
+                                       "acu_installation.py", "collect_ppu_gdn_acu.py")})
         (out / "captured-summary.json").write_bytes(source.read_bytes())
-        status["instruction_metric_id"] = instruction_metric_id(layout)
+        # Read the original section's counter binding; do NOT execute its CLI.
+        status["instruction_metric_id"] = instruction_metric_id(captured)
         prefix = [layout["executable"], "--section-folder", layout["sections"]]
         env = dict(os.environ, ASIGHT_HOME=layout["home"])
+        print(f"[GDN work export] reader={layout['executable']} "
+              f"sha256={layout['executable_sha256']} capture={captured['executable']} "
+              f"same_reader={int(layout == captured)}; device_execution=NONE", flush=True)
+        check_profiler(layout, env, prefix, out)
         for item in selected:
             cell, role, repeat = item["cell"], item["role"], item["repeat"]
             stem = f"{role}-{repeat}"
@@ -254,7 +262,7 @@ def main():
                 files={str(path.relative_to(out)): sha(path) for path in pages.values()},
                 report_sha256=item["capture"]["report_sha256"], actions=native))
         if profiler_layout(a.acu) != layout or sha(source) != status["source_summary_sha256"]:
-            raise ValueError("capture manifest or ACU installation changed")
+            raise ValueError("capture manifest or offline ACU reader changed")
         if any(sha(ROOT / "tools" / name) != digest for name, digest in status["exporter_files"].items()):
             raise ValueError("exporter or native rule changed during export")
         if len(status["exports"]) != 12:

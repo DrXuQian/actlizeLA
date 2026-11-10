@@ -117,11 +117,11 @@ on box and require actual native PC/count coverage. After pulling this branch:
 ```bash
 python tools/export_gdn_kda_details.py \
   --run /workspace/actlize-la-gdn-solve-tf32x1-20261109T224926Z-2748938 \
-  --acu /sim/eec/shared/junfu.qx/asight/bin/acu
+  --acu acu
 ```
 
 No compilation, device query, warmup or GPU launch. The script invokes the
-**same captured ACU CLI with `--import`**, verifies the original report hash,
+**`acu` resolved through the caller's PATH, with `--import`**, verifies the original report hash,
 and exports raw/details metrics plus an embedded `--stats-rule` native table
 for all kernels in repeat0 of four geometries
 at g=-0.1 for default/candidate/FLA (12 reports). Fixed repeat0 is diagnostic
@@ -134,6 +134,13 @@ a separate completion denominator only after all actions have been exported:
 old ACU can return rc0 even when a rule fails halfway. Missing optional fields
 stay blank, not synthetic zero. No external Python ACU API is required on box;
 the rule uses the CLI's embedded `HgRules`, without importing torch or json/gzip.
+The original `capture_profiler` is preserved separately from `reader_profiler`;
+the latter's resolved executable, sections, hashes and version are recorded.
+Each reader uses its own sections/ASIGHT_HOME. A different offline reader is
+allowed, but different original kernel counts, timings or aggregate instruction
+counts remain failures. Counter selection still comes from the original
+hash-bound capture section, not a new reader's preferred metric. Per-PC
+diagnostics are reader-scoped and must not be mixed across reader versions.
 
 The new `/workspace/actlize-la-gdn-work-details-*/results.tar.gz` contains
 compressed text: raw/details metric tables, native PC instructions/execution
@@ -148,8 +155,8 @@ native instructions, function IDs, warp/thread execution counts and live
 registers, plus all symbols/geometries/durations/aggregate instruction counts.
 Total PC warp executions are1,964,224; the distinct aggregate instruction
 counter sums to1,975,040. Those denominators must not be merged.
-This validates these readers on this report, **not the site's older v2.0.0
-reader**, GDN device performance, or the as-yet-unreturned GDN PC export.
+This validates these readers on this report, **not GDN device performance**
+or the as-yet-unreturned GDN PC export.
 Testing uses isolated matching userspace; no system runtime was replaced.
 Host negatives cover changed report hash, missing cells/roles/repeats/kernels,
 changed symbol/grid/duration/unit, empty SASS, absent execution counts and
@@ -189,7 +196,7 @@ This is not a renamed source column. Our newer-CLI test did not establish
 old-CLI source-page capability; treating that test as sufficient was an error.
 No new GDN opcode evidence or speed verdict follows from either failed export.
 
-The default now uses `tools/acu_work_rule.py` through the **same** capture CLI's
+The second attempted fix used `tools/acu_work_rule.py` through the capture CLI's
 `--stats-rule` interface, not `--page source`. The rule retains every action
 (including FLA fills) and helper PC. Its function IDs are native IDs, not the
 new source page's ordinal namespace. A repeated metric table cannot pass as
@@ -204,5 +211,22 @@ blank. General stall fields and the required instruction/count/register fields
 agree. Preserve capture-reader identity and raw diagnostics; neither absent
 fields nor zero samples establish zero latency. This is one more reason not
 to silently substitute a newer reader and mix its stall evidence into the
-old capture's tables. The exact site v2.0.0 rule run still requires the user's
-offline confirmation; failure must remain INCOMPLETE, never a device PASS.
+old capture's tables.
+
+### Tool-selection correction: use PATH's acu, not the old capture executable
+
+The returned d1f0039 invocation conclusively rejects `--stats-rule` on the
+hard-coded site v2.0.0 executable (rc1). The user clarified that **PATH's `acu`
+is the newer version, supports this interface, and must be used instead**.
+Do not keep trying native export options on the old CLI, install a replacement
+SDK, or require uploading large reports. The active exporters/runners now
+default to PATH's acu, with explicit overrides still honored. The native rule
+itself is unchanged. This correction changes tool selection, not GDN kernels.
+
+The old equality check tying the offline reader to the capture executable has
+been replaced by separate capture/reader provenance. The actual report and
+original values remain immutable. Host tests run the complete12-report export
+against a distinct reader, retain original identities, and plant one changed
+instruction count to ensure that different-reader support does not weaken
+the evidence check. PATH symlinks resolve to the actual executable's companion
+sections; a cwd file named acu or missing PATH entry cannot silently substitute.

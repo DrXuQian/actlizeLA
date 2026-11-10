@@ -1,16 +1,19 @@
 # GDN versus FLA: one-command counter bundle
 
-## Profiler selection (2026-09-24)
+## Profiler selection (2026-11-10)
 
-All new box captures default to the operator-requested
-`/sim/eec/shared/junfu.qx/asight/bin/acu`, independent of the compiler SDK
-and PATH. If it is missing or not executable, capture fails; there is no
-automatic fallback or retry with a different ACU. An explicit `ACU` override
+All new box captures default to the operator-requested **`acu` on PATH**.
+Resolve the executable and use its own companion sections, not an inherited
+`ASIGHT_HOME`. If it is missing, capture fails; there is no automatic SDK
+fallback or retry with a different ACU. An explicit `ACU` override
 is retained for deliberate tool comparisons. The actual path, binary hash,
 version and loaded profiler libraries remain part of every bundle.
 
-This selection supersedes the earlier SDK-first discovery rule below. It
-does not rewrite the identity or numerical provenance of existing reports.
+This supersedes the old fixed-site path and earlier SDK-first discovery rules.
+It does not rewrite existing capture provenance: an offline reader may differ,
+but records its identity separately and checks the original values/report hash.
+Historical commands/receipts below retain their original tool identity; use
+`ACU=acu` for new runs rather than copying those old absolute tool paths.
 
 ## Current state-pipeline result
 
@@ -276,7 +279,7 @@ DEVICE=0 JOBS=16 bash tools/run_ppu_gdn_fla_acu_box.sh
 
 Use the same physical `DEVICE` as the preceding latency comparison. The
 default SDK is `/usr/local/PPU_SDK`; override `PPU_SDK` only if needed. ACU is
-fixed by default to `/sim/eec/shared/junfu.qx/asight/bin/acu`;
+resolved by default from `acu` on PATH;
 `ACU=/absolute/path/to/acu` explicitly overrides that choice. Installed FLA is
 used by default; optional `FLA_ROOT` selects an existing checkout. No clone,
 pip install, SSH, clock setting, or mandatory identity form is involved.

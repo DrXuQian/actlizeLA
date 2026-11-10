@@ -398,10 +398,10 @@ def test_inherited_experiment_overrides_are_red(name):
         collector.reference_environment({name: "1"})
 
 
-def test_runner_is_box_only_isolated_and_uses_site_profiler():
+def test_runner_is_box_only_isolated_and_uses_path_profiler():
     shell = (ROOT / "tools/run_ppu_gdn_threeway_box.sh").read_text()
     code = (ROOT / "tools/collect_gdn_threeway_acu.py").read_text()
-    assert "/sim/eec/shared/junfu.qx/asight/bin/acu" in shell
+    assert '${ACU:-acu}' in shell
     assert "mktemp" not in shell and "/tmp/" not in shell + code
     assert '"setup.py", "build"' in code and '"pip"' not in code
     assert "read_inputs(args.input_run)" in code

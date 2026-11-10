@@ -98,3 +98,26 @@ def test_builder_has_no_unbound_version_probe():
     builder = (ROOT / "tools/run_ppu10_gdn_tuning_box.sh").read_text()
     assert '"$ACU" --version' not in builder
     assert builder.index("tools/acu_installation.py") < builder.index("cmake -S")
+
+
+def test_bare_acu_resolves_path_and_real_symlink_home_not_cwd_or_foreign_sdk(tmp_path, monkeypatch):
+    tool, _ = fake_acu(tmp_path)
+    path_bin = tmp_path / "path-bin"
+    path_bin.mkdir()
+    (path_bin / "acu").symlink_to(tool)
+    (tmp_path / "acu").write_text("must not execute cwd/acu")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PATH", str(path_bin))
+    monkeypatch.setenv("ASIGHT_HOME", "/foreign-sdk/asight")
+    layout, env, command = acu.bind_profiler("acu", os.environ)
+    assert layout["executable"] == str(tool)
+    assert env["ASIGHT_HOME"] == str(tool.parent.parent)
+    assert command[0] == str(tool) and command[2] == str(tool.parent.parent / "sections")
+
+
+def test_bare_acu_absence_is_failure_not_cwd_fallback(tmp_path, monkeypatch):
+    (tmp_path / "acu").write_text("not on PATH")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PATH", str(tmp_path / "absent"))
+    with pytest.raises(FileNotFoundError, match="not found on PATH"):
+        acu.profiler_layout("acu")

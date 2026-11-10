@@ -13,8 +13,10 @@ export PYTHONPATH="$ROOT:$ROOT/tests:$ROOT/tools${PYTHONPATH:+:$PYTHONPATH}"
 export CUDA_VISIBLE_DEVICES="${DEVICE:-0}"
 SDK="${PPU_SDK:-${PPU_SDK_ROOT:-/usr/local/PPU_SDK}}"
 export LD_LIBRARY_PATH="$SDK/lib:$SDK/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-export ASIGHT_HOME=/sim/eec/shared/junfu.qx/asight
-ACU="$ASIGHT_HOME/bin/acu"
+ACU="$(command -v -- "${ACU:-acu}")"
+ACU="$(readlink -f -- "$ACU")"
+ASIGHT_HOME="$(dirname "$(dirname "$ACU")")"
+export ASIGHT_HOME
 if [[ -n "${INPUT_RUN:-}" ]]; then
   LIB="$($PYTHON -c 'import os; from collect_serving_prefill_acu import core_input_run; print(core_input_run(os.environ["INPUT_RUN"], int(os.environ.get("TOKENS", "2048")))["library"])')"
 else

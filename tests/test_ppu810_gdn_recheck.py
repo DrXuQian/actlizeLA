@@ -37,11 +37,11 @@ def test_invalid_route_name_and_unknown_shape():
         check.expected_route(2048, 64)
 
 
-def test_site_acu_and_complete_eight_cell_scope():
+def test_path_acu_and_complete_eight_cell_scope():
     runner = (ROOT / "tools/run_ppu810_gdn_recheck_box.sh").read_text()
     builder = (ROOT / "tools/run_ppu10_gdn_tuning_box.sh").read_text()
     for text in (runner, builder):
-        assert "/sim/eec/shared/junfu.qx/asight/bin/acu" in text
+        assert '${ACU:-acu}' in text
         assert '$SDK/asight/bin/acu' not in text
     assert '--batches 1 --lengths 2048 8192 --value-heads 32 48 --gates -0.1 -1.0' in runner
     assert '--manifest ' not in runner and '--no-confirm' not in runner

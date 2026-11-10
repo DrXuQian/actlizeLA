@@ -49,7 +49,7 @@ All three arms are measured again on the same physical ZW810. Historical
 latencies are not mixed with the new samples. The old numerical receipts,
 library hash, processed-input hashes and device/runtime must still match.
 
-Use only `/sim/eec/shared/junfu.qx/asight/bin/acu` and its companion sections,
+Use `acu` on PATH and its own companion sections,
 checked before building. Each profile process calls exactly one complete
 public core API, no device warmup/verification kernels. Sum **every captured
 kernel**, including FLA zero fills. Expected PLA inventory is cumsum + tc01

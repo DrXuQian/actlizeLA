@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 
@@ -443,3 +444,86 @@ def test_existing_native_evidence_is_not_overwritten(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="already exists"):
         exporter.export_rule(["acu"], Path("existing.acurep"), path, {}, kernels, counts, "captured_counter.sum")
     assert receipt.read_text() == "original identity"
+
+
+@pytest.mark.parametrize("changed_count", [False, True])
+def test_new_path_reader_keeps_capture_identity_and_counter_authority(tmp_path, monkeypatch, changed_count):
+    from acu_installation import profiler_layout
+    summary = summary_fixture()
+    summary.update(source_sha="a"*40, candidate={"sha256": "b"*64})
+    evidence = tmp_path / "run/evidence"
+    evidence.mkdir(parents=True)
+    for label in ("capture", "reader"):
+        home = tmp_path / label
+        (home / "bin").mkdir(parents=True)
+        (home / "sections").mkdir()
+        tool = home / "bin/acu"
+        tool.write_text("synthetic transport; no device")
+        tool.chmod(0o755)
+        counter = "captured_counter.sum" if label == "capture" else "different_reader_counter.sum"
+        (home / "sections/InstructionStatistics.section").write_text(
+            'Header { Metrics { Label: "Executed Instructions" Name: "%s" } }' % counter)
+    capture_tool, reader_tool = (tmp_path / n / "bin/acu" for n in ("capture", "reader"))
+    summary["profiler"] = profiler_layout(capture_tool)
+    monkeypatch.setenv("PATH", str(reader_tool.parent))
+    monkeypatch.setenv("ASIGHT_HOME", str(capture_tool.parent.parent))
+    fields = ["ID", "Process ID", "Kernel Name", "Grid Size", "Block Size", "ppu__time_duration.sum", "captured_counter.sum"]
+    original = {}
+    for cell, record in summary["captures"].items():
+        directory = evidence / cell
+        directory.mkdir()
+        (directory / "admission.json").write_text("{}")
+        for role, captures in record["captures"].items():
+            report = directory / f"{role}-0.report.acurep"
+            report.write_bytes((cell + role).encode())
+            captures[0]["report_sha256"] = reader.sha(report)
+            rows = [{"ID": k["id"], "Process ID": "1", "Kernel Name": k["kernel"],
+                     "Grid Size": k["grid"], "Block Size": k["block"],
+                     "ppu__time_duration.sum": str(k["us"]*1000), "captured_counter.sum": "1234"}
+                    for k in captures[0]["kernels"]]
+            text = encode_csv(fields, rows)
+            (directory / f"{role}-0.csv").write_text(text)
+            (directory / f"{role}-0.json").write_text("{}")
+            original[str(report)] = (text, captures[0]["kernels"])
+    (evidence / "summary.json").write_text(json.dumps(summary))
+    monkeypatch.setattr(exporter, "validate_receipt", lambda *args: None)  # Tool binding test, not numeric admission.
+    out = Path("/workspace") / ("gdn-work-reader-test-" + uuid4().hex)
+    # Exercise the production output boundary even with pytest's default tmp_path.
+    monkeypatch.setattr(sys, "argv", ["export", "--run", str(evidence.parent), "--acu", "acu", "--out", str(out)])
+    commands = []
+    def run(command, **kwargs):
+        commands.append(command)
+        assert command[0] == str(reader_tool), "must never execute the old capture CLI"
+        assert kwargs["env"]["ASIGHT_HOME"] == str(reader_tool.parent.parent)
+        if "--import" not in command:
+            assert "--version" in command or "--list-sections" in command
+            kwargs["stdout"].write("synthetic reader identity\n")
+            return SimpleNamespace(returncode=0)
+        text, kernels = original[command[command.index("--import")+1]]
+        if "--stats-rule" not in command:
+            kwargs["stdout"].write(text)
+        else:
+            assert kwargs["env"]["ACTLIZE_ACU_INSTRUCTION_METRIC"] == "captured_counter.sum"
+            output = Path(command[command.index("--stats-rule-output")+1])
+            rows = [dict(zip(
+                ["Range Id", "Function Name", "Function Id", "Address", "Source", "Instructions Executed", "Thread Instructions Executed",
+                 "Kernel Name", "Kernel Mangled Name", "Grid Size", "Block Size", "Duration", "Duration Unit",
+                 "Instruction Metric", "Aggregate Instructions", "Instruction Unit"],
+                [k["id"], k["kernel"], "12345", "0x100", "s.wait 0x0", "10", "320", k["kernel"], "_Zfixture",
+                 k["grid"], k["block"], str(k["us"]*1000), "nsecond", "captured_counter.sum",
+                 "1235" if changed_count else "1234", "inst"])) for k in kernels]
+            output.write_text(encode_csv(list(rows[0]), rows))
+            Path(str(output) + ".complete").write_text(f"{len(kernels)},{len(kernels)}\n")
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(exporter.subprocess, "run", run)
+    assert exporter.main() == (1 if changed_count else 0)
+    result = json.loads((out / "summary.json").read_text())
+    assert result["capture_profiler"] == summary["profiler"]
+    assert result["reader_profiler"] == profiler_layout(reader_tool)
+    assert result["reader_matches_capture"] is False
+    assert result["instruction_metric_id"] == "captured_counter.sum"
+    assert json.loads((out / "captured-summary.json").read_text()) == summary
+    if changed_count:
+        assert result["status"] == "INCOMPLETE" and "instruction count" in result["errors"][0]
+    else:
+        assert result["status"] == "OFFLINE_EXPORTED" and len(result["exports"]) == 12

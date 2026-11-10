@@ -85,7 +85,7 @@ bash tools/run_ppu_serving_prefill_acu_box.sh \
   --value-heads 32 48 --gates -0.1 -1.0
 ```
 
-Uses `/sim/eec/shared/junfu.qx/asight/bin/acu`, the existing working FLA/Triton
+Uses `acu` on PATH, the existing working FLA/Triton
 installation, `DEVICE` (default0), and the matching `PPU_SDK`. Set `FLA_ROOT`
 only if using a checkout instead of the installed FLA. No package installation,
 clock change, remote compilation or model data is performed by this script.

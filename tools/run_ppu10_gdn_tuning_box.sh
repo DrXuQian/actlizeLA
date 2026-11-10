@@ -4,7 +4,7 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK="${PPU_SDK:?请指定匹配Torch CUDA版本的真实PPU_SDK}"
-ACU="${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
+ACU="$(command -v -- "${ACU:-acu}")"
 DEVICE="${DEVICE:-0}"
 PHASE="${MATRIX_PHASE:-1}"
 OUT="${OUT:-/workspace/actlize-la-gdn-box-$(date -u +%Y%m%dT%H%M%SZ)-$$}"

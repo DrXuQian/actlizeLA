@@ -5,7 +5,8 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PPU_SDK="${PPU_SDK:-${PPU_SDK_ROOT:-/usr/local/PPU_SDK}}"
 export DEVICE="${DEVICE:-0}" PYTHON="${PYTHON:-python3}"
-export ACU="${ACU:-/sim/eec/shared/junfu.qx/asight/bin/acu}"
+ACU="$(command -v -- "${ACU:-acu}")"
+export ACU
 export CUDA_VISIBLE_DEVICES="$DEVICE" PYTHONUNBUFFERED=1
 export PYTHONPATH="$ROOT:$ROOT/tests:$ROOT/tools${FLA_ROOT:+:$FLA_ROOT}${PYTHONPATH:+:$PYTHONPATH}"
 export PATH="$PPU_SDK/CUDA_SDK/bin:$PPU_SDK/bin:$PATH"
