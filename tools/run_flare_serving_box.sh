@@ -54,7 +54,7 @@ case "$TARGET" in
       exit 2
     fi
     export LD_LIBRARY_PATH="$SDK/lib:$SDK/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    "$SDK/bin/hgcc" --version | tee -a "$OUT/identity.txt"
+    "$PYTHON" "$ROOT/tools/hgcc_identity.py" --compiler "$SDK/bin/hgcc" 2>&1 | tee -a "$OUT/identity.txt"
     "$PYTHON" -m actlize_la.serving.device --target "$TARGET" 2>&1 | tee -a "$OUT/identity.txt"
     cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET="$TARGET" \
       -DPPU_SDK_ROOT="$SDK" -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1

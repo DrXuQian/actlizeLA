@@ -408,7 +408,8 @@ def collect(args, bundle, env):
               f"sdk_bundled={int(status['acu_identity']['sdk_bundled'])}", flush=True)
         status["probes"]["acu-version"] = run([args.acu, "--version"], bundle / "acu-version.txt", env)
         for name, command in (("acu-help", [args.acu, "--help"]),
-                              ("hgcc-version", [args.sdk / "bin/hgcc", "--version"]),
+                              ("hgcc-version", [sys.executable, ROOT / "tools/hgcc_identity.py",
+                                                "--compiler", args.sdk / "bin/hgcc"]),
                               ("host", ["uname", "-a"])):
             status["probes"][name] = run(command, bundle / f"{name}.txt", env,
                                           optional=True, console=False, timeout=20)

@@ -47,7 +47,7 @@ else
     echo "ERROR: missing $SDK/bin/hgcc; set PPU_SDK to the matching SDK" >&2
     exit 2
   fi
-  "$SDK/bin/hgcc" --version | tee -a "$OUT/identity.log"
+  "$PYTHON" "$ROOT/tools/hgcc_identity.py" --compiler "$SDK/bin/hgcc" 2>&1 | tee -a "$OUT/identity.log"
   cmake -S "$ROOT" -B "$OUT/build" -DGDN_QSA_TARGET=ppu10 \
     -DPPU_SDK_ROOT="$SDK" -DPython3_EXECUTABLE="$(command -v "$PYTHON")" \
     -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \

@@ -18,6 +18,9 @@ import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.hgcc_identity import compiler_identity
+
 CHECK_FILES = runpy.run_path(str(ROOT / "tools/serving_qualification.py"))["CHECK_FILES"]
 
 
@@ -127,8 +130,10 @@ def main():
             raise ValueError("PPU build requires --sdk; no implicit runtime fallback")
         sdk = args.sdk.resolve(strict=True)
         compiler = sdk / "bin/hgcc"
+        toolchain = compiler_identity(compiler)
         compatibility.update(
-            compiler_version=command(compiler, "--version"),
+            compiler_version=toolchain["version"],
+            compiler_identity=toolchain,
             sdk_release=(sdk / "release.yaml").read_text().strip(),
             sdk_runtime=(sdk / "VERSION.txt").read_text().strip(),
             runtime_policy="use the matching platform SDK/driver, never a wheel-bundled runtime",

@@ -40,7 +40,7 @@ git -C "$ROOT" submodule update --init third_party/actlize
 git -C "$ROOT" rev-parse HEAD > "$OUT/sha.txt"
 git -C "$ROOT" diff --binary > "$OUT/source.diff"
 git -C "$ROOT" submodule status third_party/actlize > "$OUT/actlize.txt"
-"$SDK/bin/hgcc" --version > "$OUT/hgcc.txt"
+"$PYTHON" "$ROOT/tools/hgcc_identity.py" --compiler "$SDK/bin/hgcc" > "$OUT/hgcc.txt" 2>&1
 PPU_SDK="$SDK" BUILD_DIR="$OUT/build" PYTHON="$PYTHON" JOBS="${JOBS:-8}" \
   bash "$ROOT/scripts/build_ppu15.sh" 2>&1 | tee "$OUT/build.log"
 shopt -s nullglob

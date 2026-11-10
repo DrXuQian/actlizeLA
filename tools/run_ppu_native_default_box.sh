@@ -32,7 +32,7 @@ export LD_LIBRARY_PATH="$SDK/lib:$SDK/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 # A supplied locally built LIB is executed as-is, never silently rebuilt.
 if [[ -z "${LIB:-}" ]]; then
   test -x "$SDK/bin/hgcc"
-  "$SDK/bin/hgcc" --version >>"$OUT/identity.log"
+  "$PYTHON" "$ROOT/tools/hgcc_identity.py" --compiler "$SDK/bin/hgcc" >>"$OUT/identity.log" 2>&1
   cmake -S "$ROOT/csrc/serving" -B "$OUT/build" -DALA_TARGET=ppu10 \
     -DPPU_SDK_ROOT="$SDK" -DALA_BUILD_SERVING_EXAMPLE=OFF \
     -DCMAKE_BUILD_TYPE=Release >"$OUT/build.log" 2>&1
