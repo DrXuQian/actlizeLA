@@ -18,7 +18,7 @@ finish() {
   local rc=$? name
   trap - EXIT
   local files=()
-  for name in sha.txt source.diff actlize.txt hgcc.txt identity.log binaries.sha256 \
+  for name in sha.txt source.diff actlize.txt hgcc.txt runtime.txt identity.log binaries.sha256 \
       build.log primitives.log device.log device.json build/native; do
     if [[ -e "$OUT/$name" ]]; then files+=("$name"); fi
   done
@@ -33,11 +33,17 @@ finish() {
 }
 trap finish EXIT
 export CUDA_VISIBLE_DEVICES="${DEVICE:-${CUDA_VISIBLE_DEVICES:-0}}"
-export LD_LIBRARY_PATH="$SDK/lib:$SDK/CUDA_SDK/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# HGGC objects need this SDK's PPU runtime. Keep the container's paired CUDA
+# facade for Torch: injecting CUDA_SDK/lib64 can break cudaGetDeviceProperties_v2
+# before any GDN kernel is loaded. Compiler paths are not runtime overrides.
+export LD_LIBRARY_PATH="$SDK/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+git -C "$ROOT" rev-parse HEAD > "$OUT/sha.txt"
+printf 'compile_sdk=%s\ncuda_facade=CONTAINER_ENV\nLD_LIBRARY_PATH=%s\n' \
+  "$SDK" "$LD_LIBRARY_PATH" > "$OUT/runtime.txt"
+echo "[ppu15 box] stage=device-identity sdk=$SDK cuda_facade=CONTAINER_ENV"
 "$PYTHON" -m actlize_la.serving.device --target ppu15 2>&1 | tee "$OUT/identity.log"
 git -C "$ROOT" submodule update --init third_party/actlize
-git -C "$ROOT" rev-parse HEAD > "$OUT/sha.txt"
 git -C "$ROOT" diff --binary > "$OUT/source.diff"
 git -C "$ROOT" submodule status third_party/actlize > "$OUT/actlize.txt"
 "$PYTHON" "$ROOT/tools/hgcc_identity.py" --compiler "$SDK/bin/hgcc" > "$OUT/hgcc.txt" 2>&1
