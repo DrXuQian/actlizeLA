@@ -84,9 +84,11 @@ PPU_SDK=/usr/local/PPU_SDK DEVICE=0 JOBS=8 bash tools/run_ppu15_gdn_box.sh
 
 Then set `GDN_QSA_PPU15_EXTENSION` to the printed `_gdn_residual_ppu15*.so` and
 call `gdn_forward(..., backend="ppu15")`. There is no PPU1.0 binary fallback.
-Native bodies and host layouts are locally checked; **ZW890 numerical and
-performance admission is pending device execution**. The runner tests native
-primitive maps first, then 40 forward cases, then complete-forward timing.
+Native bodies and host layouts are locally checked. **ZW890 correctness has a
+user-reported PASS (2026-11-11)**; the returned source/binary receipt has not yet
+been independently checked. The runner tests native primitive maps first,
+then 47 forward cases. The reported run used `NO_PERF=1`, so performance was
+not measured; omit that option to collect complete-forward timing.
 See [ZW890 support and scope](docs/PPU15_ZW890.md).
 
 PPU1.0 uses native actlize AIU and paired shared-memory readers, not emulated
