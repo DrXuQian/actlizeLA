@@ -132,6 +132,9 @@ Plain source/host-only installs remain distinct and do not claim native support.
 The PPU1.0 public default now uses this same packaged retained library; a separate
 legacy `_gdn_wy_ppu.so` is not required. For caller-owned processed QKV/log-g/beta,
 use `PreparedGDNCore`; raw logits and VK slot pools use `PreparedGDN` instead.
+The PPU1.0 raw prefill entry includes token-parallel helpers and bounded H1
+direct packing; see [transport scope and validation](docs/PPU10_PREFILL_TRANSPORT.md).
+Rebuild the native library to use it; old wheels and PPU1.5 are unchanged.
 
 `actlize_la.serving` adds caller-owned GDN decode/verify/prefix commit, native
 PPU1.0/PPU1.5 residual prefill with explicit state-layout conversion, and paged incremental

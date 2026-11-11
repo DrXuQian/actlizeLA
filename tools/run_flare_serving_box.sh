@@ -19,7 +19,7 @@ finish() {
   # Small handoff: logs/results/identity only, not the build tree or caches.
   local files=()
   local name
-  for name in identity.txt build.log host-tests.log device-tests.log results.json aux-device.log aux-results.json native-graph.log binary.json; do
+  for name in identity.txt build.log host-tests.log device-tests.log results.json aux-device.log aux-results.json native-graph.log binary.json transport-device.log transport-results.json; do
     if [[ -f "$OUT/$name" ]]; then files+=("$name"); fi
   done
   if ((${#files[@]})); then tar -C "$OUT" -czf "$OUT/results.tar.gz" -- "${files[@]}"; fi
@@ -74,9 +74,14 @@ sha256sum "$LIB" | tee -a "$OUT/identity.txt"
   --source-sha "$SHA" --output "$OUT/binary.json" | tee -a "$OUT/identity.txt"
 ALA_SERVING_TEST_LIBRARY="$LIB" "$PYTHON" -m pytest -q "$ROOT/tests/test_serving_contract.py" "$ROOT/tests/test_aux_contract.py" \
   "$ROOT/tests/test_ppu10_prefill_contract.py" "$ROOT/tests/test_checked_gdn_contract.py" \
+  "$ROOT/tests/test_prefill_transport_contract.py" \
   2>&1 | tee "$OUT/host-tests.log"
 "$PYTHON" "$ROOT/tests/serving_device.py" --target "$TARGET" --library "$LIB" \
   --results "$OUT/results.json" 2>&1 | tee "$OUT/device-tests.log"
 "$PYTHON" "$ROOT/tests/aux_device.py" --target "$TARGET" --library "$LIB" \
   --results "$OUT/aux-results.json" 2>&1 | tee "$OUT/aux-device.log"
+if [[ "$TARGET" == ppu10 ]]; then
+  "$PYTHON" "$ROOT/tests/prefill_transport_device.py" --library "$LIB" \
+    --results "$OUT/transport-results.json" 2>&1 | tee "$OUT/transport-device.log"
+fi
 "$OUT/build/actlize_la_native_graph" 2>&1 | tee "$OUT/native-graph.log"

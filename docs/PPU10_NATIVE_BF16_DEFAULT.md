@@ -20,11 +20,14 @@ The following all reach `actlize_la_ppu10_forward_prepared`:
 
 - `gdn_forward(..., backend="ppu10")` with the product serving library;
 - `PreparedGDNCore` on caller-owned processed tensors;
-- `PreparedGDN(mode="prefill")`, after its unchanged pack/gather helpers.
+- `PreparedGDN(mode="prefill")`, after its prepare/pack/gather transport.
 
 For serving, the policy uses the prepared request capacity and token width,
-not a CPU readback of the live-row count. Helpers, state-slot transposes and
-short/inactive-row masking are unchanged. Decode/verify/commit do not use
+not a CPU readback of the live-row count. The original native-BF16 promotion
+left helpers, state-slot transposes and short/inactive-row masking unchanged.
+The subsequent [transport integration](PPU10_PREFILL_TRANSPORT.md) adds
+token-parallel/H1 helpers without changing this core policy; it has a separate
+combined product device gate. Decode/verify/commit do not use
 this prefill core policy. Other shapes, tails and BF16 gates use the retained
 implementation; PPU1.5/1.7 and NVIDIA backends are unchanged.
 

@@ -39,6 +39,11 @@ The PPU1.0 adapter configures both full/tail state kernels and the static solve
 and output kernels during preparation. Replay launches the same retained device
 bodies, with external scratch and the caller's stream; no allocation, configure,
 device-profile query, synchronization or CPU readback occurs in that adapter.
+PPU1.0 prefill transport now distributes independent tokens across CTAs and,
+for six registered capacity geometries, fuses prepare and packing (H1).
+The core selector and incremental modes are unchanged. See
+[transport scope and product gate](PPU10_PREFILL_TRANSPORT.md); historical
+core/serving receipts do not replace this combined path's device gate.
 PPU1.0's public-default 36-case NUMERIC/RAW-BIT PASS is user-reported; it is not
 admission of this new serving pack/slot/graph path or a new speed measurement.
 The subsequent complete serving/auxiliary/native-graph suite at226355a was also
@@ -140,6 +145,8 @@ op()  # warm up before capture; state stays unchanged
 ```
 
 The complete runnable examples/fixtures are in `tests/serving_device.py`.
+`plan.transport_route` reports whether its loaded library uses direct packing;
+`tests/prefill_transport_device.py` checks that report against actual graphs.
 `actlize_la.serving.flare.bind_gdn` maps actual Flare metadata field names;
 `bind_gdn_commit` binds one layer's retained records. Sequential layers may
 share transient query/beta/native prefill scratch, but not outstanding
